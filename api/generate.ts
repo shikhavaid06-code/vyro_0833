@@ -1,4 +1,4 @@
-export default async function handler(req: any, res: any) {
+module.exports = async function handler(req, res) {
   try {
     if (req.method !== "POST") {
       return res.status(200).json({ message: "API is working" });
@@ -23,9 +23,6 @@ export default async function handler(req: any, res: any) {
 
     const data = await response.json();
 
-    // 🔴 IMPORTANT DEBUG
-    console.log("OpenAI response:", data);
-
     if (!response.ok) {
       return res.status(500).json({
         error: "OpenAI failed",
@@ -37,12 +34,9 @@ export default async function handler(req: any, res: any) {
       result: data.choices?.[0]?.message?.content || "No output",
     });
 
-  } catch (error: any) {
-    console.error("SERVER ERROR:", error);
-
+  } catch (error) {
     return res.status(500).json({
       error: "Server crashed",
-      message: error.message,
     });
   }
-}
+};
