@@ -1,10 +1,10 @@
 export default async function handler(req: any, res: any) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   try {
-    const { idea } = req.body;
+    if (req.method !== "POST") {
+      return res.status(200).json({ message: "API is working" });
+    }
+
+    const idea = req.body?.idea || "test idea";
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -15,25 +15,34 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          {
-            role: "system",
-            content: "You are a viral content creator.",
-          },
-          {
-            role: "user",
-            content: `Create a short engaging script about: ${idea}`,
-          },
+          { role: "system", content: "You are a helpful content creator." },
+          { role: "user", content: `Create a short script about: ${idea}` },
         ],
       }),
     });
 
     const data = await response.json();
 
-    const text = data?.choices?.[0]?.message?.content || "No response";
+    // 🔴 IMPORTANT DEBUG
+    console.log("OpenAI response:", data);
 
-    return res.status(200).json({ result: text });
+    if (!response.ok) {
+      return res.status(500).json({
+        error: "OpenAI failed",
+        details: data,
+      });
+    }
 
-  } catch (err) {
-    return res.status(500).json({ error: "Server error" });
+    return res.status(200).json({
+      result: data.choices?.[0]?.message?.content || "No output",
+    });
+
+  } catch (error: any) {
+    console.error("SERVER ERROR:", error);
+
+    return res.status(500).json({
+      error: "Server crashed",
+      message: error.message,
+    });
   }
 }
