@@ -6,6 +6,8 @@ module.exports = async function handler(req: any, res: any) {
 
     const idea = req.body?.idea || "test idea";
 
+    console.log("API KEY:", process.env.GEMINI_API_KEY ? "EXISTS" : "MISSING");
+
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -25,7 +27,18 @@ module.exports = async function handler(req: any, res: any) {
       }
     );
 
-    const data = await response.json();
+    const textRaw = await response.text(); // 👈 important
+    console.log("RAW RESPONSE:", textRaw);
+
+    let data;
+    try {
+      data = JSON.parse(textRaw);
+    } catch (e) {
+      return res.status(500).json({
+        error: "Invalid JSON from Gemini",
+        raw: textRaw,
+      });
+    }
 
     if (!response.ok) {
       return res.status(500).json({
@@ -35,24 +48,16 @@ module.exports = async function handler(req: any, res: any) {
     }
 
     const text =
-      data.candidates?.[0]?.content?.parts?.[0]?.text || "No output";
+      data?.candidates?.[0]?.content?.parts?.[0]?.text || "No output";
 
     return res.status(200).json({ result: text });
 
-  } catch (err) {
+  } catch (err: any) {
+    console.error("SERVER ERROR:", err);
+
     return res.status(500).json({
       error: "Server crashed",
+      message: err.message,
     });
-    // Example for a Vercel/Next.js API route (/api/generate)
-export default async function handler(req, res) {
-  try {
-    const { idea } = req.body;
-    // Your generation logic here...
-    res.status(200).json({ success: true, data: result });
-  } catch (error) {
-    console.error("API Error:", error); // This shows up in Vercel Logs
-    res.status(500).json({ error: "Failed to generate content", details: error.message });
-  }
-}
   }
 };
