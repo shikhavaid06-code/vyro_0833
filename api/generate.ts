@@ -43,5 +43,16 @@ module.exports = async function handler(req: any, res: any) {
     return res.status(500).json({
       error: "Server crashed",
     });
+    // Example for a Vercel/Next.js API route (/api/generate)
+export default async function handler(req, res) {
+  try {
+    const { idea } = req.body;
+    // Your generation logic here...
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error("API Error:", error); // This shows up in Vercel Logs
+    res.status(500).json({ error: "Failed to generate content", details: error.message });
+  }
+}
   }
 };
