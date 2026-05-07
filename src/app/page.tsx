@@ -1,5 +1,6 @@
-import { redirect } from 'next/navigation';
+"use client";
+import ChatAppLayout from "./components/ChatAppLayout";
 
-export default function RootPage() {
-  redirect('/marketing-landing-page');
+export default function MainAppChatInterfacePage() {
+  return <ChatAppLayout />;
 }
