@@ -135,8 +135,61 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   };
 
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
-    const userMsg: Message = {
+  if (!inputValue.trim()) return;
+
+  const userMsg: Message = {
+    id: `msg-${Date.now()}`,
+    role: "user",
+    type: "text",
+    content: inputValue.trim(),
+    timestamp: new Date().toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+  };
+
+  setMessages((prev) => [...prev, userMsg]);
+  const prompt = inputValue.trim();
+  setInputValue("");
+  setIsTyping(true);
+
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idea: prompt }),
+    });
+
+    const data = await res.json();
+    setIsTyping(false);
+
+    const aiMsg: Message = {
+      id: `msg-ai-${Date.now()}`,
+      role: "ai",
+      type: "text",
+      content: data.result || "Sorry, something went wrong. Try again!",
+      timestamp: new Date().toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+    };
+
+    setMessages((prev) => [...prev, aiMsg]);
+  } catch (err) {
+    setIsTyping(false);
+    const errMsg: Message = {
+      id: `msg-err-${Date.now()}`,
+      role: "ai",
+      type: "text",
+      content: "API error — check your Gemini key in Vercel settings.",
+      timestamp: new Date().toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+    };
+    setMessages((prev) => [...prev, errMsg]);
+  }
+};
       id: `msg-${Date.now()}`,
       role: 'user',
       type: 'text',
@@ -382,3 +435,8 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     </div>
   );
 }
+const handleNewChat = () => {
+  setMessages([]);
+  setInputValue("");
+  setIsTyping(false);
+};
