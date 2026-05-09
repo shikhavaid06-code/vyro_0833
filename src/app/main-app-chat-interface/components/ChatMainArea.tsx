@@ -67,53 +67,7 @@ interface Props {
 }
 
 export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatId }: Props) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'msg-001',
-      role: 'user',
-      type: 'text',
-      content: 'I want to make a video about AI tools that help students study smarter',
-      timestamp: '4:01 PM',
-    },
-    {
-      id: 'msg-002',
-      role: 'ai',
-      type: 'titles',
-      content: 'Great idea! Here are 6 high-performing titles for this topic. Each is optimized for YouTube click-through rate. Select the one that resonates most — I\'ll generate targeted hooks for it.',
-      data: MOCK_TITLES,
-      timestamp: '4:01 PM',
-    },
-    {
-      id: 'msg-003',
-      role: 'user',
-      type: 'text',
-      content: 'I like "5 AI Tools That Will Make You Study 10x Faster"',
-      timestamp: '4:02 PM',
-    },
-    {
-      id: 'msg-004',
-      role: 'ai',
-      type: 'hooks',
-      content: 'Excellent choice — that title has strong curiosity + number combination. Here are 3 hooks that pair perfectly with it. Pick the one that fits your opening energy:',
-      data: MOCK_HOOKS,
-      timestamp: '4:02 PM',
-    },
-    {
-      id: 'msg-005',
-      role: 'user',
-      type: 'text',
-      content: 'Use the first hook — "What if I told you..."',
-      timestamp: '4:03 PM',
-    },
-    {
-      id: 'msg-006',
-      role: 'ai',
-      type: 'script',
-      content: 'Here\'s your full 8-minute YouTube script, structured with timestamps, clear section breaks, and a strong CTA. You can edit any section directly or ask me to rewrite it.',
-      data: MOCK_SCRIPT,
-      timestamp: '4:03 PM',
-    },
-  ]);
+ const [messages, setMessages] = useState<Message[]>([]);}
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
