@@ -142,53 +142,91 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   };
 
   // ✅ FIX 2: Real Gemini API connection
-  const handleSend = async () => {
-    if (!inputValue.trim()) return;
+ const handleSend = async () => {
+  if (!inputValue.trim()) return;
 
-    const userMsg: Message = {
-      id: `msg-${Date.now()}`,
-      role: 'user',
-      type: 'text',
-      content: inputValue.trim(),
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-    };
+  const userMsg: Message = {
+    id: `msg-${Date.now()}`,
+    role: 'user',
+    type: 'text',
+    content: inputValue.trim(),
+    timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+  };
 
-    setMessages((prev) => [...prev, userMsg]);
-    const prompt = inputValue.trim();
-    setInputValue('');
-    setIsTyping(true);
+  setMessages((prev) => [...prev, userMsg]);
+  const prompt = inputValue.trim();
+  setInputValue('');
+  setIsTyping(true);
 
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea: prompt }),
-      });
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idea: prompt }),
+    });
 
-      const data = await res.json();
-      setIsTyping(false);
+    const data = await res.json();
+    setIsTyping(false);
 
-      const aiMsg: Message = {
+    // ✅ Handle titles
+    if (data.type === 'titles') {
+      setMessages((prev) => [...prev, {
         id: `msg-ai-${Date.now()}`,
         role: 'ai',
-        type: 'text',
-        content: data.result || 'Sorry, something went wrong. Try again!',
+        type: 'titles',
+        content: 'Here are 6 viral titles for your video. Pick the one you love!',
+        data: data.titles,
         timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-      };
-
-      setMessages((prev) => [...prev, aiMsg]);
-    } catch (err) {
-      setIsTyping(false);
-      const errMsg: Message = {
-        id: `msg-err-${Date.now()}`,
-        role: 'ai',
-        type: 'text',
-        content: 'API error — check your Gemini key in Vercel settings.',
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev, errMsg]);
+      }]);
+      return;
     }
-  };
+
+    // ✅ Handle hooks
+    if (data.type === 'hooks') {
+      setMessages((prev) => [...prev, {
+        id: `msg-ai-${Date.now()}`,
+        role: 'ai',
+        type: 'hooks',
+        content: 'Here are 3 powerful hooks. Pick the one that fits your energy!',
+        data: data.hooks,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      }]);
+      return;
+    }
+
+    // ✅ Handle script
+    if (data.type === 'script') {
+      setMessages((prev) => [...prev, {
+        id: `msg-ai-${Date.now()}`,
+        role: 'ai',
+        type: 'script',
+        content: 'Here is your full script! Edit any section or ask me to rewrite it.',
+        data: data.result,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      }]);
+      return;
+    }
+
+    // Fallback
+    setMessages((prev) => [...prev, {
+      id: `msg-ai-${Date.now()}`,
+      role: 'ai',
+      type: 'text',
+      content: data.result || 'Something went wrong, try again!',
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    }]);
+
+  } catch (err) {
+    setIsTyping(false);
+    setMessages((prev) => [...prev, {
+      id: `msg-err-${Date.now()}`,
+      role: 'ai',
+      type: 'text',
+      content: 'API error — check your Gemini key in Vercel settings.',
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    }]);
+  }
+};
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
