@@ -134,84 +134,60 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     );
   };
 
-  const handleSend = async () => {
-  if (!inputValue.trim()) return;
-
-  const userMsg: Message = {
-    id: `msg-${Date.now()}`,
-    role: "user",
-    type: "text",
-    content: inputValue.trim(),
-    timestamp: new Date().toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    }),
+  // ✅ FIX 3: New Chat button handler
+  const handleNewChat = () => {
+    setMessages([]);
+    setInputValue('');
+    setIsTyping(false);
   };
 
-  setMessages((prev) => [...prev, userMsg]);
-  const prompt = inputValue.trim();
-  setInputValue("");
-  setIsTyping(true);
+  // ✅ FIX 2: Real Gemini API connection
+  const handleSend = async () => {
+    if (!inputValue.trim()) return;
 
-  try {
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idea: prompt }),
-    });
-
-    const data = await res.json();
-    setIsTyping(false);
-
-    const aiMsg: Message = {
-      id: `msg-ai-${Date.now()}`,
-      role: "ai",
-      type: "text",
-      content: data.result || "Sorry, something went wrong. Try again!",
-      timestamp: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-    };
-
-    setMessages((prev) => [...prev, aiMsg]);
-  } catch (err) {
-    setIsTyping(false);
-    const errMsg: Message = {
-      id: `msg-err-${Date.now()}`,
-      role: "ai",
-      type: "text",
-      content: "API error — check your Gemini key in Vercel settings.",
-      timestamp: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-    };
-    setMessages((prev) => [...prev, errMsg]);
-  }
-};
+    const userMsg: Message = {
       id: `msg-${Date.now()}`,
       role: 'user',
       type: 'text',
       content: inputValue.trim(),
       timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
     };
+
     setMessages((prev) => [...prev, userMsg]);
+    const prompt = inputValue.trim();
     setInputValue('');
     setIsTyping(true);
 
-    // Backend integration point: POST /api/ai/generate
-    await new Promise((r) => setTimeout(r, 1800));
-    setIsTyping(false);
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idea: prompt }),
+      });
 
-    const aiMsg: Message = {
-      id: `msg-ai-${Date.now()}`,
-      role: 'ai',
-      type: 'text',
-      content: 'I\'ve noted that feedback. Let me regenerate with your adjustments — give me a moment.',
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-    };
-    setMessages((prev) => [...prev, aiMsg]);
+      const data = await res.json();
+      setIsTyping(false);
+
+      const aiMsg: Message = {
+        id: `msg-ai-${Date.now()}`,
+        role: 'ai',
+        type: 'text',
+        content: data.result || 'Sorry, something went wrong. Try again!',
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      };
+
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (err) {
+      setIsTyping(false);
+      const errMsg: Message = {
+        id: `msg-err-${Date.now()}`,
+        role: 'ai',
+        type: 'text',
+        content: 'API error — check your Gemini key in Vercel settings.',
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -241,6 +217,13 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         </div>
 
         <div className="flex items-center gap-2">
+          {/* ✅ FIX 3: New Chat button wired up */}
+          <button
+            onClick={handleNewChat}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all duration-200"
+          >
+            + New Chat
+          </button>
           <button
             onClick={() => setShowControls(!showControls)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
@@ -435,8 +418,3 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     </div>
   );
 }
-const handleNewChat = () => {
-  setMessages([]);
-  setInputValue("");
-  setIsTyping(false);
-};
