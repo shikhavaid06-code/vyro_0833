@@ -67,7 +67,7 @@ interface Props {
 }
 
 export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatId }: Props) {
- const [messages, setMessages] = useState<Message[]>([]);}
+ const [messages, setMessages] = useState<Message[]>([]);
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
