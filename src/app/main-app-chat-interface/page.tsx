@@ -1,4 +1,8 @@
 "use client";
+import ChatAppLayout from "./components/ChatAppLayout";
+export default function MainAppChatInterfacePage() {
+  return <ChatAppLayout />;
+}
 
 import React, { useState } from "react";
 import ChatAppLayout from "./components/ChatAppLayout";
