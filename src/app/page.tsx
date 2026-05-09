@@ -1,6 +1,9 @@
-"use client";
-import ChatAppLayout from "./components/ChatAppLayout";
+import Link from "next/link";
 
-export default function MainAppChatInterfacePage() {
-  return <ChatAppLayout />;
+export default function Home() {
+  return (
+    <main>
+      <Link href="/main-app-chat-interface">Go to Vyro</Link>
+    </main>
+  );
 }
