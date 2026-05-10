@@ -1,64 +1,68 @@
-import { NextRequest, NextResponse } from "next/server";
-
-async function callGemini(prompt: string, retries = 3): Promise<string> {
-  for (let i = 0; i < retries; i++) {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      }
-    );
-
-    if (response.status === 503) {
-      await new Promise((r) => setTimeout(r, 1000));
-      continue;
-    }
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error("Gemini error:", JSON.stringify(data));
-      throw new Error(JSON.stringify(data));
-    }
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text || "No output";
-  }
-  throw new Error("Gemini overloaded after retries");
-}
-
-function detectIntent(idea: string): "titles" | "hooks" | "script" {
-  const lower = idea.toLowerCase();
-
-  if (
-    lower.includes("title") ||
-    lower.includes("heading") ||
-    lower.includes("name my video") ||
-    lower.includes("video idea")
-  ) return "titles";
-
-  if (
-    lower.includes("hook") ||
-    lower.includes("opening") ||
-    lower.includes("intro line") ||
-    lower.includes("attention")
-  ) return "hooks";
-
-  if (idea.trim().split(" ").length <= 12 && !lower.includes("script") && !lower.includes("write")) {
-    return "hooks";
+export default async function handler(req: any, res: any) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
-  return "script";
-}
-
-export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const idea: string = body.idea || "make a video";
+    const idea: string = req.body?.idea || "make a video";
+
+    async function callGemini(prompt: string, retries = 3): Promise<string> {
+      for (let i = 0; i < retries; i++) {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+            }),
+          }
+        );
+
+        if (response.status === 503) {
+          await new Promise((r) => setTimeout(r, 1000));
+          continue;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(JSON.stringify(data));
+        }
+
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text || "No output";
+      }
+      throw new Error("Gemini overloaded after retries");
+    }
+
+    function detectIntent(idea: string): "titles" | "hooks" | "script" {
+      const lower = idea.toLowerCase();
+
+      if (
+        lower.includes("title") ||
+        lower.includes("heading") ||
+        lower.includes("name my video") ||
+        lower.includes("video idea")
+      ) return "titles";
+
+      if (
+        lower.includes("hook") ||
+        lower.includes("opening") ||
+        lower.includes("intro line") ||
+        lower.includes("attention")
+      ) return "hooks";
+
+      if (
+        idea.trim().split(" ").length <= 12 &&
+        !lower.includes("script") &&
+        !lower.includes("write")
+      ) return "hooks";
+
+      return "script";
+    }
+
     const intent = detectIntent(idea);
     let prompt = "";
-    const type = intent;
 
     if (intent === "titles") {
       prompt = `You are a YouTube title expert. Generate exactly 6 viral YouTube titles for this topic: "${idea}".
@@ -92,30 +96,31 @@ Format:
 
     const text = await callGemini(prompt);
 
-    if (type === "titles") {
+    if (intent === "titles") {
       const titles = text
         .split("\n")
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0)
+        .map((t: string) => t.trim())
+        .filter((t: string) => t.length > 0)
         .slice(0, 6);
-      return NextResponse.json({ type: "titles", titles });
+      return res.status(200).json({ type: "titles", titles });
     }
 
-    if (type === "hooks") {
+    if (intent === "hooks") {
       const hooks = text
         .split(/\n\n+/)
-        .map((h) => h.trim())
-        .filter((h) => h.length > 0)
+        .map((h: string) => h.trim())
+        .filter((h: string) => h.length > 0)
         .slice(0, 3);
-      return NextResponse.json({ type: "hooks", hooks });
+      return res.status(200).json({ type: "hooks", hooks });
     }
 
-    return NextResponse.json({ type: "script", result: text });
+    return res.status(200).json({ type: "script", result: text });
 
   } catch (err: any) {
-    return NextResponse.json(
-      { error: "Server crashed", message: err.message },
-      { status: 200 }
-    );
+    console.error("API Error:", err.message);
+    return res.status(200).json({
+      type: "script",
+      result: `Error: ${err.message}`
+    });
   }
 }
