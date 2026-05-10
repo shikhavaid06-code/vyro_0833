@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Menu, Sparkles, Send, ChevronDown, Download, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import TitleCards from './TitleCards';
@@ -31,7 +31,6 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [messages, setMessages] = useState<Message[]>([]);
   const [step, setStep] = useState<ChatStep>('idle');
   const [selectedTitle, setSelectedTitle] = useState('');
-  const [selectedHook, setSelectedHook] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['YouTube']);
@@ -57,7 +56,6 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     setIsTyping(false);
     setStep('idle');
     setSelectedTitle('');
-    setSelectedHook('');
   };
 
   const addAiMessage = (msg: Omit<Message, 'id' | 'timestamp'>) => {
@@ -78,7 +76,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     }]);
   };
 
-  const callApi = async (idea: string, forceType?: string) => {
+  const callApi = async (idea: string, forceType: string) => {
     const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -87,29 +85,31 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     return res.json();
   };
 
-  const handleSend = async () => {
-    if (!inputValue.trim()) return;
-    const userInput = inputValue.trim();
+  // Core send function — accepts optional override text so card clicks work
+  const handleSendWithText = useCallback(async (overrideText?: string) => {
+    const userInput = (overrideText ?? inputValue).trim();
+    if (!userInput) return;
+
     setInputValue('');
     addUserMessage(userInput);
     setIsTyping(true);
 
     try {
-      // STEP 1: User types topic → generate titles
+      // STEP 1: idle → generate titles
       if (step === 'idle') {
         const data = await callApi(userInput, 'titles');
         setIsTyping(false);
         addAiMessage({
           role: 'ai',
           type: 'titles',
-          content: '🎯 Here are 6 viral titles for your video! Pick the one you love and type it below:',
+          content: '🎯 Here are 6 viral titles for your video! Click the one you love:',
           data: data.titles,
         });
         setStep('titles');
         return;
       }
 
-      // STEP 2: User picks a title → generate hooks
+      // STEP 2: titles → generate hooks
       if (step === 'titles') {
         setSelectedTitle(userInput);
         const data = await callApi(userInput, 'hooks');
@@ -117,32 +117,32 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         addAiMessage({
           role: 'ai',
           type: 'hooks',
-          content: '🪝 Here are 3 powerful hooks for that title! Pick the one that fits your energy:',
+          content: '🪝 Here are 3 powerful hooks! Click the one that fits your energy:',
           data: data.hooks,
         });
         setStep('hooks');
         return;
       }
 
-      // STEP 3: User picks a hook → generate script
+      // STEP 3: hooks → generate script
       if (step === 'hooks') {
-        setSelectedHook(userInput);
         const scriptPrompt = `Title: "${selectedTitle}". Hook: "${userInput}". Platform: ${selectedPlatforms.join(', ')}. Tone: ${selectedTone}. Duration: ${selectedDuration}.`;
         const data = await callApi(scriptPrompt, 'script');
         setIsTyping(false);
         addAiMessage({
           role: 'ai',
           type: 'script',
-          content: '📝 Here is your full script! Edit any section or ask me to rewrite it.',
+          content: '📝 Here is your full script! Edit any section or ask me to refine it.',
           data: data.result,
         });
         setStep('done');
         return;
       }
 
-      // STEP 4: Done — user can refine
+      // STEP 4: done → refine
       if (step === 'done') {
-        const data = await callApi(userInput, 'script');
+        const refinePrompt = `Previous script topic: "${selectedTitle}". User request: "${userInput}". Tone: ${selectedTone}.`;
+        const data = await callApi(refinePrompt, 'script');
         setIsTyping(false);
         addAiMessage({
           role: 'ai',
@@ -161,7 +161,19 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         content: 'Something went wrong. Please try again!',
       });
     }
-  };
+  }, [inputValue, step, selectedTitle, selectedPlatforms, selectedTone, selectedDuration]);
+
+  const handleSend = () => handleSendWithText();
+
+  // Called when user clicks a title card
+  const handleTitleSelect = useCallback((title: string) => {
+    handleSendWithText(title);
+  }, [handleSendWithText]);
+
+  // Called when user clicks a hook card
+  const handleHookSelect = useCallback((hook: string) => {
+    handleSendWithText(hook);
+  }, [handleSendWithText]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -172,10 +184,17 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   const getPlaceholder = () => {
     if (step === 'idle') return 'What is your video about? e.g. "5 AI tools for students"';
-    if (step === 'titles') return 'Type or paste the title you like...';
-    if (step === 'hooks') return 'Type or paste the hook you like...';
+    if (step === 'titles') return 'Or type a title manually...';
+    if (step === 'hooks') return 'Or type a hook manually...';
     if (step === 'done') return 'Ask me to refine, make shorter, change tone...';
     return 'Tell VYRO what to create...';
+  };
+
+  const getStepLabel = () => {
+    if (step === 'idle') return 'New Chat — Tell VYRO your video topic';
+    if (step === 'titles') return 'Step 2 — Pick a title';
+    if (step === 'hooks') return 'Step 3 — Pick a hook';
+    return '🎉 Script ready — refine anytime!';
   };
 
   return (
@@ -191,12 +210,9 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           </button>
           <div>
             <h1 className="text-sm font-semibold text-white truncate max-w-xs md:max-w-md">
-              {step === 'idle' ? 'New Chat — Tell VYRO your video topic' : 
-               step === 'titles' ? 'Step 2 — Pick a title' :
-               step === 'hooks' ? 'Step 3 — Pick a hook' :
-               'Step 4 — Your script is ready!'}
+              {getStepLabel()}
             </h1>
-            <p className="text-[11px] text-white/30">{selectedPlatforms.join(', ')} · {selectedTone}</p>
+            <p className="text-[11px] text-white/30">{selectedPlatforms.join(', ')} · {selectedTone} · {selectedDuration}</p>
           </div>
         </div>
 
@@ -301,7 +317,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           </div>
           <div className="text-center">
             <h2 className="text-xl font-semibold text-white mb-2">What's your video about?</h2>
-            <p className="text-sm text-white/40 max-w-sm">Tell VYRO your topic and it will generate titles, hooks, and a full script — step by step.</p>
+            <p className="text-sm text-white/40 max-w-sm">Tell VYRO your topic — it will generate titles, hooks, and a full script step by step.</p>
           </div>
           <div className="flex flex-wrap gap-2 justify-center mt-2">
             {['AI tools for students', 'Morning routine tips', 'How I make $5k/month', 'Fitness for beginners'].map((s) => (
@@ -345,11 +361,17 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                 )}
 
                 {msg.type === 'titles' && msg.data && (
-                  <TitleCards titles={msg.data as string[]} />
+                  <TitleCards
+                    titles={msg.data as string[]}
+                    onSelect={handleTitleSelect}
+                  />
                 )}
 
                 {msg.type === 'hooks' && msg.data && (
-                  <HookCards hooks={msg.data as string[]} />
+                  <HookCards
+                    hooks={msg.data as string[]}
+                    onSelect={handleHookSelect}
+                  />
                 )}
 
                 {msg.type === 'script' && msg.data && (
