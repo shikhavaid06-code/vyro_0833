@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 async function callGemini(prompt: string, retries = 3): Promise<string> {
   for (let i = 0; i < retries; i++) {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -19,7 +19,10 @@ async function callGemini(prompt: string, retries = 3): Promise<string> {
     }
 
     const data = await response.json();
-    if (!response.ok) throw new Error(JSON.stringify(data));
+    if (!response.ok) {
+      console.error("Gemini error:", JSON.stringify(data));
+      throw new Error(JSON.stringify(data));
+    }
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || "No output";
   }
   throw new Error("Gemini overloaded after retries");
@@ -42,7 +45,6 @@ function detectIntent(idea: string): "titles" | "hooks" | "script" {
     lower.includes("attention")
   ) return "hooks";
 
-  // If user picks a title (short sentence, no action words) → generate hooks
   if (idea.trim().split(" ").length <= 12 && !lower.includes("script") && !lower.includes("write")) {
     return "hooks";
   }
@@ -55,13 +57,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const idea: string = body.idea || "make a video";
     const intent = detectIntent(idea);
-
     let prompt = "";
-    let type = intent;
+    const type = intent;
 
     if (intent === "titles") {
       prompt = `You are a YouTube title expert. Generate exactly 6 viral YouTube titles for this topic: "${idea}".
-      
+
 Rules:
 - Each title on a new line
 - No numbering, no bullet points, no extra text
@@ -91,7 +92,6 @@ Format:
 
     const text = await callGemini(prompt);
 
-    // Parse titles into array
     if (type === "titles") {
       const titles = text
         .split("\n")
@@ -101,7 +101,6 @@ Format:
       return NextResponse.json({ type: "titles", titles });
     }
 
-    // Parse hooks into array
     if (type === "hooks") {
       const hooks = text
         .split(/\n\n+/)
@@ -111,13 +110,12 @@ Format:
       return NextResponse.json({ type: "hooks", hooks });
     }
 
-    // Script as plain text
     return NextResponse.json({ type: "script", result: text });
 
   } catch (err: any) {
     return NextResponse.json(
       { error: "Server crashed", message: err.message },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }
