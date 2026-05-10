@@ -23,22 +23,15 @@ async function callGemini(prompt: string, retries = 3): Promise<string> {
   throw new Error("Gemini overloaded after retries");
 }
 
-function detectIntent(idea: string): "titles" | "hooks" | "script" {
-  const lower = idea.toLowerCase();
-  if (lower.includes("title") || lower.includes("heading") || lower.includes("name my video") || lower.includes("video idea")) return "titles";
-  if (lower.includes("hook") || lower.includes("opening") || lower.includes("intro line") || lower.includes("attention")) return "hooks";
-  if (idea.trim().split(" ").length <= 12 && !lower.includes("script") && !lower.includes("write")) return "hooks";
-  return "script";
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const idea: string = body.idea || "make a video";
-    const intent = detectIntent(idea);
+    const forceType: string = body.forceType || "script";
+
     let prompt = "";
 
-    if (intent === "titles") {
+    if (forceType === "titles") {
       prompt = `You are a YouTube title expert. Generate exactly 6 viral YouTube titles for this topic: "${idea}".
 Rules:
 - Each title on a new line
@@ -46,13 +39,13 @@ Rules:
 - Make them curiosity-driven and click-worthy
 - Only output the 6 titles, nothing else`;
 
-    } else if (intent === "hooks") {
+    } else if (forceType === "hooks") {
       prompt = `You are a YouTube hook writer. Generate exactly 3 powerful opening hooks for a YouTube video titled: "${idea}".
 Rules:
 - Each hook on a new line, separated by a blank line
 - Each hook should be 1-3 sentences max
 - Make them emotional, curiosity-driven, or shocking
-- No numbering, no bullet points, no extra text
+- No numbering, no bullet points
 - Only output the 3 hooks, nothing else`;
 
     } else {
@@ -67,12 +60,12 @@ Format:
 
     const text = await callGemini(prompt);
 
-    if (intent === "titles") {
+    if (forceType === "titles") {
       const titles = text.split("\n").map((t) => t.trim()).filter((t) => t.length > 0).slice(0, 6);
       return NextResponse.json({ type: "titles", titles });
     }
 
-    if (intent === "hooks") {
+    if (forceType === "hooks") {
       const hooks = text.split(/\n\n+/).map((h) => h.trim()).filter((h) => h.length > 0).slice(0, 3);
       return NextResponse.json({ type: "hooks", hooks });
     }
