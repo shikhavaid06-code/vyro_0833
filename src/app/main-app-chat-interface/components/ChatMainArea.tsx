@@ -17,45 +17,6 @@ interface Message {
   timestamp: string;
 }
 
-const MOCK_TITLES = [
-  '5 AI Tools That Will Make You Study 10x Faster',
-  'I Used AI to Study for Finals — Here\'s What Happened',
-  'Students Are Using This AI Secret to Get Straight A\'s',
-  'The AI Study Hack Every Student Needs in 2026',
-  'How AI Helped Me Go From C\'s to A\'s in One Semester',
-  'Stop Studying Wrong — Use AI Instead (It Actually Works)',
-];
-
-const MOCK_HOOKS = [
-  'What if I told you that the top 1% of students don\'t actually study harder — they use AI to study smarter?',
-  'I failed three exams in a row. Then I discovered a tool that changed everything. Here\'s exactly what I did.',
-  'Your professor doesn\'t want you to know about these AI tools. I\'m going to tell you anyway.',
-];
-
-const MOCK_SCRIPT = `[INTRO - 0:00-0:15]
-What if I told you that the top 1% of students aren't working harder — they're using AI to work smarter? Today I'm breaking down 5 AI tools that completely transformed how I study, and by the end of this video, you'll have everything you need to use them too.
-
-[HOOK EXPANSION - 0:15-0:45]
-Last semester, I was drowning. Three exams in two weeks, a part-time job, and zero time to breathe. I stumbled across these tools out of pure desperation — and I ended up getting my best grades ever.
-
-[TOOL 1 - 0:45-2:00]
-The first tool is Notion AI. Most students use Notion as just a notes app, but the AI layer turns it into a personal tutor. You can paste in any lecture notes and literally ask it to quiz you, simplify complex concepts, or create a study plan. It's like having a TA available 24/7.
-
-[TOOL 2 - 2:00-3:30]
-Next up is Perplexity AI — think of it as Google, but it actually explains things. When I'm researching for essays, instead of clicking through 10 tabs, I ask Perplexity one question and get a cited, summarized answer in seconds.
-
-[TOOL 3 - 3:30-5:00]
-Tool number three is Anki combined with ChatGPT. Here's the hack: paste your textbook chapter into ChatGPT and ask it to generate 20 Anki flashcards in the right format. What used to take me 2 hours now takes 3 minutes.
-
-[TOOL 4 - 5:00-6:30]
-Otter.ai for lecture recording and transcription. I stopped frantically taking notes in class and started actually listening and engaging. Otter transcribes everything, and I review the clean transcript later.
-
-[TOOL 5 - 6:30-8:00]
-The last tool is the wildcard — Wolfram Alpha for math and science. It doesn't just give you answers, it shows you every single step. It's the best tutor money can't buy.
-
-[OUTRO & CTA - 8:00-8:30]
-Those are the 5 AI tools that took me from barely passing to straight A's. If you found this useful, subscribe — I drop new creator and student productivity videos every week. And drop a comment: which tool are you trying first?`;
-
 const platforms = ['YouTube', 'TikTok', 'Instagram', 'Twitter/X'];
 const tones = ['Casual', 'Professional', 'Storytelling', 'Educational', 'Hype'];
 const durations = ['Shorts (< 60s)', 'Medium (3-8 min)', 'Long (8-20 min)', 'Custom'];
@@ -67,8 +28,10 @@ interface Props {
 }
 
 export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatId }: Props) {
- const [messages, setMessages] = useState<Message[]>([]);
-
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [step, setStep] = useState<ChatStep>('idle');
+  const [selectedTitle, setSelectedTitle] = useState('');
+  const [selectedHook, setSelectedHook] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['YouTube']);
@@ -88,105 +51,131 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     );
   };
 
-  // ✅ FIX 3: New Chat button handler
   const handleNewChat = () => {
     setMessages([]);
     setInputValue('');
     setIsTyping(false);
+    setStep('idle');
+    setSelectedTitle('');
+    setSelectedHook('');
   };
 
-  // ✅ FIX 2: Real Gemini API connection
- const handleSend = async () => {
-  if (!inputValue.trim()) return;
-
-  const userMsg: Message = {
-    id: `msg-${Date.now()}`,
-    role: 'user',
-    type: 'text',
-    content: inputValue.trim(),
-    timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+  const addAiMessage = (msg: Omit<Message, 'id' | 'timestamp'>) => {
+    setMessages((prev) => [...prev, {
+      ...msg,
+      id: `msg-ai-${Date.now()}`,
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    }]);
   };
 
-  setMessages((prev) => [...prev, userMsg]);
-  const prompt = inputValue.trim();
-  setInputValue('');
-  setIsTyping(true);
+  const addUserMessage = (content: string) => {
+    setMessages((prev) => [...prev, {
+      id: `msg-${Date.now()}`,
+      role: 'user',
+      type: 'text',
+      content,
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    }]);
+  };
 
-  try {
+  const callApi = async (idea: string, forceType?: string) => {
     const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idea: prompt }),
+      body: JSON.stringify({ idea, forceType }),
     });
+    return res.json();
+  };
 
-    const data = await res.json();
-    setIsTyping(false);
+  const handleSend = async () => {
+    if (!inputValue.trim()) return;
+    const userInput = inputValue.trim();
+    setInputValue('');
+    addUserMessage(userInput);
+    setIsTyping(true);
 
-    // ✅ Handle titles
-    if (data.type === 'titles') {
-      setMessages((prev) => [...prev, {
-        id: `msg-ai-${Date.now()}`,
+    try {
+      // STEP 1: User types topic → generate titles
+      if (step === 'idle') {
+        const data = await callApi(userInput, 'titles');
+        setIsTyping(false);
+        addAiMessage({
+          role: 'ai',
+          type: 'titles',
+          content: '🎯 Here are 6 viral titles for your video! Pick the one you love and type it below:',
+          data: data.titles,
+        });
+        setStep('titles');
+        return;
+      }
+
+      // STEP 2: User picks a title → generate hooks
+      if (step === 'titles') {
+        setSelectedTitle(userInput);
+        const data = await callApi(userInput, 'hooks');
+        setIsTyping(false);
+        addAiMessage({
+          role: 'ai',
+          type: 'hooks',
+          content: '🪝 Here are 3 powerful hooks for that title! Pick the one that fits your energy:',
+          data: data.hooks,
+        });
+        setStep('hooks');
+        return;
+      }
+
+      // STEP 3: User picks a hook → generate script
+      if (step === 'hooks') {
+        setSelectedHook(userInput);
+        const scriptPrompt = `Title: "${selectedTitle}". Hook: "${userInput}". Platform: ${selectedPlatforms.join(', ')}. Tone: ${selectedTone}. Duration: ${selectedDuration}.`;
+        const data = await callApi(scriptPrompt, 'script');
+        setIsTyping(false);
+        addAiMessage({
+          role: 'ai',
+          type: 'script',
+          content: '📝 Here is your full script! Edit any section or ask me to rewrite it.',
+          data: data.result,
+        });
+        setStep('done');
+        return;
+      }
+
+      // STEP 4: Done — user can refine
+      if (step === 'done') {
+        const data = await callApi(userInput, 'script');
+        setIsTyping(false);
+        addAiMessage({
+          role: 'ai',
+          type: 'script',
+          content: '✨ Here is your refined script!',
+          data: data.result,
+        });
+        return;
+      }
+
+    } catch (err) {
+      setIsTyping(false);
+      addAiMessage({
         role: 'ai',
-        type: 'titles',
-        content: 'Here are 6 viral titles for your video. Pick the one you love!',
-        data: data.titles,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-      }]);
-      return;
+        type: 'text',
+        content: 'Something went wrong. Please try again!',
+      });
     }
-
-    // ✅ Handle hooks
-    if (data.type === 'hooks') {
-      setMessages((prev) => [...prev, {
-        id: `msg-ai-${Date.now()}`,
-        role: 'ai',
-        type: 'hooks',
-        content: 'Here are 3 powerful hooks. Pick the one that fits your energy!',
-        data: data.hooks,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-      }]);
-      return;
-    }
-
-    // ✅ Handle script
-    if (data.type === 'script') {
-      setMessages((prev) => [...prev, {
-        id: `msg-ai-${Date.now()}`,
-        role: 'ai',
-        type: 'script',
-        content: 'Here is your full script! Edit any section or ask me to rewrite it.',
-        data: data.result,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-      }]);
-      return;
-    }
-
-    // Fallback
-    setMessages((prev) => [...prev, {
-      id: `msg-ai-${Date.now()}`,
-      role: 'ai',
-      type: 'text',
-      content: data.result || 'Something went wrong, try again!',
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-    }]);
-
-  } catch (err) {
-    setIsTyping(false);
-    setMessages((prev) => [...prev, {
-      id: `msg-err-${Date.now()}`,
-      role: 'ai',
-      type: 'text',
-      content: 'API error — check your Gemini key in Vercel settings.',
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-    }]);
-  }
-};
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const getPlaceholder = () => {
+    if (step === 'idle') return 'What is your video about? e.g. "5 AI tools for students"';
+    if (step === 'titles') return 'Type or paste the title you like...';
+    if (step === 'hooks') return 'Type or paste the hook you like...';
+    if (step === 'done') return 'Ask me to refine, make shorter, change tone...';
+    return 'Tell VYRO what to create...';
   };
 
   return (
@@ -202,14 +191,16 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           </button>
           <div>
             <h1 className="text-sm font-semibold text-white truncate max-w-xs md:max-w-md">
-              AI tools for students → viral YouTube
+              {step === 'idle' ? 'New Chat — Tell VYRO your video topic' : 
+               step === 'titles' ? 'Step 2 — Pick a title' :
+               step === 'hooks' ? 'Step 3 — Pick a hook' :
+               'Step 4 — Your script is ready!'}
             </h1>
-            <p className="text-[11px] text-white/30">6 messages · YouTube · Casual</p>
+            <p className="text-[11px] text-white/30">{selectedPlatforms.join(', ')} · {selectedTone}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* ✅ FIX 3: New Chat button wired up */}
           <button
             onClick={handleNewChat}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all duration-200"
@@ -255,7 +246,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                     onClick={() => togglePlatform(p)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
                       selectedPlatforms.includes(p)
-                        ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' :'glass border border-white/8 text-white/40 hover:text-white/60'
+                        ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' : 'glass border border-white/8 text-white/40 hover:text-white/60'
                     }`}
                   >
                     {p}
@@ -272,7 +263,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                     onClick={() => setSelectedTone(t)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
                       selectedTone === t
-                        ? 'bg-pink-500/20 border border-pink-500/30 text-pink-300' :'glass border border-white/8 text-white/40 hover:text-white/60'
+                        ? 'bg-pink-500/20 border border-pink-500/30 text-pink-300' : 'glass border border-white/8 text-white/40 hover:text-white/60'
                     }`}
                   >
                     {t}
@@ -302,67 +293,90 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         </div>
       )}
 
+      {/* Empty state */}
+      {messages.length === 0 && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-vyro flex items-center justify-center">
+            <Sparkles size={24} className="text-white" />
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-white mb-2">What's your video about?</h2>
+            <p className="text-sm text-white/40 max-w-sm">Tell VYRO your topic and it will generate titles, hooks, and a full script — step by step.</p>
+          </div>
+          <div className="flex flex-wrap gap-2 justify-center mt-2">
+            {['AI tools for students', 'Morning routine tips', 'How I make $5k/month', 'Fitness for beginners'].map((s) => (
+              <button
+                key={s}
+                onClick={() => setInputValue(s)}
+                className="px-3 py-1.5 rounded-lg glass border border-white/8 text-xs text-white/50 hover:text-white/70 transition-all"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-6 lg:px-10 xl:px-16 py-6 space-y-6">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
-          >
-            {/* Avatar */}
-            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-1 ${
-              msg.role === 'ai' ?'bg-gradient-vyro' :'bg-white/10'
-            }`}>
-              {msg.role === 'ai' ? (
+      {messages.length > 0 && (
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-6 lg:px-10 xl:px-16 py-6 space-y-6">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+            >
+              <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-1 ${
+                msg.role === 'ai' ? 'bg-gradient-vyro' : 'bg-white/10'
+              }`}>
+                {msg.role === 'ai' ? (
+                  <Sparkles size={14} className="text-white" />
+                ) : (
+                  <span className="text-xs font-bold text-white">Y</span>
+                )}
+              </div>
+
+              <div className={`flex flex-col gap-2 max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                {msg.content && (
+                  <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.role === 'user' ? 'chat-bubble-user text-white rounded-tr-sm' : 'chat-bubble-ai text-white/80 rounded-tl-sm'
+                  }`}>
+                    {msg.content}
+                  </div>
+                )}
+
+                {msg.type === 'titles' && msg.data && (
+                  <TitleCards titles={msg.data as string[]} />
+                )}
+
+                {msg.type === 'hooks' && msg.data && (
+                  <HookCards hooks={msg.data as string[]} />
+                )}
+
+                {msg.type === 'script' && msg.data && (
+                  <ScriptCard script={msg.data as string} />
+                )}
+
+                <span className="text-[10px] text-white/20 px-1">{msg.timestamp}</span>
+              </div>
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="flex gap-3 animate-fade-in">
+              <div className="w-8 h-8 rounded-full bg-gradient-vyro flex-shrink-0 flex items-center justify-center mt-1">
                 <Sparkles size={14} className="text-white" />
-              ) : (
-                <span className="text-xs font-bold text-white">Y</span>
-              )}
+              </div>
+              <div className="chat-bubble-ai rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+                <span className="typing-dot w-2 h-2 rounded-full bg-purple-400" />
+                <span className="typing-dot w-2 h-2 rounded-full bg-purple-400" />
+                <span className="typing-dot w-2 h-2 rounded-full bg-purple-400" />
+              </div>
             </div>
+          )}
 
-            {/* Content */}
-            <div className={`flex flex-col gap-2 max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-              {msg.content && (
-                <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === 'user' ?'chat-bubble-user text-white rounded-tr-sm' :'chat-bubble-ai text-white/80 rounded-tl-sm'
-                }`}>
-                  {msg.content}
-                </div>
-              )}
-
-              {msg.type === 'titles' && msg.data && (
-                <TitleCards titles={msg.data as string[]} />
-              )}
-
-              {msg.type === 'hooks' && msg.data && (
-                <HookCards hooks={msg.data as string[]} />
-              )}
-
-              {msg.type === 'script' && msg.data && (
-                <ScriptCard script={msg.data as string} />
-              )}
-
-              <span className="text-[10px] text-white/20 px-1">{msg.timestamp}</span>
-            </div>
-          </div>
-        ))}
-
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="flex gap-3 animate-fade-in">
-            <div className="w-8 h-8 rounded-full bg-gradient-vyro flex-shrink-0 flex items-center justify-center mt-1">
-              <Sparkles size={14} className="text-white" />
-            </div>
-            <div className="chat-bubble-ai rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
-              <span className="typing-dot w-2 h-2 rounded-full bg-purple-400" />
-              <span className="typing-dot w-2 h-2 rounded-full bg-purple-400" />
-              <span className="typing-dot w-2 h-2 rounded-full bg-purple-400" />
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
+          <div ref={messagesEndRef} />
+        </div>
+      )}
 
       {/* Input area */}
       <div className="flex-shrink-0 px-4 md:px-6 lg:px-10 xl:px-16 py-4 border-t border-white/5 bg-[#080812]/80 backdrop-blur-xl">
@@ -374,13 +388,13 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
-              placeholder='Tell VYRO what to create... or say "make it more emotional" to refine'
+              placeholder={getPlaceholder()}
               className="w-full bg-transparent px-4 pt-4 pb-2 text-sm text-white placeholder:text-white/25 focus:outline-none resize-none max-h-32 scrollbar-hide"
               style={{ minHeight: '48px' }}
             />
             <div className="flex items-center justify-between px-3 pb-3">
               <div className="flex items-center gap-1">
-                {['More titles', 'Improve hook', 'Rewrite script', 'Make shorter'].map((cmd) => (
+                {step === 'done' && ['Make shorter', 'More energy', 'Add CTA', 'Rewrite intro'].map((cmd) => (
                   <button
                     key={`quick-${cmd}`}
                     onClick={() => setInputValue(cmd)}
@@ -391,10 +405,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                 ))}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-white/20">⌘↵ to send</span>
+                <span className="text-[11px] text-white/20">↵ to send</span>
                 <button
                   onClick={handleSend}
-                  disabled={!inputValue.trim()}
+                  disabled={!inputValue.trim() || isTyping}
                   className="w-9 h-9 rounded-xl bg-gradient-vyro flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed glow-button"
                 >
                   <Send size={15} />
