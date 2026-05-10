@@ -5,9 +5,10 @@ import { toast } from 'sonner';
 
 interface Props {
   titles: string[];
+  onSelect?: (title: string) => void;
 }
 
-export default function TitleCards({ titles }: Props) {
+export default function TitleCards({ titles, onSelect }: Props) {
   const [selectedTitle, setSelectedTitle] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
@@ -17,6 +18,14 @@ export default function TitleCards({ titles }: Props) {
     setCopiedIndex(index);
     toast.success('Title copied to clipboard');
     setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleSelect = (title: string, index: number) => {
+    setSelectedTitle(index);
+    toast.success('Great choice! Generating hooks...');
+    if (onSelect) {
+      setTimeout(() => onSelect(title), 400);
+    }
   };
 
   return (
@@ -31,10 +40,7 @@ export default function TitleCards({ titles }: Props) {
         {titles.map((title, i) => (
           <div
             key={`title-card-${i}`}
-            onClick={() => {
-              setSelectedTitle(i);
-              toast.success('Title selected! Generating hooks...');
-            }}
+            onClick={() => handleSelect(title, i)}
             className={`group flex items-center justify-between gap-3 rounded-xl px-4 py-3 cursor-pointer border transition-all duration-200 ${
               selectedTitle === i
                 ? 'bg-purple-500/15 border-purple-500/40 shadow-lg shadow-purple-500/10'
@@ -44,7 +50,7 @@ export default function TitleCards({ titles }: Props) {
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
                 selectedTitle === i
-                  ? 'border-purple-400 bg-purple-400' :'border-white/20 group-hover:border-purple-400/50'
+                  ? 'border-purple-400 bg-purple-400' : 'border-white/20 group-hover:border-purple-400/50'
               }`}>
                 {selectedTitle === i && <Check size={11} className="text-white" />}
               </div>
