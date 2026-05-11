@@ -1,70 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-
 import AppLogo from '@/components/ui/AppLogo';
 import { Plus, Search, ChevronLeft, ChevronRight, MessageSquare, Crown, Zap, Settings, LogOut, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import Icon from '@/components/ui/AppIcon';
-
-
-const chatHistory = [
-  {
-    id: 'chat-001',
-    title: 'AI tools for students → viral YouTube',
-    preview: 'Generated 8 titles, 3 hooks...',
-    time: '2m ago',
-    platform: 'YouTube',
-    generated: 12,
-  },
-  {
-    id: 'chat-002',
-    title: 'Morning routine productivity hacks',
-    preview: 'Script generated for 8-min video',
-    time: '1h ago',
-    platform: 'Instagram',
-    generated: 7,
-  },
-  {
-    id: 'chat-003',
-    title: 'How I saved $10k in 6 months',
-    preview: 'Hook selected, script in progress',
-    time: '3h ago',
-    platform: 'TikTok',
-    generated: 5,
-  },
-  {
-    id: 'chat-004',
-    title: 'Best budget cameras for creators 2026',
-    preview: 'Titles generated, awaiting hook selection',
-    time: 'Yesterday',
-    platform: 'YouTube',
-    generated: 9,
-  },
-  {
-    id: 'chat-005',
-    title: 'Why most creators quit in year 1',
-    preview: 'Full script exported',
-    time: 'Yesterday',
-    platform: 'YouTube',
-    generated: 15,
-  },
-  {
-    id: 'chat-006',
-    title: 'Gym motivation — dark academia aesthetic',
-    preview: 'Multi-platform optimized',
-    time: '2 days ago',
-    platform: 'TikTok',
-    generated: 11,
-  },
-  {
-    id: 'chat-007',
-    title: 'Passive income ideas that actually work',
-    preview: 'Script completed',
-    time: '3 days ago',
-    platform: 'Instagram',
-    generated: 8,
-  },
-];
 
 const platformColors: Record<string, string> = {
   YouTube: 'bg-red-500/15 text-red-400',
@@ -72,29 +10,45 @@ const platformColors: Record<string, string> = {
   Instagram: 'bg-pink-500/15 text-pink-400',
 };
 
+interface Chat {
+  id: string;
+  title: string;
+  preview: string;
+  time: string;
+  platform: string;
+  generated: number;
+}
+
 interface Props {
   isOpen: boolean;
   onToggle: () => void;
   activeChatId: string;
   onSelectChat: (id: string) => void;
+  onNewChat?: () => void;
 }
 
-export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectChat }: Props) {
+export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectChat, onNewChat }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredChat, setHoveredChat] = useState<string | null>(null);
+  // ✅ Start with empty chat list — no fake chats
+  const [chats, setChats] = useState<Chat[]>([]);
 
-  const filtered = chatHistory.filter(
+  const filtered = chats.filter(
     (c) =>
       c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.platform.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // ✅ New Content button actually resets the chat
   const handleNewChat = () => {
+    if (onNewChat) onNewChat();
     toast.success('New chat started', { description: 'Drop your idea to begin generating content.' });
   };
 
+  // ✅ Delete actually removes from list
   const handleDeleteChat = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    setChats((prev) => prev.filter((c) => c.id !== id));
     toast.success('Chat deleted');
   };
 
@@ -121,7 +75,7 @@ export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectCh
         </button>
       </div>
 
-      {/* New chat button */}
+      {/* ✅ New Content button — now works! */}
       <div className={`p-3 flex-shrink-0 ${isOpen ? '' : 'flex justify-center'}`}>
         <button
           onClick={handleNewChat}
@@ -152,17 +106,18 @@ export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectCh
 
       {/* Chat list */}
       <div className="flex-1 overflow-y-auto scrollbar-hide px-3 pb-3 space-y-1">
-        {isOpen && (
+        {isOpen && chats.length > 0 && (
           <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/20 px-2 py-2">
             Recent
           </p>
         )}
+
         {filtered.map((chat) => (
           <div
             key={chat.id}
             className={`group relative rounded-xl cursor-pointer transition-all duration-200 ${
               activeChatId === chat.id
-                ? 'bg-purple-500/10 border border-purple-500/20' :'hover:bg-white/3 border border-transparent hover:border-white/5'
+                ? 'bg-purple-500/10 border border-purple-500/20' : 'hover:bg-white/3 border border-transparent hover:border-white/5'
             } ${isOpen ? 'px-3 py-2.5' : 'flex justify-center items-center h-10 w-10 mx-auto'}`}
             onClick={() => onSelectChat(chat.id)}
             onMouseEnter={() => setHoveredChat(chat.id)}
@@ -208,10 +163,12 @@ export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectCh
           </div>
         ))}
 
+        {/* ✅ Empty state */}
         {filtered.length === 0 && isOpen && (
-          <div className="text-center py-8">
+          <div className="text-center py-12">
             <MessageSquare size={24} className="text-white/15 mx-auto mb-2" />
-            <p className="text-white/25 text-xs">No chats found</p>
+            <p className="text-white/25 text-xs">No chats yet</p>
+            <p className="text-white/15 text-[11px] mt-1">Start a new content session!</p>
           </div>
         )}
       </div>
@@ -223,16 +180,16 @@ export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectCh
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Zap size={13} className="text-purple-400" />
-                <span className="text-xs font-semibold text-white/80">Pro Plan</span>
+                <span className="text-xs font-semibold text-white/80">Free Plan</span>
               </div>
-              <span className="text-[10px] text-purple-400 font-medium">72/100 today</span>
+              <span className="text-[10px] text-purple-400 font-medium">0/10 today</span>
             </div>
             <div className="w-full h-1.5 bg-white/8 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-vyro rounded-full" style={{ width: '72%' }} />
+              <div className="h-full bg-gradient-vyro rounded-full" style={{ width: '0%' }} />
             </div>
             <button className="w-full mt-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-amber-500/20 text-[11px] font-semibold text-amber-400 hover:from-amber-500/30 hover:to-pink-500/30 transition-all duration-200 flex items-center justify-center gap-1">
               <Crown size={11} />
-              Upgrade to Ultra
+              Upgrade to Pro
             </button>
           </div>
         </div>
@@ -241,7 +198,7 @@ export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectCh
       {/* Bottom nav */}
       <div className={`border-t border-white/5 p-3 space-y-1 flex-shrink-0 ${isOpen ? '' : 'flex flex-col items-center'}`}>
         {[
-          { icon: Settings, label: 'Settings' },
+          { icon: Settings, label: 'Settings', action: () => toast.info('Settings coming soon!') },
           { icon: LogOut, label: 'Sign Out', action: () => toast.info('Signing out...') },
         ].map(({ icon: Icon, label, action }) => (
           <button
