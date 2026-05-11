@@ -5,9 +5,10 @@ import { toast } from 'sonner';
 
 interface Props {
   hooks: string[];
+  onSelect?: (hook: string) => void;
 }
 
-export default function HookCards({ hooks }: Props) {
+export default function HookCards({ hooks, onSelect }: Props) {
   const [selectedHook, setSelectedHook] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
@@ -17,6 +18,14 @@ export default function HookCards({ hooks }: Props) {
     setCopiedIndex(index);
     toast.success('Hook copied!');
     setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleSelect = (hook: string, index: number) => {
+    setSelectedHook(index);
+    toast.success('Hook selected! Generating full script...');
+    if (onSelect) {
+      setTimeout(() => onSelect(hook), 400);
+    }
   };
 
   const hookTypes = ['Curiosity Hook', 'Story Hook', 'Shock Hook'];
@@ -33,10 +42,7 @@ export default function HookCards({ hooks }: Props) {
         {hooks.map((hook, i) => (
           <div
             key={`hook-card-${i}`}
-            onClick={() => {
-              setSelectedHook(i);
-              toast.success('Hook selected! Generating full script...');
-            }}
+            onClick={() => handleSelect(hook, i)}
             className={`group relative rounded-xl px-4 py-4 cursor-pointer border transition-all duration-200 ${
               selectedHook === i
                 ? 'bg-pink-500/10 border-pink-500/30 shadow-lg shadow-pink-500/10'
@@ -47,7 +53,7 @@ export default function HookCards({ hooks }: Props) {
               <div className="flex items-start gap-3 flex-1">
                 <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center mt-0.5 transition-all duration-200 ${
                   selectedHook === i
-                    ? 'border-pink-400 bg-pink-400' :'border-white/20 group-hover:border-pink-400/50'
+                    ? 'border-pink-400 bg-pink-400' : 'border-white/20 group-hover:border-pink-400/50'
                 }`}>
                   {selectedHook === i && <Check size={11} className="text-white" />}
                 </div>
@@ -55,7 +61,7 @@ export default function HookCards({ hooks }: Props) {
                   <span className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 block ${
                     selectedHook === i ? 'text-pink-400' : 'text-white/30'
                   }`}>
-                    {hookTypes[i]}
+                    {hookTypes[i] || `Hook ${i + 1}`}
                   </span>
                   <p className={`text-sm leading-relaxed ${
                     selectedHook === i ? 'text-white' : 'text-white/70'
