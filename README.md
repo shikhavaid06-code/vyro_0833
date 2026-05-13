@@ -66,12 +66,8 @@ This project uses Tailwind CSS for styling with the following features:
 - `npm run format` - Format code with Prettier
 
 ## 📱 Deployment
+Build the application for production
 
-Build the application for production:
-
-  ```bash
-  npm run build
-  ```
 
 ## 📚 Learn More
 
@@ -84,8 +80,8 @@ You can check out the [Next.js GitHub repository](https://github.com/vercel/next
 
 ## 🙏 Acknowledgments
 
-- Built with [Rocket.new](https://rocket.new)
+- Built by shaurya vaid 
 - Powered by Next.js and React
 - Styled with Tailwind CSS
 
-Built with ❤️ on Rocket.new
+Built with ❤️
