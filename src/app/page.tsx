@@ -1,9 +1,5 @@
-import Link from "next/link";
+import MarketingLandingPage from './marketing-landing-page/page';
 
 export default function Home() {
-  return (
-    <main>
-      <Link href="/main-app-chat-interface">Go to Vyro</Link>
-    </main>
-  );
+  return <MarketingLandingPage />;
 }
