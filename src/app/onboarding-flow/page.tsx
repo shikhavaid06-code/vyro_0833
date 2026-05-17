@@ -64,7 +64,9 @@ export default function OnboardingPage() {
     }
     setIsLoading(true);
     // Save to localStorage for now — replace with Supabase later
-    localStorage.setItem('vyro_onboarding', JSON.stringify({ hear: selectedHear, skill: selectedSkill }));
+    if (typeof window !== 'undefined') {
+  localStorage.setItem('vyro_onboarding', JSON.stringify({ hear: selectedHear, skill: selectedSkill }));
+}
     await new Promise((r) => setTimeout(r, 800));
     toast.success("You're all set! Let's create something viral 🎉");
     router.push('/main-app-chat-interface');
