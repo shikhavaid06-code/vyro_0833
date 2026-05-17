@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 
 import AppLogo from '@/components/ui/AppLogo';
 import { Eye, EyeOff, Sparkles, ArrowRight, Zap, Crown, Mail, Lock, User } from 'lucide-react';
-import Icon from '@/components/ui/AppIcon';
 
 type AuthMode = 'login' | 'signup';
 
@@ -24,12 +23,6 @@ interface SignupFormData {
   agreeTerms: boolean;
 }
 
-const demoAccounts = [
-  { role: 'Free User', email: 'maya@vyro.ai', password: 'creator2026' },
-  { role: 'Pro Creator', email: 'dev@vyro.ai', password: 'proshiper99' },
-  { role: 'Ultra Member', email: 'noor@vyro.ai', password: 'ultraflow42' },
-];
-
 export default function AuthScreen() {
   const [mode, setMode] = useState<AuthMode>('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -46,44 +39,20 @@ export default function AuthScreen() {
 
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
+    // Backend integration point: POST /api/auth/login
     await new Promise((r) => setTimeout(r, 1200));
-    const valid = demoAccounts.find(
-      (a) => a.email === data.email && a.password === data.password
-    );
-    if (!valid) {
-      toast.error('Invalid credentials — use the demo accounts below to sign in');
-      setIsLoading(false);
-      return;
-    }
-    // Store user role in localStorage
-    localStorage.setItem('vyro_user', JSON.stringify({ role: valid.role, email: valid.email }));
-    toast.success(`Welcome back!`, { description: `Signed in as ${valid.role}` });
-    // Check if already onboarded
-    const onboarded = typeof window !== 'undefined' ? localStorage.getItem('vyro_onboarding') : null;
-    setTimeout(() => router.push(onboarded ? '/main-app-chat-interface' : '/onboarding-flow'), 800);
+    toast.success('Welcome back!');
+    setTimeout(() => router.push('/onboarding-flow'), 800);
     setIsLoading(false);
   };
 
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
+    // Backend integration point: POST /api/auth/signup
     await new Promise((r) => setTimeout(r, 1400));
-    localStorage.setItem('vyro_user', JSON.stringify({ role: data.plan, email: data.email, name: data.name }));
     toast.success('Account created!', { description: "Welcome to VYRO. Let's create something viral." });
     setTimeout(() => router.push('/onboarding-flow'), 800);
     setIsLoading(false);
-  };
-
-  const handleGuestMode = () => {
-    localStorage.setItem('vyro_user', JSON.stringify({ role: 'guest', email: 'guest' }));
-    toast.success('Guest mode activated', { description: 'Limited to 3 generations. Upgrade anytime.' });
-    // Guests skip onboarding, go straight to chat
-    setTimeout(() => router.push('/main-app-chat-interface'), 600);
-  };
-
-  const fillDemoCredentials = (account: typeof demoAccounts[0]) => {
-    loginForm.setValue('email', account.email);
-    loginForm.setValue('password', account.password);
-    toast.info(`Filled credentials for ${account.role}`);
   };
 
   return (
@@ -163,11 +132,13 @@ export default function AuthScreen() {
         <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-purple-900/10 blur-[80px] pointer-events-none" />
 
         <div className="relative z-10 w-full max-w-md">
+          {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <AppLogo size={28} />
             <span className="font-display text-xl font-semibold text-white">VYRO</span>
           </div>
 
+          {/* Mode toggle */}
           <div className="flex glass rounded-xl p-1 mb-8 border border-white/8">
             {(['login', 'signup'] as const).map((m) => (
               <button
@@ -191,6 +162,7 @@ export default function AuthScreen() {
             </p>
           </div>
 
+          {/* Google auth */}
           <div className="flex gap-3 mb-6">
             <button
               onClick={() => toast.info('Google auth coming soon')}
@@ -280,9 +252,9 @@ export default function AuthScreen() {
                 className="w-full py-3.5 rounded-xl bg-gradient-vyro text-white font-semibold text-sm flex items-center justify-center gap-2 glow-button hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
               >
                 {isLoading ? (
-                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Signing in...</>
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Signing in...</>
                 ) : (
-                  <>Sign In<ArrowRight size={16} /></>
+                  <>Sign In <ArrowRight size={16} /></>
                 )}
               </button>
             </form>
@@ -299,7 +271,7 @@ export default function AuthScreen() {
                     type="text"
                     {...signupForm.register('name', { required: 'Name is required' })}
                     className="w-full pl-10 pr-4 py-3 rounded-xl glass border border-white/10 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-purple-500/50 transition-colors duration-200 bg-transparent"
-                    placeholder="Maya Rodriguez"
+                    placeholder="Your name"
                   />
                 </div>
                 {signupForm.formState.errors.name && (
@@ -402,45 +374,12 @@ export default function AuthScreen() {
                 className="w-full py-3.5 rounded-xl bg-gradient-vyro text-white font-semibold text-sm flex items-center justify-center gap-2 glow-button hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
               >
                 {isLoading ? (
-                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Creating account...</>
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Creating account...</>
                 ) : (
-                  <><Sparkles size={16} />Create Account</>
+                  <><Sparkles size={16} /> Create Account</>
                 )}
               </button>
             </form>
-          )}
-
-          <button
-            onClick={handleGuestMode}
-            className="w-full mt-3 py-3 rounded-xl glass border border-white/8 text-white/50 hover:text-white/70 text-sm font-medium transition-all duration-200 hover:border-white/15"
-          >
-            Continue as Guest (3 free generations)
-          </button>
-
-          {mode === 'login' && (
-            <div className="mt-6 rounded-xl border border-purple-500/20 bg-purple-500/5 p-4">
-              <p className="text-xs font-semibold text-purple-400 mb-3 flex items-center gap-1.5">
-                <Sparkles size={11} />
-                Demo Accounts
-              </p>
-              <div className="space-y-2">
-                {demoAccounts.map((account) => (
-                  <div key={`demo-${account.role}`} className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-white/60 font-medium">{account.role}</span>
-                      <span className="text-xs text-white/30 ml-2">{account.email}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => fillDemoCredentials(account)}
-                      className="text-[11px] px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 transition-all duration-200"
-                    >
-                      Use
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
           )}
 
           <p className="text-center text-xs text-white/25 mt-6">
