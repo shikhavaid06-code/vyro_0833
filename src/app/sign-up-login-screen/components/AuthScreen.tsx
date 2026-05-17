@@ -59,7 +59,7 @@ export default function AuthScreen() {
     localStorage.setItem('vyro_user', JSON.stringify({ role: valid.role, email: valid.email }));
     toast.success(`Welcome back!`, { description: `Signed in as ${valid.role}` });
     // Check if already onboarded
-    const onboarded = localStorage.getItem('vyro_onboarding');
+    const onboarded = typeof window !== 'undefined' ? localStorage.getItem('vyro_onboarding') : null;
     setTimeout(() => router.push(onboarded ? '/main-app-chat-interface' : '/onboarding-flow'), 800);
     setIsLoading(false);
   };
