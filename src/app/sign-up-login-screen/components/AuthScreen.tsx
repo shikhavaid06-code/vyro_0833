@@ -69,14 +69,14 @@ export default function AuthScreen() {
     // Backend integration point: POST /api/auth/signup
     await new Promise((r) => setTimeout(r, 1400));
     toast.success('Account created!', { description: 'Welcome to VYRO. Let\'s create something viral.' });
-    setTimeout(() => router.push('/main-app-chat-interface'), 800);
+    setTimeout(() => router.push('/onboarding'), 800);
     setIsLoading(false);
   };
 
   const handleGuestMode = () => {
     // Backend integration point: POST /api/auth/guest
     toast.success('Guest mode activated', { description: 'Limited to 3 generations. Upgrade anytime.' });
-    setTimeout(() => router.push('/main-app-chat-interface'), 600);
+    setTimeout(() => router.push('/onboarding'), 800);
   };
 
   const fillDemoCredentials = (account: typeof demoAccounts[0]) => {
