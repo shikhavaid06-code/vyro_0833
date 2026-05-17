@@ -8,9 +8,6 @@ import AppLogo from '@/components/ui/AppLogo';
 import { Eye, EyeOff, Sparkles, ArrowRight, Zap, Crown, Mail, Lock, User } from 'lucide-react';
 import Icon from '@/components/ui/AppIcon';
 
-
-
-
 type AuthMode = 'login' | 'signup';
 
 interface LoginFormData {
@@ -49,7 +46,6 @@ export default function AuthScreen() {
 
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
-    // Backend integration point: POST /api/auth/login
     await new Promise((r) => setTimeout(r, 1200));
     const valid = demoAccounts.find(
       (a) => a.email === data.email && a.password === data.password
@@ -59,23 +55,28 @@ export default function AuthScreen() {
       setIsLoading(false);
       return;
     }
+    // Store user role in localStorage
+    localStorage.setItem('vyro_user', JSON.stringify({ role: valid.role, email: valid.email }));
     toast.success(`Welcome back!`, { description: `Signed in as ${valid.role}` });
-    setTimeout(() => router.push('/main-app-chat-interface'), 800);
+    // Check if already onboarded
+    const onboarded = localStorage.getItem('vyro_onboarding');
+    setTimeout(() => router.push(onboarded ? '/main-app-chat-interface' : '/onboarding-flow'), 800);
     setIsLoading(false);
   };
 
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
-    // Backend integration point: POST /api/auth/signup
     await new Promise((r) => setTimeout(r, 1400));
-    toast.success('Account created!', { description: 'Welcome to VYRO. Let\'s create something viral.' });
+    localStorage.setItem('vyro_user', JSON.stringify({ role: data.plan, email: data.email, name: data.name }));
+    toast.success('Account created!', { description: "Welcome to VYRO. Let's create something viral." });
     setTimeout(() => router.push('/onboarding-flow'), 800);
     setIsLoading(false);
   };
 
   const handleGuestMode = () => {
-    // Backend integration point: POST /api/auth/guest
+    localStorage.setItem('vyro_user', JSON.stringify({ role: 'guest', email: 'guest' }));
     toast.success('Guest mode activated', { description: 'Limited to 3 generations. Upgrade anytime.' });
+    // Guests skip onboarding, go straight to chat
     setTimeout(() => router.push('/main-app-chat-interface'), 600);
   };
 
@@ -89,7 +90,6 @@ export default function AuthScreen() {
     <div className="min-h-screen bg-[#080812] flex overflow-hidden">
       {/* Left brand panel */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative flex-col justify-between p-12 overflow-hidden">
-        {/* Background */}
         <div className="absolute inset-0">
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/15 rounded-full blur-[120px]" />
           <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-pink-600/10 rounded-full blur-[80px]" />
@@ -121,7 +121,6 @@ export default function AuthScreen() {
             </p>
           </div>
 
-          {/* Feature highlights */}
           <div className="space-y-3">
             {[
               { icon: Sparkles, text: 'AI titles, hooks & full scripts — instantly' },
@@ -137,7 +136,6 @@ export default function AuthScreen() {
             ))}
           </div>
 
-          {/* Testimonial */}
           <div className="glass rounded-2xl p-5 border border-white/8 max-w-md">
             <p className="text-white/70 text-sm italic leading-relaxed mb-3">
               &ldquo;VYRO is the only reason I post 5x a week without burning out. It&apos;s genuinely the best investment I&apos;ve made as a creator.&rdquo;
@@ -165,22 +163,18 @@ export default function AuthScreen() {
         <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-purple-900/10 blur-[80px] pointer-events-none" />
 
         <div className="relative z-10 w-full max-w-md">
-          {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <AppLogo size={28} />
             <span className="font-display text-xl font-semibold text-white">VYRO</span>
           </div>
 
-          {/* Mode toggle */}
           <div className="flex glass rounded-xl p-1 mb-8 border border-white/8">
             {(['login', 'signup'] as const).map((m) => (
               <button
                 key={`mode-${m}`}
                 onClick={() => { setMode(m); setShowPassword(false); }}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  mode === m
-                    ? 'bg-gradient-vyro text-white shadow-lg'
-                    : 'text-white/50 hover:text-white/70'
+                  mode === m ? 'bg-gradient-vyro text-white shadow-lg' : 'text-white/50 hover:text-white/70'
                 }`}
               >
                 {m === 'login' ? 'Log In' : 'Sign Up'}
@@ -188,17 +182,15 @@ export default function AuthScreen() {
             ))}
           </div>
 
-          {/* Heading */}
           <div className="mb-7">
             <h2 className="text-2xl font-bold text-white mb-1">
               {mode === 'login' ? 'Welcome back' : 'Create your account'}
             </h2>
             <p className="text-white/40 text-sm">
-              {mode === 'login' ?'Sign in to continue creating viral content.' :'Start free. No credit card required.'}
+              {mode === 'login' ? 'Sign in to continue creating viral content.' : 'Start free. No credit card required.'}
             </p>
           </div>
 
-          {/* Social auth */}
           <div className="flex gap-3 mb-6">
             <button
               onClick={() => toast.info('Google auth coming soon')}
@@ -288,15 +280,9 @@ export default function AuthScreen() {
                 className="w-full py-3.5 rounded-xl bg-gradient-vyro text-white font-semibold text-sm flex items-center justify-center gap-2 glow-button hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
               >
                 {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Signing in...
-                  </>
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Signing in...</>
                 ) : (
-                  <>
-                    Sign In
-                    <ArrowRight size={16} />
-                  </>
+                  <>Sign In<ArrowRight size={16} /></>
                 )}
               </button>
             </form>
@@ -366,7 +352,6 @@ export default function AuthScreen() {
                 )}
               </div>
 
-              {/* Plan selector */}
               <div>
                 <label className="block text-sm font-medium text-white/70 mb-2">Start with</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -380,22 +365,12 @@ export default function AuthScreen() {
                       <label
                         key={`plan-select-${plan.value}`}
                         className={`cursor-pointer rounded-xl p-3 border text-center transition-all duration-200 ${
-                          selected
-                            ? 'border-purple-500/50 bg-purple-500/10' :'border-white/8 glass hover:border-white/15'
+                          selected ? 'border-purple-500/50 bg-purple-500/10' : 'border-white/8 glass hover:border-white/15'
                         }`}
                       >
-                        <input
-                          type="radio"
-                          value={plan.value}
-                          {...signupForm.register('plan')}
-                          className="sr-only"
-                        />
-                        <p className={`text-xs font-semibold ${selected ? 'text-purple-300' : 'text-white/70'}`}>
-                          {plan.label}
-                        </p>
-                        <p className={`text-[11px] ${selected ? 'text-purple-400/70' : 'text-white/30'}`}>
-                          {plan.sub}
-                        </p>
+                        <input type="radio" value={plan.value} {...signupForm.register('plan')} className="sr-only" />
+                        <p className={`text-xs font-semibold ${selected ? 'text-purple-300' : 'text-white/70'}`}>{plan.label}</p>
+                        <p className={`text-[11px] ${selected ? 'text-purple-400/70' : 'text-white/30'}`}>{plan.sub}</p>
                       </label>
                     );
                   })}
@@ -427,21 +402,14 @@ export default function AuthScreen() {
                 className="w-full py-3.5 rounded-xl bg-gradient-vyro text-white font-semibold text-sm flex items-center justify-center gap-2 glow-button hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
               >
                 {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating account...
-                  </>
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Creating account...</>
                 ) : (
-                  <>
-                    <Sparkles size={16} />
-                    Create Account
-                  </>
+                  <><Sparkles size={16} />Create Account</>
                 )}
               </button>
             </form>
           )}
 
-          {/* Guest mode */}
           <button
             onClick={handleGuestMode}
             className="w-full mt-3 py-3 rounded-xl glass border border-white/8 text-white/50 hover:text-white/70 text-sm font-medium transition-all duration-200 hover:border-white/15"
@@ -449,7 +417,6 @@ export default function AuthScreen() {
             Continue as Guest (3 free generations)
           </button>
 
-          {/* Demo credentials */}
           {mode === 'login' && (
             <div className="mt-6 rounded-xl border border-purple-500/20 bg-purple-500/5 p-4">
               <p className="text-xs font-semibold text-purple-400 mb-3 flex items-center gap-1.5">
@@ -458,10 +425,7 @@ export default function AuthScreen() {
               </p>
               <div className="space-y-2">
                 {demoAccounts.map((account) => (
-                  <div
-                    key={`demo-${account.role}`}
-                    className="flex items-center justify-between"
-                  >
+                  <div key={`demo-${account.role}`} className="flex items-center justify-between">
                     <div>
                       <span className="text-xs text-white/60 font-medium">{account.role}</span>
                       <span className="text-xs text-white/30 ml-2">{account.email}</span>
