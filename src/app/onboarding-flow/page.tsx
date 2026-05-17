@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { ArrowRight, Check } from 'lucide-react';
 
 const HEAR_OPTIONS = [
@@ -20,84 +19,59 @@ const HEAR_OPTIONS = [
 ];
 
 const SKILL_OPTIONS = [
-  {
-    id: 'beginner',
-    label: 'Just Starting Out',
-    sub: 'I post occasionally or not at all yet',
-    emoji: '🌱',
-  },
-  {
-    id: 'intermediate',
-    label: 'Growing Creator',
-    sub: 'I post regularly and want to grow faster',
-    emoji: '🚀',
-  },
-  {
-    id: 'advanced',
-    label: 'Full-Time Creator',
-    sub: 'Content is my business — I need to ship daily',
-    emoji: '👑',
-  },
+  { id: 'beginner', label: 'Just Starting Out', sub: 'I post occasionally or not at all yet', emoji: '🌱' },
+  { id: 'intermediate', label: 'Growing Creator', sub: 'I post regularly and want to grow faster', emoji: '🚀' },
+  { id: 'advanced', label: 'Full-Time Creator', sub: 'Content is my business — I need to ship daily', emoji: '👑' },
 ];
 
-type Step = 'hear' | 'skill';
-
-export default function OnboardingPage() {
+export default function OnboardingFlowPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>('hear');
+  const [step, setStep] = useState<'hear' | 'skill'>('hear');
   const [selectedHear, setSelectedHear] = useState('');
   const [selectedSkill, setSelectedSkill] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hearError, setHearError] = useState(false);
+  const [skillError, setSkillError] = useState(false);
 
   const handleHearNext = () => {
-    if (!selectedHear) {
-      toast.error('Please pick one option to continue');
-      return;
-    }
+    if (!selectedHear) { setHearError(true); return; }
+    setHearError(false);
     setStep('skill');
   };
 
   const handleFinish = async () => {
-    if (!selectedSkill) {
-      toast.error('Please select your skill level');
-      return;
-    }
+    if (!selectedSkill) { setSkillError(true); return; }
+    setSkillError(false);
     setIsLoading(true);
-    // Save to localStorage for now — replace with Supabase later
-    if (typeof window !== 'undefined') {
-  localStorage.setItem('vyro_onboarding', JSON.stringify({ hear: selectedHear, skill: selectedSkill }));
-}
-    await new Promise((r) => setTimeout(r, 800));
-    toast.success("You're all set! Let's create something viral 🎉");
+    await new Promise((r) => setTimeout(r, 600));
     router.push('/main-app-chat-interface');
   };
 
   return (
     <div className="min-h-screen bg-[#080812] flex items-center justify-center px-4 py-12">
-      {/* Glow bg */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-lg">
-        {/* Progress bar */}
+        {/* Progress */}
         <div className="flex gap-2 mb-8">
-          <div className="flex-1 h-1 rounded-full bg-purple-500 transition-all duration-500" />
+          <div className="flex-1 h-1 rounded-full bg-purple-500" />
           <div className={`flex-1 h-1 rounded-full transition-all duration-500 ${step === 'skill' ? 'bg-purple-500' : 'bg-white/10'}`} />
         </div>
 
-        {/* STEP 1 — How did you hear */}
         {step === 'hear' && (
           <div>
             <div className="mb-8">
               <p className="text-purple-400 text-sm font-medium mb-2">Step 1 of 2</p>
               <h1 className="text-3xl font-bold text-white mb-2">How did you find VYRO?</h1>
               <p className="text-white/40 text-sm">Help us understand where our creators come from.</p>
+              {hearError && <p className="text-red-400 text-sm mt-2">Please pick one option to continue.</p>}
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-8">
               {HEAR_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => setSelectedHear(opt.id)}
+                  onClick={() => { setSelectedHear(opt.id); setHearError(false); }}
                   className={`relative flex flex-col items-center justify-center gap-1.5 p-4 rounded-xl border text-center transition-all duration-200 ${
                     selectedHear === opt.id
                       ? 'border-purple-500/60 bg-purple-500/10'
@@ -121,26 +95,25 @@ export default function OnboardingPage() {
               onClick={handleHearNext}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all duration-200"
             >
-              Continue
-              <ArrowRight size={16} />
+              Continue <ArrowRight size={16} />
             </button>
           </div>
         )}
 
-        {/* STEP 2 — Skill level */}
         {step === 'skill' && (
           <div>
             <div className="mb-8">
               <p className="text-purple-400 text-sm font-medium mb-2">Step 2 of 2</p>
-              <h1 className="text-3xl font-bold text-white mb-2">What's your creator level?</h1>
-              <p className="text-white/40 text-sm">We'll personalise VYRO's suggestions for you.</p>
+              <h1 className="text-3xl font-bold text-white mb-2">What is your creator level?</h1>
+              <p className="text-white/40 text-sm">We will personalise VYRO suggestions for you.</p>
+              {skillError && <p className="text-red-400 text-sm mt-2">Please select your level to continue.</p>}
             </div>
 
             <div className="flex flex-col gap-3 mb-8">
               {SKILL_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => setSelectedSkill(opt.id)}
+                  onClick={() => { setSelectedSkill(opt.id); setSkillError(false); }}
                   className={`flex items-center gap-4 p-4 rounded-xl border text-left transition-all duration-200 ${
                     selectedSkill === opt.id
                       ? 'border-purple-500/60 bg-purple-500/10'
@@ -149,14 +122,10 @@ export default function OnboardingPage() {
                 >
                   <span className="text-3xl">{opt.emoji}</span>
                   <div className="flex-1">
-                    <p className={`text-sm font-semibold ${selectedSkill === opt.id ? 'text-purple-300' : 'text-white'}`}>
-                      {opt.label}
-                    </p>
+                    <p className={`text-sm font-semibold ${selectedSkill === opt.id ? 'text-purple-300' : 'text-white'}`}>{opt.label}</p>
                     <p className="text-xs text-white/40 mt-0.5">{opt.sub}</p>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                    selectedSkill === opt.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'
-                  }`}>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selectedSkill === opt.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'}`}>
                     {selectedSkill === opt.id && <Check size={11} className="text-white" />}
                   </div>
                 </button>
@@ -168,15 +137,17 @@ export default function OnboardingPage() {
               disabled={isLoading}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all duration-200 disabled:opacity-60"
             >
-              {isLoading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Setting up your workspace...</>
-              ) : (
-                <><span>Let's Create</span> <ArrowRight size={16} /></>
-              )}
+              {isLoading
+                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Setting up...</>
+                : <><span>Lets Create</span> <ArrowRight size={16} /></>
+              }
             </button>
 
-            <button onClick={() => setStep('hear')} className="w-full mt-3 text-center text-xs text-white/25 hover:text-white/40 transition-colors">
-              ← Back
+            <button
+              onClick={() => setStep('hear')}
+              className="w-full mt-3 text-center text-xs text-white/25 hover:text-white/40 transition-colors"
+            >
+              Back
             </button>
           </div>
         )}
