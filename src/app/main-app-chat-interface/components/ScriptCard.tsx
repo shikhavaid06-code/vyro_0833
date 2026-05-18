@@ -23,9 +23,18 @@ export default function ScriptCard({ script }: Props) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // ✅ REAL download as .txt file
   const handleExport = () => {
-    // Backend integration point: POST /api/export/script
-    toast.success('Script exported as PDF', { description: 'Check your downloads folder.' });
+    const blob = new Blob([editedScript], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vyro-script.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Script downloaded!', { description: 'Saved as vyro-script.txt' });
   };
 
   const previewLines = editedScript.split('\n').slice(0, 8).join('\n');
@@ -34,7 +43,6 @@ export default function ScriptCard({ script }: Props) {
 
   return (
     <div className="w-full max-w-2xl">
-      {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Wand2 size={13} className="text-violet-400" />
@@ -47,9 +55,7 @@ export default function ScriptCard({ script }: Props) {
         </div>
       </div>
 
-      {/* Script content */}
       <div className="glass rounded-2xl border border-violet-500/20 overflow-hidden">
-        {/* Toolbar */}
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-violet-500/5">
           <div className="flex items-center gap-2">
             <button
@@ -88,13 +94,13 @@ export default function ScriptCard({ script }: Props) {
             <button
               onClick={handleExport}
               className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/5 transition-all duration-200"
+              title="Download script"
             >
               <Download size={13} />
             </button>
           </div>
         </div>
 
-        {/* Script body */}
         <div className="p-4">
           {editMode ? (
             <textarea
@@ -116,7 +122,6 @@ export default function ScriptCard({ script }: Props) {
           )}
         </div>
 
-        {/* Expand/collapse */}
         {!editMode && (
           <button
             onClick={() => setExpanded(!expanded)}
@@ -131,15 +136,8 @@ export default function ScriptCard({ script }: Props) {
         )}
       </div>
 
-      {/* Quick refine chips */}
       <div className="mt-3 flex flex-wrap gap-2">
-        {[
-          'Make intro shorter',
-          'Add more emotion',
-          'Change outro CTA',
-          'Make it funnier',
-          'Add timestamps',
-        ].map((cmd) => (
+        {['Make intro shorter', 'Add more emotion', 'Change outro CTA', 'Make it funnier', 'Add timestamps'].map((cmd) => (
           <button
             key={`refine-${cmd}`}
             onClick={() => toast.info(`Applying: "${cmd}"...`)}
