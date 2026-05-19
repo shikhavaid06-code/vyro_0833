@@ -48,6 +48,15 @@ Rules:
 - No numbering, no bullet points
 - Only output the 3 hooks, nothing else`;
 
+    } else if (forceType === "assistant") {
+      // ✅ Nova AI assistant — conversational content helper
+      prompt = `You are Nova, an expert AI content co-writer inside VYRO, a viral content creation app.
+The user is a content creator asking for help with their video content.
+Be concise, friendly, and actionable. Max 3-4 sentences per response.
+Help with: improving titles, hooks, scripts, CTAs, tone, structure, or any content request.
+
+User request: "${idea}"`;
+
     } else {
       prompt = `You are a professional YouTube scriptwriter. Write a full YouTube script for: "${idea}".
 Format:
@@ -68,6 +77,10 @@ Format:
     if (forceType === "hooks") {
       const hooks = text.split(/\n\n+/).map((h) => h.trim()).filter((h) => h.length > 0).slice(0, 3);
       return NextResponse.json({ type: "hooks", hooks });
+    }
+
+    if (forceType === "assistant") {
+      return NextResponse.json({ type: "assistant", result: text });
     }
 
     return NextResponse.json({ type: "script", result: text });
