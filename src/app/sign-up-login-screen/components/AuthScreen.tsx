@@ -246,7 +246,7 @@ export default function AuthScreen() {
               <div>
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" {...signupForm.register('agreeTerms', { required: 'You must agree to the terms' })} className="w-4 h-4 mt-0.5 rounded border-white/20 bg-white/5 accent-purple-500" />
-                  <span className="text-xs text-white/40 leading-relaxed">I agree to the <a href="#" className="text-purple-400 hover:text-purple-300 underline">Terms of Service</a> and <a href="#" className="text-purple-400 hover:text-purple-300 underline">Privacy Policy</a></span>
+                  <span className="text-xs text-white/40 leading-relaxed">I agree to the <a href="/terms" className="text-purple-400 hover:text-purple-300 underline">Terms of Service</a> and <a href="/privacy" className="text-purple-400 hover:text-purple-300 underline">Privacy Policy</a> </span>
                 </label>
                 {signupForm.formState.errors.agreeTerms && <p className="text-red-400 text-xs mt-1">{signupForm.formState.errors.agreeTerms.message}</p>}
               </div>
