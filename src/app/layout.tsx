@@ -9,8 +9,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'VYRO — Create Viral Content with AI',
-  description: 'VYRO turns your raw ideas into viral titles, hooks, and scripts in seconds. The AI content creation platform built for creators who ship daily.',
+  title: 'CRÉO — Create Viral Content with AI',
+  description: 'CRÉO turns your raw ideas into viral titles, hooks, and scripts in seconds. The AI content creation platform built for creators who ship daily.',
   icons: {
     icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
   },
@@ -34,9 +34,9 @@ export default function RootLayout({
             },
           }}
         />
-
         <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fvyro2354back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.18" />
-        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></body>
+        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" />
+      </body>
     </html>
   );
 }
