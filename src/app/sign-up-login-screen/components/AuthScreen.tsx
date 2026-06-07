@@ -66,7 +66,7 @@ export default function AuthScreen() {
     users.push(newUser);
     localStorage.setItem('vyro_users', JSON.stringify(users));
     localStorage.setItem('vyro_current_user', JSON.stringify(newUser));
-    toast.success('Account created!', { description: "Welcome to VYRO 🎉" });
+    toast.success('Account created!', { description: "Welcome to CRÉO 🎉" });
     setTimeout(() => router.push('/onboarding-flow'), 800);
     setIsLoading(false);
   };
@@ -83,7 +83,7 @@ export default function AuthScreen() {
         <div className="relative z-10">
           <div className="flex items-center gap-2">
             <AppLogo size={32} />
-            <span className="font-display text-2xl font-semibold text-white">VYRO</span>
+            <span className="font-display text-2xl font-semibold text-white">CRÉO</span>
           </div>
         </div>
         <div className="relative z-10 flex flex-col gap-8">
@@ -107,14 +107,14 @@ export default function AuthScreen() {
             ))}
           </div>
           <div className="glass rounded-2xl p-5 border border-white/8 max-w-md">
-            <p className="text-white/70 text-sm italic leading-relaxed mb-3">&ldquo;VYRO is the only reason I post 5x a week without burning out.&rdquo;</p>
+            <p className="text-white/70 text-sm italic leading-relaxed mb-3">&ldquo;CRÉO is the only reason I post 5x a week without burning out.&rdquo;</p>
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center"><span className="text-xs font-bold text-white">P</span></div>
               <div><p className="text-white text-xs font-semibold">Priya K.</p><p className="text-white/40 text-[11px]">@priyacreates · 280k followers</p></div>
             </div>
           </div>
         </div>
-        <div className="relative z-10"><p className="text-white/20 text-xs">© 2026 VYRO. All rights reserved.</p></div>
+        <div className="relative z-10"><p className="text-white/20 text-xs">© 2026 CRÉO. All rights reserved.</p></div>
       </div>
 
       {/* Right form panel */}
@@ -122,7 +122,7 @@ export default function AuthScreen() {
         <div className="absolute inset-0 bg-[#0a0a18]" />
         <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-purple-900/10 blur-[80px] pointer-events-none" />
         <div className="relative z-10 w-full max-w-md">
-          <div className="lg:hidden flex items-center gap-2 mb-8"><AppLogo size={28} /><span className="font-display text-xl font-semibold text-white">VYRO</span></div>
+          <div className="lg:hidden flex items-center gap-2 mb-8"><AppLogo size={28} /><span className="font-display text-xl font-semibold text-white">CRÉO</span></div>
 
           <div className="flex glass rounded-xl p-1 mb-8 border border-white/8">
             {(['login', 'signup'] as const).map((m) => (
@@ -246,7 +246,7 @@ export default function AuthScreen() {
               <div>
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" {...signupForm.register('agreeTerms', { required: 'You must agree to the terms' })} className="w-4 h-4 mt-0.5 rounded border-white/20 bg-white/5 accent-purple-500" />
-                  <span className="text-xs text-white/40 leading-relaxed">I agree to the <a href="/terms" className="text-purple-400 hover:text-purple-300 underline">Terms of Service</a> and <a href="/privacy" className="text-purple-400 hover:text-purple-300 underline">Privacy Policy</a> </span>
+                  <span className="text-xs text-white/40 leading-relaxed">I agree to the <a href="#" className="text-purple-400 hover:text-purple-300 underline">Terms of Service</a> and <a href="#" className="text-purple-400 hover:text-purple-300 underline">Privacy Policy</a></span>
                 </label>
                 {signupForm.formState.errors.agreeTerms && <p className="text-red-400 text-xs mt-1">{signupForm.formState.errors.agreeTerms.message}</p>}
               </div>
