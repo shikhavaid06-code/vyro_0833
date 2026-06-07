@@ -62,7 +62,7 @@ export default function OnboardingFlowPage() {
           <div>
             <div className="mb-8">
               <p className="text-purple-400 text-sm font-medium mb-2">Step 1 of 2</p>
-              <h1 className="text-3xl font-bold text-white mb-2">How did you find VYRO?</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">How did you find CRÉO?</h1>
               <p className="text-white/40 text-sm">Help us understand where our creators come from.</p>
               {hearError && <p className="text-red-400 text-sm mt-2">Please pick one option to continue.</p>}
             </div>
@@ -105,7 +105,7 @@ export default function OnboardingFlowPage() {
             <div className="mb-8">
               <p className="text-purple-400 text-sm font-medium mb-2">Step 2 of 2</p>
               <h1 className="text-3xl font-bold text-white mb-2">What is your creator level?</h1>
-              <p className="text-white/40 text-sm">We will personalise VYRO suggestions for you.</p>
+              <p className="text-white/40 text-sm">We will personalise CRÉO suggestions for you.</p>
               {skillError && <p className="text-red-400 text-sm mt-2">Please select your level to continue.</p>}
             </div>
 
