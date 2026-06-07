@@ -57,9 +57,9 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [showPaywall, setShowPaywall] = useState(false);
 
   // ✅ Track generations from localStorage
-  const getGenCount = () => parseInt(localStorage.getItem('vyro_gen_count') || '0');
-  const bumpGenCount = () => localStorage.setItem('vyro_gen_count', String(getGenCount() + 1));
-  const isProUser = () => { try { const u = JSON.parse(localStorage.getItem('vyro_current_user') || '{}'); return u.plan === 'pro' || u.plan === 'ultra'; } catch { return false; } };
+  const getGenCount = () => parseInt(localStorage.getItem('creo_gen_count') || '0');
+  const bumpGenCount = () => localStorage.setItem('creo_gen_count', String(getGenCount() + 1));
+  const isProUser = () => { try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); return u.plan === 'pro' || u.plan === 'ultra'; } catch { return false; } };
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -77,7 +77,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     const s = messages.find((m) => m.type === 'script');
     if (!s) { toast.error('No script yet!'); return; }
     const text = typeof s.data === 'string' ? s.data : JSON.stringify(s.data);
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([text], { type: 'text/plain' })), download: 'vyro-script.txt' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([text], { type: 'text/plain' })), download: 'creo-script.txt' });
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     toast.success('Script downloaded!');
   };
@@ -143,7 +143,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     if (step === 'titles') return 'Or type a title manually...';
     if (step === 'hooks') return 'Or type a hook manually...';
     if (step === 'done') return 'Ask me to refine, make shorter, change tone...';
-    return 'Tell VYRO what to create...';
+    return 'Tell CRÉO what to create...';
   };
   const getStepLabel = () => {
     if (step === 'idle') return 'New Chat — Tell VYRO your video topic';
@@ -202,7 +202,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           <div className="flex flex-col items-center justify-center h-full text-center py-12">
             <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-4"><Sparkles size={24} className="text-purple-400" /></div>
             <h2 className="text-lg font-bold text-white mb-2">What are we creating today?</h2>
-            <p className="text-white/40 text-sm max-w-xs">Type your video idea and VYRO will generate viral titles, hooks, and a full script.</p>
+            <p className="text-white/40 text-sm max-w-xs">Type your video idea and CRÉO will generate viral titles, hooks, and a full script.</p>
             {!isProUser() && <p className="text-purple-400/70 text-xs mt-3">{genLeft} free generation{genLeft !== 1 ? 's' : ''} remaining</p>}
           </div>
         )}
