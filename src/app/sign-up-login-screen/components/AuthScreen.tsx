@@ -48,7 +48,7 @@ export default function AuthScreen() {
     localStorage.setItem('vyro_current_user', JSON.stringify(match));
     toast.success(`Welcome back, ${match.name}!`);
     const onboarded = localStorage.getItem(`vyro_onboarding_${match.email}`);
-    setTimeout(() => router.push(onboarded ? '/main-app-chat-interface' : '/onboarding-flow'), 800);
+    setTimeout(() => router.push('/main-app-chat-interface'), 800);
     setIsLoading(false);
   };
 
