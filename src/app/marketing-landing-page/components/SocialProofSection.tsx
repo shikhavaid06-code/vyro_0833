@@ -74,7 +74,7 @@ export default function SocialProofSection() {
         <div className="text-center mb-12">
           <p className="text-xs font-semibold tracking-[0.2em] text-pink-400 uppercase mb-4">Social Proof</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
-            Creators love VYRO
+            Creators love CRÉO
           </h2>
           <p className="text-white/40 text-base">
             Real results from real creators. No paid testimonials.
