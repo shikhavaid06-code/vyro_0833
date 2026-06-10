@@ -222,7 +222,7 @@ export default function ChatMainArea({
   };
 
   const getStepLabel = () => {
-    if (step === 'idle') return 'New Chat — Tell VYRO your video topic';
+    if (step === 'idle') return 'New Chat — Tell CRÉO your video topic';
     if (step === 'titles') return 'Step 2 — Pick a title';
     if (step === 'hooks') return 'Step 3 — Pick a hook';
     return '🎉 Script ready — refine anytime!';
@@ -347,7 +347,7 @@ export default function ChatMainArea({
               <Sparkles size={28} className="text-purple-400" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">What are we creating today?</h2>
-            <p className="text-white/40 text-sm max-w-sm">Type your video idea below and VYRO will generate viral titles, hooks, and a full script for you.</p>
+            <p className="text-white/40 text-sm max-w-sm">Type your video idea below and CRÉO will generate viral titles, hooks, and a full script for you.</p>
           </div>
         )}
 
