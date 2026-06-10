@@ -146,7 +146,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     return 'Tell CRÉO what to create...';
   };
   const getStepLabel = () => {
-    if (step === 'idle') return 'New Chat — Tell VYRO your video topic';
+    if (step === 'idle') return 'New Chat — Tell CRÉO your video topic';
     if (step === 'titles') return 'Step 2 — Pick a title';
     if (step === 'hooks') return 'Step 3 — Pick a hook';
     return '🎉 Script ready — refine anytime!';
