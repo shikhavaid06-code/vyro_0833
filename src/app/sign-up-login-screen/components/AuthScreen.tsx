@@ -10,16 +10,17 @@ type AuthMode = 'login' | 'signup';
 interface LoginFormData { email: string; password: string; remember: boolean; }
 interface SignupFormData { name: string; email: string; password: string; plan: string; agreeTerms: boolean; }
 
-// ✅ Currency detection by timezone
 function getLocalePricing() {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  if (tz.includes('Asia/Kolkata') || tz.includes('Asia/Calcutta')) return { symbol: '₹', pro: '999', ultra: '2,999' };
-  if (tz.includes('Asia/Tokyo') || tz.includes('Asia/Osaka')) return { symbol: '¥', pro: '1,480', ultra: '4,480' };
-  if (tz.includes('Asia/Shanghai') || tz.includes('Asia/Hong_Kong')) return { symbol: '¥', pro: '98', ultra: '298' };
-  if (tz.includes('Europe')) return { symbol: '€', pro: '12', ultra: '35' };
-  if (tz.includes('Asia/Dubai') || tz.includes('Asia/Riyadh')) return { symbol: 'AED', pro: '49', ultra: '149' };
-  if (tz.includes('Asia/Singapore') || tz.includes('Asia/Kuala_Lumpur')) return { symbol: 'S$', pro: '18', ultra: '52' };
-  return { symbol: '$', pro: '14', ultra: '39' }; // default USD
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz.includes('Asia/Kolkata') || tz.includes('Asia/Calcutta')) return { symbol: '₹', pro: '999', ultra: '2,999' };
+    if (tz.includes('Asia/Tokyo') || tz.includes('Asia/Osaka')) return { symbol: '¥', pro: '1,480', ultra: '4,480' };
+    if (tz.includes('Asia/Shanghai') || tz.includes('Asia/Hong_Kong')) return { symbol: '¥', pro: '98', ultra: '298' };
+    if (tz.includes('Europe')) return { symbol: '€', pro: '12', ultra: '35' };
+    if (tz.includes('Asia/Dubai') || tz.includes('Asia/Riyadh')) return { symbol: 'AED', pro: '49', ultra: '149' };
+    if (tz.includes('Asia/Singapore') || tz.includes('Asia/Kuala_Lumpur')) return { symbol: 'S$', pro: '18', ultra: '52' };
+  } catch {}
+  return { symbol: '$', pro: '14', ultra: '39' };
 }
 
 export default function AuthScreen() {
@@ -29,7 +30,14 @@ export default function AuthScreen() {
   const [pricing, setPricing] = useState({ symbol: '$', pro: '14', ultra: '39' });
   const router = useRouter();
 
-  useEffect(() => { setPricing(getLocalePricing()); }, []);
+  useEffect(() => {
+    // ✅ Set currency on client only (fixes SSR mismatch)
+    setPricing(getLocalePricing());
+    // ✅ Auto-redirect if already logged in
+    const session = localStorage.getItem('creo_session');
+    const user = localStorage.getItem('creo_current_user');
+    if (session && user) router.replace('/main-app-chat-interface');
+  }, []);
 
   const loginForm = useForm<LoginFormData>({ defaultValues: { email: '', password: '', remember: false } });
   const signupForm = useForm<SignupFormData>({ defaultValues: { name: '', email: '', password: '', plan: 'free', agreeTerms: false } });
@@ -37,7 +45,7 @@ export default function AuthScreen() {
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     await new Promise((r) => setTimeout(r, 800));
-    const stored = localStorage.getItem('vyro_users');
+    const stored = localStorage.getItem('creo_users');
     const users = stored ? JSON.parse(stored) : [];
     const match = users.find((u: any) => u.email === data.email && u.password === data.password);
     if (!match) {
@@ -45,9 +53,15 @@ export default function AuthScreen() {
       setIsLoading(false);
       return;
     }
-    localStorage.setItem('vyro_current_user', JSON.stringify(match));
+    localStorage.setItem('creo_current_user', JSON.stringify(match));
+    // ✅ Remember me — persist or session only
+    if (data.remember) {
+      localStorage.setItem('creo_session', 'true');
+    } else {
+      sessionStorage.setItem('creo_session', 'true');
+    }
     toast.success(`Welcome back, ${match.name}!`);
-    const onboarded = localStorage.getItem(`vyro_onboarding_${match.email}`);
+    // ✅ Login always goes straight to workspace — NO onboarding
     setTimeout(() => router.push('/main-app-chat-interface'), 800);
     setIsLoading(false);
   };
@@ -55,7 +69,7 @@ export default function AuthScreen() {
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
     await new Promise((r) => setTimeout(r, 800));
-    const stored = localStorage.getItem('vyro_users');
+    const stored = localStorage.getItem('creo_users');
     const users = stored ? JSON.parse(stored) : [];
     if (users.find((u: any) => u.email === data.email)) {
       toast.error('Email already registered. Please log in!');
@@ -64,9 +78,11 @@ export default function AuthScreen() {
     }
     const newUser = { name: data.name, email: data.email, password: data.password, plan: data.plan, joinedAt: new Date().toISOString() };
     users.push(newUser);
-    localStorage.setItem('vyro_users', JSON.stringify(users));
-    localStorage.setItem('vyro_current_user', JSON.stringify(newUser));
+    localStorage.setItem('creo_users', JSON.stringify(users));
+    localStorage.setItem('creo_current_user', JSON.stringify(newUser));
+    localStorage.setItem('creo_session', 'true');
     toast.success('Account created!', { description: "Welcome to CRÉO 🎉" });
+    // ✅ Signup goes to onboarding
     setTimeout(() => router.push('/onboarding-flow'), 800);
     setIsLoading(false);
   };
@@ -107,7 +123,7 @@ export default function AuthScreen() {
             ))}
           </div>
           <div className="glass rounded-2xl p-5 border border-white/8 max-w-md">
-            <p className="text-white/70 text-sm italic leading-relaxed mb-3">&ldquo;CRÉO is the only reason I post 5x a week without burning out.&rdquo;</p>
+            <p className="text-white/70 text-sm italic leading-relaxed mb-3">&ldquo;CRÉO is the only reason I post 5x a week without burning out. Best investment I&apos;ve made as a creator.&rdquo;</p>
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center"><span className="text-xs font-bold text-white">P</span></div>
               <div><p className="text-white text-xs font-semibold">Priya K.</p><p className="text-white/40 text-[11px]">@priyacreates · 280k followers</p></div>
@@ -246,7 +262,7 @@ export default function AuthScreen() {
               <div>
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" {...signupForm.register('agreeTerms', { required: 'You must agree to the terms' })} className="w-4 h-4 mt-0.5 rounded border-white/20 bg-white/5 accent-purple-500" />
-                  <span className="text-xs text-white/40 leading-relaxed">I agree to the <a href="#" className="text-purple-400 hover:text-purple-300 underline">Terms of Service</a> and <a href="#" className="text-purple-400 hover:text-purple-300 underline">Privacy Policy</a></span>
+                  <span className="text-xs text-white/40 leading-relaxed">I agree to the <a href="/terms" className="text-purple-400 hover:text-purple-300 underline">Terms of Service</a> and <a href="/privacy" className="text-purple-400 hover:text-purple-300 underline">Privacy Policy</a></span>
                 </label>
                 {signupForm.formState.errors.agreeTerms && <p className="text-red-400 text-xs mt-1">{signupForm.formState.errors.agreeTerms.message}</p>}
               </div>
