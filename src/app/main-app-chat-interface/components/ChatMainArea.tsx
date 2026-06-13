@@ -57,9 +57,9 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [showPaywall, setShowPaywall] = useState(false);
 
   // ✅ Track generations from localStorage
-  const getGenCount = () => parseInt(localStorage.getItem('creo_gen_count') || '0');
-  const bumpGenCount = () => localStorage.setItem('creo_gen_count', String(getGenCount() + 1));
-  const isProUser = () => { try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); return u.plan === 'pro' || u.plan === 'ultra'; } catch { return false; } };
+  const getGenCount = () => typeof window === 'undefined' ? 0 : parseInt(localStorage.getItem('creo_gen_count') || '0');
+  const bumpGenCount = () => { if (typeof window !== 'undefined') localStorage.setItem('creo_gen_count', String(getGenCount() + 1)); };
+  const isProUser = () => { if (typeof window === 'undefined') return false; try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); return u.plan === 'pro' || u.plan === 'ultra'; } catch { return false; } };
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
