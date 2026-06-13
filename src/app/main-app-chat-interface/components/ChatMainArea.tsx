@@ -30,12 +30,26 @@ function PaywallModal({ onClose }: { onClose: () => void }) {
         <h2 className="text-xl font-bold text-white mb-2">You've used your 3 free generations</h2>
         <p className="text-white/50 text-sm mb-6 leading-relaxed">Upgrade to Pro or Ultra to keep creating viral content — unlimited generations, priority AI, and more.</p>
         <div className="space-y-2">
-          <button onClick={() => { toast.success('Redirecting to upgrade...'); onClose(); }} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 transition-all">
-            Upgrade to Pro — ₹999/mo
-          </button>
-          <button onClick={() => { toast.success('Redirecting to upgrade...'); onClose(); }} className="w-full py-3 rounded-xl border border-purple-500/30 text-purple-300 font-semibold text-sm hover:bg-purple-500/10 transition-all">
-            Upgrade to Ultra — ₹2999/mo
-          </button>
+          <button onClick={() => {
+  const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}');
+  const waitlist = JSON.parse(localStorage.getItem('creo_upgrade_waitlist') || '[]');
+  waitlist.push({ email: u.email, plan: 'pro', date: new Date().toISOString() });
+  localStorage.setItem('creo_upgrade_waitlist', JSON.stringify(waitlist));
+  toast.success("You're on the Pro waitlist!", { description: "We'll email you the moment payments go live." });
+  onClose();
+}} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 transition-all">
+  Join Pro Waitlist — ₹999/mo
+</button>
+<button onClick={() => {
+  const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}');
+  const waitlist = JSON.parse(localStorage.getItem('creo_upgrade_waitlist') || '[]');
+  waitlist.push({ email: u.email, plan: 'ultra', date: new Date().toISOString() });
+  localStorage.setItem('creo_upgrade_waitlist', JSON.stringify(waitlist));
+  toast.success("You're on the Ultra waitlist!", { description: "We'll email you the moment payments go live." });
+  onClose();
+}} className="w-full py-3 rounded-xl border border-purple-500/30 text-purple-300 font-semibold text-sm hover:bg-purple-500/10 transition-all">
+  Join Ultra Waitlist — ₹2999/mo
+</button>
         </div>
         <p className="text-center text-xs text-white/25 mt-4">Cancel anytime · No hidden fees</p>
       </div>
