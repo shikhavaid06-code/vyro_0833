@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Sparkles, Play, ArrowRight, Zap, TrendingUp } from 'lucide-react';
+import DemoModal from './DemoModal';
 
 const rotatingWords = ['Viral', 'Engaging', 'Scroll-Stopping', 'High-Converting', 'Trending'];
 
@@ -9,6 +10,7 @@ export default function HeroSection() {
   const [wordIndex, setWordIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const [userCount] = useState(47832);
+  const [showDemo, setShowDemo] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -48,7 +50,7 @@ export default function HeroSection() {
           <Link href="/sign-up-login-screen" className="group flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-vyro text-white font-semibold text-base glow-button hover:scale-105 active:scale-95 transition-all duration-200">
             <Sparkles size={18} />Start Creating Free<ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
           </Link>
-          <button onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')} className="group flex items-center gap-2 px-8 py-4 rounded-full glass text-white/70 hover:text-white font-medium text-base hover:bg-white/5 transition-all duration-200">
+          <button onClick={() => setShowDemo(true)} className="group flex items-center gap-2 px-8 py-4 rounded-full glass text-white/70 hover:text-white font-medium text-base hover:bg-white/5 transition-all duration-200">
             <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors duration-200"><Play size={12} fill="currentColor" /></div>
             Watch Demo
           </button>
@@ -101,6 +103,8 @@ export default function HeroSection() {
           </div>
         </div>
       </div>
+
+      {showDemo && <DemoModal onClose={() => setShowDemo(false)} />}
     </section>
   );
 }
