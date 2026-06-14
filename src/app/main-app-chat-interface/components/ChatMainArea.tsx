@@ -86,7 +86,13 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const togglePlatform = (p: string) => setSelectedPlatforms((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
 
   const handleNewChat = () => { setMessages([]); setInputValue(''); setIsTyping(false); setStep('idle'); setSelectedTitle(''); if (onNewChat) onNewChat(); };
-  const handleSignOut = () => { toast.success('Signed out'); setTimeout(() => router.push('/sign-up-login-screen'), 600); };
+  const handleSignOut = () => {
+  localStorage.removeItem('creo_current_user');
+  localStorage.removeItem('creo_session');
+  sessionStorage.removeItem('creo_session');
+  toast.success('Signed out');
+  setTimeout(() => router.push('/sign-up-login-screen'), 600);
+};
   const handleExport = () => {
     const s = messages.find((m) => m.type === 'script');
     if (!s) { toast.error('No script yet!'); return; }
