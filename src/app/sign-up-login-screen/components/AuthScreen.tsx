@@ -254,7 +254,7 @@ export default function AuthScreen() {
                   <input type="checkbox" {...loginForm.register('remember')} className="w-4 h-4 rounded border-white/20 bg-white/5 accent-purple-500" />
                   <span className="text-xs text-white/50">Remember me</span>
                 </label>
-                <a href="#" className="text-xs text-purple-400 hover:text-purple-300">Forgot password?</a>
+                <a href="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300">Forgot password?</a>
               </div>
               <button type="submit" disabled={isLoading}
                 className="w-full py-3.5 rounded-xl bg-gradient-vyro text-white font-semibold text-sm flex items-center justify-center gap-2 glow-button hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100">
