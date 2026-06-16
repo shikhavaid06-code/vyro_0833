@@ -12,7 +12,7 @@ type ChatStep = 'idle' | 'titles' | 'hooks' | 'script' | 'done';
 interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script'; content?: string; data?: unknown; timestamp: string; }
 const platforms = ['YouTube', 'TikTok', 'Instagram', 'Twitter/X'];
 const tones = ['Casual', 'Professional', 'Storytelling', 'Educational', 'Hype'];
-const durations = ['Shorts (< 60s)', 'Medium (3-8 min)', 'Long (8-20 min)', 'Custom'];
+const durations = ['Shorts (< 60s)', 'Medium (3-8 min)', 'Long (8-20 min)', '20-40 min', '40-60 min', '1-2 hours', 'Custom'];
 const FREE_LIMIT = 3;
 
 interface Props { sidebarOpen: boolean; onToggleSidebar: () => void; activeChatId: string; onChatSaved?: (title: string, platform: string) => void; onNewChat?: () => void; }
