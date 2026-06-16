@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Plus, Trash2, MessageSquare, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Plus, Trash2, MessageSquare, ChevronLeft, ChevronRight, X, Clock } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
 
 interface SavedChat { id: string; title: string; preview: string; time: string; platform: string; generated: number; }
@@ -9,19 +9,11 @@ interface Props { isOpen: boolean; onToggle: () => void; activeChatId: string; o
 export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectChat, onNewChat, chats, onDeleteChat }: Props) {
   return (
     <>
-      {/* ✅ Mobile overlay — closes sidebar when clicking outside */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
-          onClick={onToggle}
-        />
-      )}
-
+      {isOpen && <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden" onClick={onToggle} />}
       <aside className={`fixed inset-y-0 left-0 z-40 bg-[#0a0a14] border-r border-white/5 flex flex-col transition-all duration-300
         ${isOpen ? 'w-72 translate-x-0' : '-translate-x-full'}
         lg:static lg:translate-x-0 ${isOpen ? 'lg:w-72' : 'lg:w-16'}`}>
 
-        {/* Header */}
         <div className="h-14 flex items-center justify-between px-4 border-b border-white/5 flex-shrink-0">
           {isOpen && (
             <div className="flex items-center gap-2">
@@ -29,55 +21,70 @@ export default function ChatSidebar({ isOpen, onToggle, activeChatId, onSelectCh
               <span className="font-display text-sm font-semibold text-white">CRÉO</span>
             </div>
           )}
-          {/* Desktop toggle */}
           <button onClick={onToggle} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white transition-all hidden lg:flex">
             {isOpen ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
           </button>
-          {/* Mobile close button */}
           <button onClick={onToggle} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white transition-all lg:hidden">
             <X size={13} />
           </button>
         </div>
 
-        {/* New chat */}
         <div className="p-3 flex-shrink-0">
-          <button onClick={onNewChat} className={`w-full flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium transition-all hover:opacity-90 ${isOpen ? 'px-3 py-2.5 justify-start' : 'p-2.5 justify-center'}`}>
+          <button onClick={onNewChat} className={`w-full flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium transition-all hover:opacity-90 active:scale-95 ${isOpen ? 'px-3 py-2.5 justify-start' : 'p-2.5 justify-center'}`}>
             <Plus size={15} />
             {isOpen && <span>New chat</span>}
           </button>
         </div>
 
-        {/* History */}
-        <div className="flex-1 overflow-y-auto px-3 space-y-1">
-          {isOpen && (
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-2 mb-2 mt-1">
-              {chats.length > 0 ? 'Recent chats' : 'No history yet'}
-            </p>
-          )}
-          {chats.map((chat) => (
-            <div key={chat.id} onClick={() => { onSelectChat(chat.id); if (window.innerWidth < 1024) onToggle(); }}
-              className={`group relative rounded-xl cursor-pointer transition-all ${
-                activeChatId === chat.id ? 'bg-purple-500/15 border border-purple-500/30' : 'hover:bg-white/5 border border-transparent'
-              } ${isOpen ? 'p-3' : 'p-2.5 flex items-center justify-center'}`}>
-              {isOpen ? (
-                <>
-                  <div className="flex items-start gap-2 mb-1">
-                    <MessageSquare size={13} className="text-purple-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs font-medium text-white/80 line-clamp-2 leading-snug">{chat.title}</p>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-white/30 pl-5">
-                    <span>{chat.platform} · {chat.time}</span>
-                    <button onClick={(e) => { e.stopPropagation(); onDeleteChat(chat.id); }}
-                      className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition-all">
-                      <Trash2 size={11} />
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <MessageSquare size={15} className="text-purple-400" />
-              )}
+        <div className="flex-1 overflow-y-auto px-2 pb-4">
+          {isOpen && chats.length > 0 && (
+            <div className="flex items-center gap-2 px-2 mb-3 mt-1">
+              <Clock size={10} className="text-white/20" />
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25">Recent</p>
             </div>
-          ))}
+          )}
+          {isOpen && chats.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                <MessageSquare size={16} className="text-white/20" />
+              </div>
+              <p className="text-xs text-white/25 text-center leading-relaxed">Your chats will<br />appear here</p>
+            </div>
+          )}
+
+          <div className="space-y-1">
+            {chats.map((chat) => (
+              <div key={chat.id}
+                onClick={() => { onSelectChat(chat.id); if (window.innerWidth < 1024) onToggle(); }}
+                className={`group relative rounded-xl cursor-pointer transition-all duration-200 ${
+                  activeChatId === chat.id
+                    ? 'bg-purple-500/15 border border-purple-500/25'
+                    : 'hover:bg-white/5 border border-transparent hover:border-white/5'
+                } ${isOpen ? 'p-3' : 'p-2.5 flex items-center justify-center'}`}>
+                {isOpen ? (
+                  <>
+                    <div className="flex items-start gap-2.5 mb-1.5">
+                      <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 ${activeChatId === chat.id ? 'bg-purple-500/30' : 'bg-white/5'}`}>
+                        <MessageSquare size={11} className={activeChatId === chat.id ? 'text-purple-400' : 'text-white/30'} />
+                      </div>
+                      <p className="text-xs font-medium text-white/75 line-clamp-2 leading-snug flex-1">{chat.title}</p>
+                    </div>
+                    <div className="flex items-center justify-between pl-7">
+                      <span className="text-[10px] text-white/25">{chat.platform} · {chat.time}</span>
+                      <button onClick={(e) => { e.stopPropagation(); onDeleteChat(chat.id); }}
+                        className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded flex items-center justify-center text-white/25 hover:text-red-400 hover:bg-red-400/10 transition-all">
+                        <Trash2 size={10} />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className={`w-6 h-6 rounded-md flex items-center justify-center ${activeChatId === chat.id ? 'bg-purple-500/30' : 'bg-white/5'}`}>
+                    <MessageSquare size={13} className={activeChatId === chat.id ? 'text-purple-400' : 'text-white/30'} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </aside>
     </>
