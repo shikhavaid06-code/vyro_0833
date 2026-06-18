@@ -26,6 +26,8 @@ const greetings = [
   (name: string) => `Good to see you, ${name}! What are we creating? 💡`,
   (name: string) => `${name}, your audience is waiting! Let's go 🎯`,
   (name: string) => `Time to create magic, ${name} ✨`,
+  (name: string) => `${name}, we will make it work 🔥`,
+   (name: string) =>`we are with you ,${name}! 🎯`,
 ];
 
 // ✅ Rotating quick prompt sets — different every session
