@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import TitleCards from './TitleCards';
 import HookCards from './HookCards';
 import ScriptCard from './ScriptCard';
-import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings } from 'lucide-react';
 
 type ChatStep = 'idle' | 'titles' | 'hooks' | 'script' | 'done';
 interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script'; content?: string; data?: unknown; timestamp: string; }
@@ -27,8 +26,6 @@ const greetings = [
   (name: string) => `Good to see you, ${name}! What are we creating? 💡`,
   (name: string) => `${name}, your audience is waiting! Let's go 🎯`,
   (name: string) => `Time to create magic, ${name} ✨`,
-  (name: string) => `${name}, we will make it work 🔥`,
-   (name: string) =>`we are with you ,${name}! 🎯`,
 ];
 
 // ✅ Rotating quick prompt sets — different every session
@@ -250,16 +247,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Download size={12} /><span className="hidden sm:inline">Export</span></button>
           <button onClick={handleShare} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white/70 transition-all"><Share2 size={13} /></button>
           <button onClick={handleSignOut} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-red-400 transition-all" title="Sign out"><LogOut size={13} /></button>
-          <button onClick={() => router.push('/settings')} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white/70 transition-all" title="Settings">
-          <Settings size={13} />
-          </button>
         </div>
       </div>
 
       {/* CONTROLS */}
       {showControls && (
-        <div {showControls && (
-         <div className="flex-shrink-0 px-3 md:px-6 py-3 border-b border-white/5 bg-[#0a0a1a]/50 backdrop-blur-sm animate-in slide-in-from-top-2 duration-200">
+        <div className="flex-shrink-0 px-3 md:px-6 py-3 border-b border-white/5 bg-[#0a0a1a]/50 backdrop-blur-sm">
           <div className="flex flex-wrap gap-3">
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Platform</p><div className="flex flex-wrap gap-1">{platforms.map((p) => <button key={p} onClick={() => togglePlatform(p)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedPlatforms.includes(p) ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' : 'glass border border-white/8 text-white/40'}`}>{p}</button>)}</div></div>
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Tone</p><div className="flex flex-wrap gap-1">{tones.map((t) => <button key={t} onClick={() => setSelectedTone(t)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedTone === t ? 'bg-pink-500/20 border border-pink-500/30 text-pink-300' : 'glass border border-white/8 text-white/40'}`}>{t}</button>)}</div></div>
