@@ -6,7 +6,6 @@
     "dependencies": [
       "next",
       "react",
-      "@supabase/supabase-js": "^2.45.0",
       "react-dom",
       "@dhiwise/component-tagger",
       "@tailwindcss/typography",
@@ -60,7 +59,8 @@
     "react-dom": "19.0.3",
     "react-hook-form": "^7.73.1",
     "recharts": "^2.15.2",
-    "sonner": "latest"
+    "sonner": "latest",
+    "@supabase/supabase-js": "^2.45.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
