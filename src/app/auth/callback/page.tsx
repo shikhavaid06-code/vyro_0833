@@ -8,32 +8,55 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        // Check if profile exists
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', session.user.email)
-          .single();
-
-        if (!profile) {
-          // New user — create profile
-          await supabase.from('profiles').insert({
-            id: session.user.id,
-            email: session.user.email,
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Creator',
-            plan: 'free',
-            gen_count: 0,
-          });
-          // New user goes to onboarding
-          router.replace('/onboarding-flow');
-        } else {
-          // Existing user goes to workspace
-          router.replace('/main-app-chat-interface');
+      try {
+        // ✅ This exchanges the token from the URL for a real session
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error || !data.session) {
+          // Try to get session from URL hash (magic link flow)
+          const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+          
+          if (sessionError || !session) {
+            router.replace('/sign-up-login-screen');
+            return;
+          }
         }
-      } else {
+
+        const session = data.session;
+        
+        if (session?.user) {
+          // Check if profile exists in Supabase
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('email', session.user.email)
+            .single();
+
+          if (!profile) {
+            // New user — create profile
+            const pendingName = localStorage.getItem('creo_pending_name') || 
+              session.user.user_metadata?.name || 
+              session.user.email?.split('@')[0] || 'Creator';
+            const pendingPlan = localStorage.getItem('creo_pending_plan') || 'free';
+
+            await supabase.from('profiles').upsert({
+              id: session.user.id,
+              email: session.user.email,
+              name: pendingName,
+              plan: pendingPlan,
+              gen_count: 0,
+            });
+
+            localStorage.removeItem('creo_pending_name');
+            localStorage.removeItem('creo_pending_plan');
+            router.replace('/onboarding-flow');
+          } else {
+            router.replace('/main-app-chat-interface');
+          }
+        } else {
+          router.replace('/sign-up-login-screen');
+        }
+      } catch {
         router.replace('/sign-up-login-screen');
       }
     };
