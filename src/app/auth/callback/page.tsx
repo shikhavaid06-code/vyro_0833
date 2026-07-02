@@ -9,54 +9,50 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        // ✅ This exchanges the token from the URL for a real session
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error || !data.session) {
-          // Try to get session from URL hash (magic link flow)
-          const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
-          
-          if (sessionError || !session) {
-            router.replace('/sign-up-login-screen');
-            return;
-          }
-        }
+        const { data: { session } } = await supabase.auth.getSession();
 
-        const session = data.session;
-        
-        if (session?.user) {
-          // Check if profile exists in Supabase
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('email', session.user.email)
-            .single();
-
-          if (!profile) {
-            // New user — create profile
-            const pendingName = localStorage.getItem('creo_pending_name') || 
-              session.user.user_metadata?.name || 
-              session.user.email?.split('@')[0] || 'Creator';
-            const pendingPlan = localStorage.getItem('creo_pending_plan') || 'free';
-
-            await supabase.from('profiles').upsert({
-              id: session.user.id,
-              email: session.user.email,
-              name: pendingName,
-              plan: pendingPlan,
-              gen_count: 0,
-            });
-
-            localStorage.removeItem('creo_pending_name');
-            localStorage.removeItem('creo_pending_plan');
-            router.replace('/onboarding-flow');
-          } else {
-            router.replace('/main-app-chat-interface');
-          }
-        } else {
+        if (!session?.user) {
           router.replace('/sign-up-login-screen');
+          return;
         }
-      } catch {
+
+        const user = session.user;
+        const pendingName = localStorage.getItem('creo_pending_name') || 
+          user.email?.split('@')[0] || 'Creator';
+        const pendingPlan = localStorage.getItem('creo_pending_plan') || 'free';
+
+        // ✅ Check if profile exists
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!existing) {
+          // ✅ New user — save to profiles
+          const { error } = await supabase.from('profiles').insert({
+            user_id: user.id,
+            email: user.email,
+            name: pendingName,
+            plan: pendingPlan,
+            gen_count: 0,
+            last_active: new Date().toISOString(),
+          });
+
+          if (error) console.error('Profile insert error:', error.message);
+
+          localStorage.removeItem('creo_pending_name');
+          localStorage.removeItem('creo_pending_plan');
+          router.replace('/onboarding-flow');
+        } else {
+          // ✅ Existing user — update last_active
+          await supabase.from('profiles')
+            .update({ last_active: new Date().toISOString() })
+            .eq('user_id', user.id);
+          router.replace('/main-app-chat-interface');
+        }
+      } catch (err) {
+        console.error('Auth callback error:', err);
         router.replace('/sign-up-login-screen');
       }
     };
