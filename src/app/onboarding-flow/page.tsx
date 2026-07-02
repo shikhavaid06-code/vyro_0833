@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 const HEAR_OPTIONS = [
   { id: 'youtube', label: 'YouTube', emoji: '▶️' },
@@ -36,13 +37,6 @@ export default function OnboardingFlowPage() {
   const handleHearNext = () => {
     if (!selectedHear) { setHearError(true); return; }
     setHearError(false);
-    // Save survey data
-    if (typeof window !== 'undefined') {
-      const existing = JSON.parse(localStorage.getItem('creo_survey') || '[]');
-      const user = JSON.parse(localStorage.getItem('creo_current_user') || '{}');
-      existing.push({ email: user.email, hear: selectedHear, date: new Date().toISOString() });
-      localStorage.setItem('creo_survey', JSON.stringify(existing));
-    }
     setStep('skill');
   };
 
@@ -50,28 +44,34 @@ export default function OnboardingFlowPage() {
     if (!selectedSkill) { setSkillError(true); return; }
     setSkillError(false);
     setIsLoading(true);
-    if (typeof window !== 'undefined') {
-      const existing = JSON.parse(localStorage.getItem('creo_survey') || '[]');
-      const last = existing[existing.length - 1];
-      if (last) last.skill = selectedSkill;
-      localStorage.setItem('creo_survey', JSON.stringify(existing));
+
+    try {
+      // ✅ Save hear + skill to Supabase profiles
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase.from('profiles').update({
+          hear: selectedHear,
+          skill: selectedSkill,
+        }).eq('user_id', session.user.id);
+      }
+    } catch (err) {
+      console.error('Onboarding save error:', err);
     }
-    await new Promise((r) => setTimeout(r, 600));
+
+    await new Promise((r) => setTimeout(r, 400));
+    setIsLoading(false);
     router.push('/main-app-chat-interface');
   };
 
   return (
     <div className="min-h-screen bg-[#080812] flex items-center justify-center px-4 py-12">
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
-
       <div className="relative z-10 w-full max-w-lg">
-        {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <Sparkles size={18} className="text-purple-400" />
           <span className="font-display text-lg font-semibold text-white">CRÉO</span>
         </div>
 
-        {/* Progress */}
         <div className="flex gap-2 mb-8">
           <div className="flex-1 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
           <div className={`flex-1 h-1 rounded-full transition-all duration-500 ${step === 'skill' ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-white/10'}`} />
@@ -85,13 +85,10 @@ export default function OnboardingFlowPage() {
               <p className="text-white/40 text-sm">Help us understand where our creators come from.</p>
               {hearError && <p className="text-red-400 text-sm mt-2">Please pick one option to continue.</p>}
             </div>
-
             <div className="grid grid-cols-3 gap-2 mb-8">
               {HEAR_OPTIONS.map((opt) => (
                 <button key={opt.id} onClick={() => { setSelectedHear(opt.id); setHearError(false); }}
-                  className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-center transition-all duration-200 ${
-                    selectedHear === opt.id ? 'border-purple-500/60 bg-purple-500/10' : 'border-white/8 bg-white/3 hover:border-white/15'
-                  }`}>
+                  className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-center transition-all duration-200 ${selectedHear === opt.id ? 'border-purple-500/60 bg-purple-500/10' : 'border-white/8 bg-white/3 hover:border-white/15'}`}>
                   {selectedHear === opt.id && (
                     <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
                       <Check size={9} className="text-white" />
@@ -102,7 +99,6 @@ export default function OnboardingFlowPage() {
                 </button>
               ))}
             </div>
-
             <button onClick={handleHearNext} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all">
               Continue <ArrowRight size={16} />
             </button>
@@ -117,13 +113,10 @@ export default function OnboardingFlowPage() {
               <p className="text-white/40 text-sm">We'll personalise CRÉO's suggestions for you.</p>
               {skillError && <p className="text-red-400 text-sm mt-2">Please select your level to continue.</p>}
             </div>
-
             <div className="flex flex-col gap-3 mb-8">
               {SKILL_OPTIONS.map((opt) => (
                 <button key={opt.id} onClick={() => { setSelectedSkill(opt.id); setSkillError(false); }}
-                  className={`flex items-center gap-4 p-4 rounded-xl border text-left transition-all duration-200 bg-gradient-to-r ${
-                    selectedSkill === opt.id ? `${opt.color} ${opt.border}` : 'border-white/8 bg-transparent hover:border-white/15'
-                  }`}>
+                  className={`flex items-center gap-4 p-4 rounded-xl border text-left transition-all duration-200 bg-gradient-to-r ${selectedSkill === opt.id ? `${opt.color} ${opt.border}` : 'border-white/8 bg-transparent hover:border-white/15'}`}>
                   <span className="text-3xl">{opt.emoji}</span>
                   <div className="flex-1">
                     <p className={`text-sm font-semibold ${selectedSkill === opt.id ? 'text-white' : 'text-white/80'}`}>{opt.label}</p>
@@ -135,12 +128,10 @@ export default function OnboardingFlowPage() {
                 </button>
               ))}
             </div>
-
             <button onClick={handleFinish} disabled={isLoading}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-60">
-              {isLoading ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Setting up your workspace...</> : <><Sparkles size={15} />Let's Create<ArrowRight size={15} /></>}
+              {isLoading ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving...</> : <><Sparkles size={15} />Let's Create <ArrowRight size={15} /></>}
             </button>
-
             <button onClick={() => setStep('hear')} className="w-full mt-3 text-center text-xs text-white/25 hover:text-white/40 transition-colors">← Back</button>
           </div>
         )}
