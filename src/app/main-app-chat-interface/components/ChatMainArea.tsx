@@ -1,12 +1,11 @@
-'use client';
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Coffee, Rocket } from 'lucide-react';
+import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import TitleCards from './TitleCards';
 import HookCards from './HookCards';
 import ScriptCard from './ScriptCard';
+import WinningVault from './WinningVault';
 
 type ChatStep = 'idle' | 'titles' | 'hooks' | 'script' | 'done';
 interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script'; content?: string; data?: unknown; timestamp: string; }
@@ -16,7 +15,6 @@ const tones = ['Casual', 'Professional', 'Storytelling', 'Educational', 'Hype'];
 const durations = ['Shorts (< 60s)', 'Medium (3-8 min)', 'Long (8-20 min)', '20-40 min', '40-60 min', '1-2 hours', 'Custom'];
 const FREE_LIMIT = 3;
 
-// ✅ Rotating greetings — different every new chat
 const greetings = [
   (name: string) => `Hey ${name}! What's the idea today? 🚀`,
   (name: string) => `Welcome back, ${name}! Let's make something viral 🔥`,
@@ -28,7 +26,6 @@ const greetings = [
   (name: string) => `Time to create magic, ${name} ✨`,
 ];
 
-// ✅ Rotating quick prompt sets — different every session
 const promptSets = [
   [
     { icon: '🎮', text: '5 gaming tips that pros never share' },
@@ -65,7 +62,7 @@ function PaywallModal({ onClose }: { onClose: () => void }) {
         <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white/60"><X size={16} /></button>
         <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center mb-4"><Crown size={22} className="text-white" /></div>
         <h2 className="text-xl font-bold text-white mb-2">You've used your 3 free generations</h2>
-        <p className="text-white/50 text-sm mb-6 leading-relaxed">Upgrade to Pro or Ultra to keep creating viral content — unlimited generations, priority AI, and more.</p>
+        <p className="text-white/50 text-sm mb-6 leading-relaxed">Upgrade to Pro or Ultra to keep creating viral content.</p>
         <div className="space-y-2">
           <button onClick={() => {
             if (typeof window !== 'undefined') {
@@ -74,7 +71,7 @@ function PaywallModal({ onClose }: { onClose: () => void }) {
               w.push({ email: u.email, plan: 'pro', date: new Date().toISOString() });
               localStorage.setItem('creo_upgrade_waitlist', JSON.stringify(w));
             }
-            toast.success("You're on the Pro waitlist!", { description: "We'll email you when payments go live." });
+            toast.success("You're on the Pro waitlist!");
             onClose();
           }} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 transition-all">
             Join Pro Waitlist — ₹999/mo
@@ -86,13 +83,12 @@ function PaywallModal({ onClose }: { onClose: () => void }) {
               w.push({ email: u.email, plan: 'ultra', date: new Date().toISOString() });
               localStorage.setItem('creo_upgrade_waitlist', JSON.stringify(w));
             }
-            toast.success("You're on the Ultra waitlist!", { description: "We'll email you when payments go live." });
+            toast.success("You're on the Ultra waitlist!");
             onClose();
           }} className="w-full py-3 rounded-xl border border-purple-500/30 text-purple-300 font-semibold text-sm hover:bg-purple-500/10 transition-all">
             Join Ultra Waitlist — ₹2999/mo
           </button>
         </div>
-        <p className="text-center text-xs text-white/25 mt-4">Cancel anytime · No hidden fees</p>
       </div>
     </div>
   );
@@ -110,14 +106,15 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [selectedDuration, setSelectedDuration] = useState('Medium (3-8 min)');
   const [showControls, setShowControls] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showVault, setShowVault] = useState(false);
   const [userName, setUserName] = useState('');
-  // ✅ Random greeting and prompts per session
   const [greetingFn] = useState(() => greetings[Math.floor(Math.random() * greetings.length)]);
   const [promptSet] = useState(() => promptSets[Math.floor(Math.random() * promptSets.length)]);
 
   const getGenCount = () => typeof window === 'undefined' ? 0 : parseInt(localStorage.getItem('creo_gen_count') || '0');
   const bumpGenCount = () => { if (typeof window !== 'undefined') localStorage.setItem('creo_gen_count', String(getGenCount() + 1)); };
   const isProUser = () => { if (typeof window === 'undefined') return false; try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); return u.plan === 'pro' || u.plan === 'ultra'; } catch { return false; } };
+  const currentPlan = () => { try { return JSON.parse(localStorage.getItem('creo_current_user') || '{}').plan || 'free'; } catch { return 'free'; } };
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -133,10 +130,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   const togglePlatform = (p: string) => setSelectedPlatforms((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
 
-  const handleNewChat = () => {
-    setMessages([]); setInputValue(''); setIsTyping(false); setStep('idle'); setSelectedTitle('');
-    if (onNewChat) onNewChat();
-  };
+  const handleNewChat = () => { setMessages([]); setInputValue(''); setIsTyping(false); setStep('idle'); setSelectedTitle(''); if (onNewChat) onNewChat(); };
 
   const handleSignOut = () => {
     if (typeof window !== 'undefined') {
@@ -150,7 +144,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   const handleExport = () => {
     const s = messages.find((m) => m.type === 'script');
-    if (!s) { toast.error('No script yet — generate one first!'); return; }
+    if (!s) { toast.error('No script yet!'); return; }
     const text = typeof s.data === 'string' ? s.data : JSON.stringify(s.data);
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([text], { type: 'text/plain' })), download: 'creo-script.txt' });
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -224,6 +218,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   return (
     <div className="flex flex-col" style={{ height: '100dvh' }}>
       {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
+      {showVault && <WinningVault isOpen={showVault} onClose={() => setShowVault(false)} plan={currentPlan()} />}
 
       {/* TOPBAR */}
       <div className="flex-shrink-0 h-14 flex items-center justify-between px-3 md:px-6 border-b border-white/5 bg-[#080812]/90 backdrop-blur-xl">
@@ -241,18 +236,23 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
             </button>
           )}
           <button onClick={handleNewChat} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Plus size={12} /><span className="hidden sm:inline">New</span></button>
+          {/* ✅ Vault button */}
+          <button onClick={() => setShowVault(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-yellow-500/20 text-xs font-medium text-yellow-400/70 hover:text-yellow-400 transition-all">
+            <Star size={12} /><span className="hidden sm:inline">Vault</span>
+          </button>
           <button onClick={() => setShowControls(!showControls)} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${showControls ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400' : 'glass border border-white/8 text-white/50 hover:text-white/70'}`}>
             <Sparkles size={12} /><span className="hidden sm:inline">Controls</span><ChevronDown size={11} className={`transition-transform ${showControls ? 'rotate-180' : ''}`} />
           </button>
           <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Download size={12} /><span className="hidden sm:inline">Export</span></button>
           <button onClick={handleShare} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white/70 transition-all"><Share2 size={13} /></button>
+          <button onClick={() => router.push('/settings')} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white/70 transition-all" title="Settings"><Settings size={13} /></button>
           <button onClick={handleSignOut} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-red-400 transition-all" title="Sign out"><LogOut size={13} /></button>
         </div>
       </div>
 
       {/* CONTROLS */}
       {showControls && (
-        <div className="flex-shrink-0 px-3 md:px-6 py-3 border-b border-white/5 bg-[#0a0a1a]/50 backdrop-blur-sm">
+        <div className="flex-shrink-0 px-3 md:px-6 py-3 border-b border-white/5 bg-[#0a0a1a]/50 backdrop-blur-sm animate-in slide-in-from-top-2 duration-200">
           <div className="flex flex-wrap gap-3">
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Platform</p><div className="flex flex-wrap gap-1">{platforms.map((p) => <button key={p} onClick={() => togglePlatform(p)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedPlatforms.includes(p) ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' : 'glass border border-white/8 text-white/40'}`}>{p}</button>)}</div></div>
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Tone</p><div className="flex flex-wrap gap-1">{tones.map((t) => <button key={t} onClick={() => setSelectedTone(t)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedTone === t ? 'bg-pink-500/20 border border-pink-500/30 text-pink-300' : 'glass border border-white/8 text-white/40'}`}>{t}</button>)}</div></div>
@@ -263,57 +263,37 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
       {/* MESSAGES */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto overscroll-contain">
-
-        {/* ✅ Enhanced empty state — fills space properly, no awkward gap */}
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full px-4 text-center">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px]" />
             </div>
-
             <div className="relative z-10 w-full max-w-lg">
-              {/* Icon */}
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto mb-6">
                 <Wand2 size={28} className="text-purple-400" />
               </div>
-
-              {/* ✅ Random greeting */}
-              <h2 className="text-2xl font-bold text-white mb-2">
-                {userName ? greetingFn(userName) : 'What are we creating today? ✨'}
-              </h2>
+              <h2 className="text-2xl font-bold text-white mb-2">{userName ? greetingFn(userName) : 'What are we creating today? ✨'}</h2>
               <p className="text-white/40 text-sm mb-2">Type your idea or pick a quick start below</p>
-
               {!isProUser() && (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mb-8">
                   <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                   <p className="text-purple-400/80 text-xs">{genLeft} free generation{genLeft !== 1 ? 's' : ''} remaining</p>
                 </div>
               )}
-
-              {/* ✅ Random quick prompts */}
               <div className="grid grid-cols-2 gap-2 mb-8 w-full">
                 {promptSet.map((prompt) => (
                   <button key={prompt.text} onClick={() => handleSendWithText(prompt.text)}
-                    className="flex items-start gap-2.5 p-3.5 rounded-xl glass border border-white/8 hover:border-purple-500/30 hover:bg-purple-500/5 text-left transition-all duration-200 group">
+                    className="flex items-start gap-2.5 p-3.5 rounded-xl glass border border-white/8 hover:border-purple-500/30 hover:bg-purple-500/5 text-left transition-all group">
                     <span className="text-lg flex-shrink-0">{prompt.icon}</span>
                     <span className="text-xs text-white/50 group-hover:text-white/70 transition-colors leading-snug">{prompt.text}</span>
                   </button>
                 ))}
               </div>
-
-              {/* Step flow indicator */}
               <div className="flex items-center justify-center gap-1">
-                {[
-                  { icon: Sparkles, label: 'Idea', color: 'text-purple-400' },
-                  { icon: Zap, label: 'Titles', color: 'text-pink-400' },
-                  { icon: Flame, label: 'Hook', color: 'text-orange-400' },
-                  { icon: Star, label: 'Script', color: 'text-yellow-400' },
-                ].map((s, i) => (
+                {[{ icon: Sparkles, label: 'Idea', color: 'text-purple-400' }, { icon: Zap, label: 'Titles', color: 'text-pink-400' }, { icon: Flame, label: 'Hook', color: 'text-orange-400' }, { icon: Star, label: 'Script', color: 'text-yellow-400' }].map((s, i) => (
                   <React.Fragment key={s.label}>
                     <div className="flex flex-col items-center gap-1">
-                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center">
-                        <s.icon size={14} className={s.color} />
-                      </div>
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center"><s.icon size={14} className={s.color} /></div>
                       <span className="text-[9px] text-white/25">{s.label}</span>
                     </div>
                     {i < 3 && <div className="w-6 h-px bg-white/10 mb-4 mx-1" />}
@@ -324,21 +304,32 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           </div>
         )}
 
-        {/* Messages */}
         <div className="px-3 md:px-6 py-4 space-y-4">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.type === 'text' && (
-                <div className={`max-w-[85%] sm:max-w-lg px-4 py-2.5 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-purple-600/80 text-white rounded-br-sm' : 'glass border border-white/8 text-white/80 rounded-bl-sm'}`}>
-                  {msg.content}
+                <div className={`max-w-[85%] sm:max-w-lg px-4 py-2.5 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-purple-600/80 text-white rounded-br-sm' : 'glass border border-white/8 text-white/80 rounded-bl-sm'}`}>{msg.content}</div>
+              )}
+              {msg.type === 'titles' && (
+                <div className="w-full">
+                  <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Zap size={12} className="text-purple-400" />{msg.content}</p>
+                  <TitleCards titles={msg.data as string[]} onSelect={handleTitleSelect} topic={selectedTitle} platform={selectedPlatforms[0]} plan={currentPlan()} />
                 </div>
               )}
-              {msg.type === 'titles' && <div className="w-full"><p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Zap size={12} className="text-purple-400" />{msg.content}</p><TitleCards titles={msg.data as string[]} onSelect={handleTitleSelect} /></div>}
-              {msg.type === 'hooks' && <div className="w-full"><p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Flame size={12} className="text-pink-400" />{msg.content}</p><HookCards hooks={msg.data as string[]} onSelect={handleHookSelect} /></div>}
-              {msg.type === 'script' && <div className="w-full"><p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Star size={12} className="text-violet-400" />{msg.content}</p><ScriptCard script={msg.data as string} /></div>}
+              {msg.type === 'hooks' && (
+                <div className="w-full">
+                  <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Flame size={12} className="text-pink-400" />{msg.content}</p>
+                  <HookCards hooks={msg.data as string[]} onSelect={handleHookSelect} topic={selectedTitle} platform={selectedPlatforms[0]} plan={currentPlan()} />
+                </div>
+              )}
+              {msg.type === 'script' && (
+                <div className="w-full">
+                  <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Star size={12} className="text-violet-400" />{msg.content}</p>
+                  <ScriptCard script={msg.data as string} />
+                </div>
+              )}
             </div>
           ))}
-
           {isTyping && (
             <div className="flex justify-start">
               <div className="glass border border-white/8 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2">
