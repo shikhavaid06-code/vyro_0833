@@ -4,13 +4,15 @@ import { useRouter } from 'next/navigation';
 import AppLogo from '@/components/ui/AppLogo';
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
-import { Sparkles, Mail, ArrowRight, Zap, Crown, Star, CheckCircle, Check } from 'lucide-react';
+import { Sparkles, Mail, ArrowRight, Zap, Crown, Star, CheckCircle, Check, Rocket } from 'lucide-react';
 
-const testimonials = [
-  { name: 'Priya K.', handle: '@priyacreates', followers: '280k', text: 'CRÉO is the only reason I post 5x a week without burning out.', initial: 'P', color: 'from-purple-500 to-pink-600' },
-  { name: 'Aryan S.', handle: '@aryantech', followers: '95k', text: 'Went from 0 to 95k subscribers using CRÉO scripts. Game changer.', initial: 'A', color: 'from-blue-500 to-violet-600' },
-  { name: 'Nisha R.', handle: '@nishalifestyle', followers: '180k', text: 'I save 4 hours every week. The hooks it generates are insane.', initial: 'N', color: 'from-pink-500 to-rose-600' },
-];
+interface Stats { totalCreators: number | null; totalGenerated: number | null; }
+
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M+`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K+`;
+  return `${n}`;
+}
 
 export default function AuthScreen() {
   const [email, setEmail] = useState('');
@@ -20,7 +22,7 @@ export default function AuthScreen() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [pricing, setPricing] = useState({ symbol: '$', pro: '14', ultra: '39' });
-  const [testimonialIdx, setTestimonialIdx] = useState(0);
+  const [stats, setStats] = useState<Stats>({ totalCreators: null, totalGenerated: null });
   const router = useRouter();
 
   useEffect(() => {
@@ -28,8 +30,8 @@ export default function AuthScreen() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) router.replace('/main-app-chat-interface');
     }).catch(() => {});
-    const t = setInterval(() => setTestimonialIdx((i) => (i + 1) % testimonials.length), 4000);
-    return () => clearInterval(t);
+    // ✅ Real stats only — no fabricated testimonials or follower counts.
+    fetch('/api/stats').then((r) => r.json()).then((d) => setStats(d)).catch(() => {});
   }, []);
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -62,7 +64,7 @@ export default function AuthScreen() {
     setIsLoading(false);
   };
 
-  const t = testimonials[testimonialIdx];
+  const showCreatorCount = stats.totalCreators !== null && stats.totalCreators >= 10;
 
   return (
     <div className="min-h-screen bg-[#080812] flex overflow-hidden">
@@ -82,8 +84,17 @@ export default function AuthScreen() {
         <div className="relative z-10 flex flex-col gap-8">
           <div>
             <div className="inline-flex items-center gap-2 glass rounded-full px-3 py-1.5 mb-5 border border-purple-500/20">
-              <Star size={11} className="text-yellow-400 fill-yellow-400" />
-              <span className="text-xs text-white/60">Trusted by 47,000+ creators worldwide</span>
+              {showCreatorCount ? (
+                <>
+                  <Star size={11} className="text-yellow-400 fill-yellow-400" />
+                  <span className="text-xs text-white/60">Trusted by {formatCount(stats.totalCreators as number)} creators worldwide</span>
+                </>
+              ) : (
+                <>
+                  <Rocket size={11} className="text-purple-400" />
+                  <span className="text-xs text-white/60">Newly launched — be one of our first creators</span>
+                </>
+              )}
             </div>
             <h1 className="font-display text-5xl xl:text-6xl font-bold leading-tight mb-4">
               <span className="text-white">Your ideas deserve</span><br />
@@ -99,18 +110,13 @@ export default function AuthScreen() {
               </div>
             ))}
           </div>
-          <div className="glass rounded-2xl p-5 border border-white/8 max-w-md transition-all duration-500">
-            <div className="flex gap-1 mb-3">{[...Array(5)].map((_, i) => <Star key={i} size={12} className="text-yellow-400 fill-yellow-400" />)}</div>
-            <p className="text-white/70 text-sm italic leading-relaxed mb-3">&ldquo;{t.text}&rdquo;</p>
-            <div className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center`}><span className="text-xs font-bold text-white">{t.initial}</span></div>
-              <div><p className="text-white text-xs font-semibold">{t.name}</p><p className="text-white/40 text-[11px]">{t.handle} · {t.followers} followers</p></div>
+          {/* ✅ Removed fabricated testimonials & follower counts. Real quotes go here once we have them. */}
+          <div className="glass rounded-2xl p-5 border border-white/8 max-w-md">
+            <div className="flex gap-1 mb-3">
+              <Sparkles size={14} className="text-purple-400" />
+              <p className="text-white/70 text-sm font-medium">Built for creators who ship daily</p>
             </div>
-          </div>
-          <div className="flex gap-6">
-            {[['47K+', 'Creators'], ['2.1M+', 'Scripts made'], ['4.9★', 'Rating']].map(([val, label]) => (
-              <div key={label}><p className="text-white font-bold text-xl">{val}</p><p className="text-white/40 text-xs">{label}</p></div>
-            ))}
+            <p className="text-white/40 text-xs leading-relaxed">Titles, hooks, and full scripts — generated in seconds, not hours. No fluff, no filler prompts.</p>
           </div>
         </div>
         <div className="relative z-10"><p className="text-white/20 text-xs">© 2026 CRÉO. All rights reserved.</p></div>
