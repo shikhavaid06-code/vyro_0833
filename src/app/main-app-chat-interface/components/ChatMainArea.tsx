@@ -130,6 +130,32 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); if (u.name) setUserName(u.name.split(' ')[0]); } catch {}
   }, []);
 
+  // ✅ Anonymous entry flow handoff (see /try) — if the user generated hooks
+  // before signing in, drop them straight into the workspace instead of
+  // making them re-type their topic.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('creo_pending_handoff');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const topic: string = parsed?.topic || '';
+      const hooks: string[] = Array.isArray(parsed?.hooks) ? parsed.hooks : [];
+      if (topic && hooks.length) {
+        addUserMessage(topic);
+        addAiMessage({ role: 'ai', type: 'hooks', content: '🪝 Here are 3 powerful hooks! Click the one that fits:', data: hooks });
+        setSelectedTitle(topic);
+        setStep('hooks');
+        bumpGenCount();
+        if (onChatSaved) onChatSaved(topic, selectedPlatforms[0]);
+      }
+    } catch {
+      // ignore malformed handoff data
+    } finally {
+      localStorage.removeItem('creo_pending_handoff');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const togglePlatform = (p: string) => setSelectedPlatforms((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
 
   const handleNewChat = () => { setMessages([]); setInputValue(''); setIsTyping(false); setStep('idle'); setSelectedTitle(''); if (onNewChat) onNewChat(); };
