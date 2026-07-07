@@ -4,16 +4,6 @@ import { Star, Quote } from 'lucide-react';
 
 const testimonials = [
   {
-    id: 'test-001',
-    quote: 'VYRO turned a 3-hour script grind into a 10-minute flow. My short hit 400k.',
-    name: 'Maya R.',
-    handle: '@mayamakes',
-    platform: 'YouTube',
-    avatar: 'M',
-    color: 'purple',
-    stars: 5,
-  },
-  {
     id: 'test-002',
     quote: 'The hook generator alone is worth it. Retention doubled on my last three videos.',
     name: 'Dev A.',
@@ -113,40 +103,7 @@ export default function SocialProofSection() {
             </div>
           ))}
         </div>
-
-        {/* Trust bar */}
-        <div className="mt-12 glass rounded-2xl p-6 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="flex -space-x-2">
-              {['A', 'B', 'C', 'D', 'E'].map((letter, i) => (
-                <div
-                  key={`avatar-stack-${letter}`}
-                  className="w-9 h-9 rounded-full border-2 border-[#080812] bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center"
-                  style={{ zIndex: 5 - i }}
-                >
-                  <span className="text-xs font-bold text-white">{letter}</span>
-                </div>
-              ))}
-            </div>
-            <div>
-              <p className="text-white font-semibold text-sm">47,832+ creators</p>
-              <p className="text-white/40 text-xs">shipping content with VYRO daily</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white tabular-nums">4.9</p>
-              <div className="flex gap-0.5 justify-center">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={`trust-star-${i}`} size={10} fill="#a855f7" className="text-purple-400" />
-                ))}
-              </div>
-            </div>
-            <div className="h-10 w-px bg-white/10" />
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white tabular-nums">2.4M</p>
-              <p className="text-white/40 text-xs">scripts generated</p>
-            </div>
+           
           </div>
         </div>
       </div>
