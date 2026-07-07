@@ -20,6 +20,10 @@ export default function AuthCallbackPage() {
         const pendingName = localStorage.getItem('creo_pending_name') || 
           user.email?.split('@')[0] || 'Creator';
         const pendingPlan = localStorage.getItem('creo_pending_plan') || 'free';
+        // ✅ Anonymous entry flow (/try) leaves generated hooks here — if present,
+        // skip onboarding and go straight to the workspace so the hooks + topic
+        // are waiting the instant the user lands, with no re-typing required.
+        const hasHandoff = !!localStorage.getItem('creo_pending_handoff');
 
         // ✅ Check if profile exists
         const { data: existing } = await supabase
@@ -43,7 +47,7 @@ export default function AuthCallbackPage() {
 
           localStorage.removeItem('creo_pending_name');
           localStorage.removeItem('creo_pending_plan');
-          router.replace('/onboarding-flow');
+          router.replace(hasHandoff ? '/main-app-chat-interface' : '/onboarding-flow');
         } else {
           // ✅ Existing user — update last_active
           await supabase.from('profiles')
