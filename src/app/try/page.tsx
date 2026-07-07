@@ -1,6 +1,5 @@
-import React from 'react';
-import AnonymousEntryScreen from './components/AnonymousEntryScreen';
+import MarketingLandingPage from './marketing-landing-page/page';
 
-export default function TryPage() {
-  return <AnonymousEntryScreen />;
+export default function Home() {
+  return <MarketingLandingPage />;
 }
