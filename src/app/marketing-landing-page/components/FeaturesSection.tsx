@@ -1,9 +1,16 @@
 'use client';
-import React, { useState } from 'react';
-import { Sparkles, Zap, FileText, MessageSquare, Globe, Wand2, ChevronRight } from 'lucide-react';
-import Icon from '@/components/ui/AppIcon';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, Zap, FileText, MessageSquare, Globe, Wand2, ChevronRight, Brain, ShieldAlert, Layers, Radar, Lock } from 'lucide-react';
 
+interface Stats { totalCreators: number | null; totalGenerated: number | null; }
 
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M+`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K+`;
+  return `${n}`;
+}
+
+// ✅ Live features — available today
 const features = [
   {
     id: 'title-gen',
@@ -13,15 +20,17 @@ const features = [
     description: 'Generate 10+ scroll-stopping titles for any idea in under 5 seconds. Trained on millions of viral videos across every niche.',
     detail: 'Analyzes trending patterns, emotional triggers, and platform-specific formats to craft titles that demand clicks.',
     badge: 'Most Used',
+    status: 'live' as const,
   },
   {
     id: 'hook-gen',
     icon: Zap,
     color: 'pink',
     title: 'Hook Generator',
-    description: 'The first 3 seconds decide everything. VYRO writes hooks that stop the scroll and pull viewers into your content.',
+    description: 'The first 3 seconds decide everything. CRÉO writes hooks that stop the scroll and pull viewers into your content.',
     detail: 'Choose from curiosity hooks, shock hooks, story hooks, and controversy hooks — all optimized per platform.',
     badge: 'Fan Favorite',
+    status: 'live' as const,
   },
   {
     id: 'script-gen',
@@ -31,6 +40,7 @@ const features = [
     description: 'Full scripts for Shorts, Reels, long-form YouTube, and everything in between. Custom duration up to 2 hours.',
     detail: 'Structured with intro, body, and CTA. Tone-matched to your brand voice with every generation.',
     badge: null,
+    status: 'live' as const,
   },
   {
     id: 'ai-assistant',
@@ -40,15 +50,17 @@ const features = [
     description: 'Chat with your personal AI co-writer. Ask it to rewrite, shorten, make it funnier, or change the entire angle.',
     detail: 'Context-aware — it remembers your entire session and refines based on your feedback naturally.',
     badge: 'Ultra Only',
+    status: 'live' as const,
   },
   {
     id: 'multi-platform',
     icon: Globe,
     color: 'cyan',
     title: 'Multi-Platform Optimization',
-    description: 'One idea, every platform. VYRO adapts your content for YouTube, TikTok, Instagram Reels, and Twitter/X.',
+    description: 'One idea, every platform. CRÉO adapts your content for YouTube, TikTok, Instagram Reels, and Twitter/X.',
     detail: 'Adjusts length, tone, hashtag strategy, and format rules per platform automatically.',
     badge: null,
+    status: 'live' as const,
   },
   {
     id: 'smart-edit',
@@ -58,6 +70,51 @@ const features = [
     description: 'Highlight any part of your script and say "make this more emotional" or "cut this down." AI rewrites it live.',
     detail: 'Works inline within the chat — no copy-pasting to external tools. Your script evolves in real time.',
     badge: 'Pro + Ultra',
+    status: 'live' as const,
+  },
+];
+
+// ✅ Coming soon — real roadmap items, clearly marked as upcoming, tied to the tier they'll ship on
+const upcomingFeatures = [
+  {
+    id: 'creator-memory',
+    icon: Brain,
+    color: 'fuchsia',
+    title: 'Creator Memory & Brain',
+    description: 'CRÉO learns your niche, tone, audience, and best-performing style — and generates using your own winning formula.',
+    detail: 'The more you create, the smarter your results get. Painful to leave once it knows your voice.',
+    badge: 'Ultra',
+    status: 'soon' as const,
+  },
+  {
+    id: 'brutal-reviewer',
+    icon: ShieldAlert,
+    color: 'red',
+    title: 'Brutal Reviewer',
+    description: 'A no-mercy AI critique that scores your hook strength, curiosity, emotional pull, and retention before you post.',
+    detail: 'Catches weak openings and slow endings so you fix them before they cost you views.',
+    badge: 'Pro + Ultra',
+    status: 'soon' as const,
+  },
+  {
+    id: 'content-expansion',
+    icon: Layers,
+    color: 'emerald',
+    title: 'Content Expansion Engine',
+    description: 'Turn one idea into a full content batch — Shorts, Reels, threads, and a long-form script, all in one pass.',
+    detail: 'Stop starting from scratch for every format. One idea, a week of content.',
+    badge: 'Pro + Ultra',
+    status: 'soon' as const,
+  },
+  {
+    id: 'competitor-intel',
+    icon: Radar,
+    color: 'sky',
+    title: 'Competitor Intelligence',
+    description: 'Paste a competitor\'s channel or profile and CRÉO breaks down their hooks, titles, and posting patterns.',
+    detail: 'See exactly what\'s working for creators in your niche — then build your own edge.',
+    badge: 'Ultra',
+    status: 'soon' as const,
   },
 ];
 
@@ -68,10 +125,21 @@ const colorMap: Record<string, { bg: string; text: string; border: string; glow:
   indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20', glow: 'group-hover:shadow-indigo-500/20' },
   cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20', glow: 'group-hover:shadow-cyan-500/20' },
   amber: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', glow: 'group-hover:shadow-amber-500/20' },
+  fuchsia: { bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-400', border: 'border-fuchsia-500/20', glow: 'group-hover:shadow-fuchsia-500/20' },
+  red: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', glow: 'group-hover:shadow-red-500/20' },
+  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', glow: 'group-hover:shadow-emerald-500/20' },
+  sky: { bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/20', glow: 'group-hover:shadow-sky-500/20' },
 };
 
 export default function FeaturesSection() {
   const [activeFeature, setActiveFeature] = useState('title-gen');
+  const [stats, setStats] = useState<Stats>({ totalCreators: null, totalGenerated: null });
+
+  useEffect(() => {
+    fetch('/api/stats').then((r) => r.json()).then((d) => setStats(d)).catch(() => {});
+  }, []);
+
+  const allFeatures = [...features, ...upcomingFeatures];
 
   return (
     <section id="features" className="relative py-32 overflow-hidden">
@@ -89,11 +157,11 @@ export default function FeaturesSection() {
             <span className="text-gradient">ship content daily</span>
           </h2>
           <p className="text-white/40 text-lg max-w-xl mx-auto">
-            Six powerful AI tools working together in one seamless chat interface.
+            Six tools live today. Four more shipping soon to make CRÉO impossible to outgrow.
           </p>
         </div>
 
-        {/* Feature grid */}
+        {/* Live feature grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map((feature) => {
             const colors = colorMap[feature.color];
@@ -137,13 +205,56 @@ export default function FeaturesSection() {
           })}
         </div>
 
-        {/* Stats row */}
+        {/* Coming soon grid — visually distinct so it never reads as "already shipped" */}
+        <div className="mt-14">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-px flex-1 bg-white/8" />
+            <span className="text-xs font-semibold tracking-[0.15em] text-white/40 uppercase whitespace-nowrap">Coming Soon — On The Roadmap</span>
+            <div className="h-px flex-1 bg-white/8" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {upcomingFeatures.map((feature) => {
+              const colors = colorMap[feature.color];
+              const Icon = feature.icon;
+
+              return (
+                <div
+                  key={`upcoming-${feature.id}`}
+                  className="relative rounded-2xl p-6 border border-dashed border-white/10 bg-white/[0.02] opacity-90"
+                >
+                  <span className={`absolute top-4 right-4 flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}>
+                    <Lock size={9} />{feature.badge}
+                  </span>
+
+                  <div className={`w-11 h-11 rounded-xl ${colors.bg} border ${colors.border} flex items-center justify-center mb-4`}>
+                    <Icon size={20} className={colors.text} />
+                  </div>
+
+                  <h3 className="text-white/80 font-semibold text-base mb-2">{feature.title}</h3>
+                  <p className="text-white/40 text-sm leading-relaxed">{feature.description}</p>
+                  <div className="mt-3 inline-flex items-center gap-1 text-[10px] font-semibold text-white/30 uppercase tracking-wide">
+                    Coming Soon
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Stats row — real numbers only, honest fallback copy otherwise */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { value: '47,832+', label: 'Active Creators' },
-            { value: '2.4M+', label: 'Scripts Generated' },
+            {
+              value: stats.totalCreators !== null && stats.totalCreators >= 10 ? formatCount(stats.totalCreators) : 'New',
+              label: stats.totalCreators !== null && stats.totalCreators >= 10 ? 'Active Creators' : 'Just Launched',
+            },
+            {
+              value: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? formatCount(stats.totalGenerated) : '2',
+              label: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? 'Scripts Generated' : 'AI Models Behind It',
+            },
             { value: '< 5s', label: 'Average Generation Time' },
-            { value: '4.9/5', label: 'Creator Satisfaction' },
+            { value: '6', label: 'Platforms Supported' },
           ].map((stat) => (
             <div key={`stat-${stat.label}`} className="glass rounded-2xl p-5 text-center border border-white/5">
               <p className="text-2xl font-bold text-gradient tabular-nums mb-1">{stat.value}</p>
