@@ -63,15 +63,34 @@ const steps = [
   },
 ];
 
+interface Stats { totalCreators: number | null; totalGenerated: number | null; }
+
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M+`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K+`;
+  return `${n}`;
+}
+
 export default function HeroSection() {
   const [showDemo, setShowDemo] = useState(false);
-  const [userCount] = useState(47832);
   const [activeStep, setActiveStep] = useState(0);
+  const [stats, setStats] = useState<Stats>({ totalCreators: null, totalGenerated: null });
 
   useEffect(() => {
     const t = setInterval(() => setActiveStep((i) => (i + 1) % 3), 2500);
     return () => clearInterval(t);
   }, []);
+
+  // ✅ Real numbers only — fetched from Supabase via /api/stats.
+  // No fallback fabrication: if the call fails, we just don't show a count.
+  useEffect(() => {
+    fetch('/api/stats')
+      .then((r) => r.json())
+      .then((d) => setStats(d))
+      .catch(() => {});
+  }, []);
+
+  const showCreatorBadge = stats.totalCreators !== null && stats.totalCreators >= 10;
 
   return (
     <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
@@ -83,10 +102,14 @@ export default function HeroSection() {
       </div>
 
       <div className="relative z-10 max-w-screen-2xl mx-auto px-6 lg:px-10 text-center w-full">
-        {/* Badge */}
+        {/* Badge — real count if we have one, honest "new" framing if we don't */}
         <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8 border border-purple-500/20">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs font-medium text-white/70">{userCount.toLocaleString()}+ creators already using CRÉO</span>
+          {showCreatorBadge ? (
+            <span className="text-xs font-medium text-white/70">{formatCount(stats.totalCreators as number)} creators already using CRÉO</span>
+          ) : (
+            <span className="text-xs font-medium text-white/70">Just launched — be one of our first creators</span>
+          )}
           <TrendingUp size={12} className="text-purple-400" />
         </div>
 
@@ -196,12 +219,20 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* ✅ Trust stats row */}
+        {/* ✅ Trust stats row — real data or honest non-numeric claims, never fabricated */}
         <div className="max-w-2xl mx-auto grid grid-cols-3 gap-4 mb-8">
           {[
-            { val: '47K+', label: 'Creators', sub: 'and growing daily' },
-            { val: '2.1M+', label: 'Scripts made', sub: 'across all niches' },
-            { val: '4.9★', label: 'Rating', sub: 'from real users' },
+            {
+              val: stats.totalCreators !== null && stats.totalCreators >= 10 ? formatCount(stats.totalCreators) : 'New',
+              label: 'Creators',
+              sub: stats.totalCreators !== null && stats.totalCreators >= 10 ? 'and growing daily' : 'join us early',
+            },
+            {
+              val: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? formatCount(stats.totalGenerated) : '< 60s',
+              label: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? 'Scripts made' : 'Per generation',
+              sub: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? 'across all niches' : 'idea to script',
+            },
+            { val: '6', label: 'Platforms', sub: 'YouTube, TikTok & more' },
           ].map(({ val, label, sub }) => (
             <div key={label} className="glass rounded-2xl border border-white/8 p-4 text-center">
               <p className="text-2xl font-bold text-white mb-0.5">{val}</p>
