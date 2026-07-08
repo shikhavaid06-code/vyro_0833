@@ -25,7 +25,6 @@ const productLinks = [
 
 const companyLinks = [
   { label: 'About', href: '/#hero' },
-  { label: 'Blog', href: '/blog' },
   { label: 'Careers', href: 'mailto:hello@creo.ai?subject=Careers' },
   { label: 'Press Kit', href: 'mailto:hello@creo.ai?subject=Press Kit Request' },
   { label: 'Affiliates', href: 'mailto:hello@creo.ai?subject=Affiliate Program' },
@@ -33,9 +32,27 @@ const companyLinks = [
 
 export default function FooterSection() {
   const [email, setEmail] = useState('');
-  const handleNewsletter = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  // ✅ Actually saves to Supabase now instead of just showing a success toast.
+  const handleNewsletter = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) { toast.success("You're on the list!", { description: "We'll notify you about CRÉO updates." }); setEmail(''); }
+    if (!email) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+      toast.success("You're on the list!", { description: "We'll notify you about CRÉO updates." });
+      setEmail('');
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong. Please try again.');
+    }
+    setSubmitting(false);
   };
   return (
     <footer className="relative border-t border-white/5 pt-16 pb-8 overflow-hidden">
@@ -67,7 +84,7 @@ export default function FooterSection() {
             <p className="text-sm text-white/40 mb-4 leading-relaxed">Get creator tips and CRÉO updates. No spam, ever.</p>
             <form onSubmit={handleNewsletter} className="flex flex-col gap-2">
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" className="w-full px-4 py-2.5 rounded-xl glass border border-white/10 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-purple-500/50 transition-colors duration-200 bg-transparent" />
-              <button type="submit" className="w-full py-2.5 rounded-xl bg-gradient-vyro text-white text-sm font-semibold hover:scale-[1.02] active:scale-95 transition-all duration-200">Subscribe</button>
+              <button type="submit" disabled={submitting} className="w-full py-2.5 rounded-xl bg-gradient-vyro text-white text-sm font-semibold hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100">{submitting ? 'Subscribing...' : 'Subscribe'}</button>
             </form>
           </div>
         </div>
