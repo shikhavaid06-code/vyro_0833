@@ -1,21 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Check, Crown, Zap, Sparkles, ArrowRight } from 'lucide-react';
-
-// ✅ Currency detection by timezone — matches AuthScreen
-function getLocalePricing() {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz.includes('Asia/Kolkata') || tz.includes('Asia/Calcutta')) return { symbol: '₹', pro: { monthly: 999, yearly: 750 }, ultra: { monthly: 2999, yearly: 2150 } };
-    if (tz.includes('Asia/Tokyo') || tz.includes('Asia/Osaka')) return { symbol: '¥', pro: { monthly: 1480, yearly: 1100 }, ultra: { monthly: 4480, yearly: 3200 } };
-    if (tz.includes('Asia/Shanghai') || tz.includes('Asia/Hong_Kong')) return { symbol: '¥', pro: { monthly: 98, yearly: 72 }, ultra: { monthly: 298, yearly: 215 } };
-    if (tz.includes('Europe')) return { symbol: '€', pro: { monthly: 12, yearly: 9 }, ultra: { monthly: 35, yearly: 26 } };
-    if (tz.includes('Asia/Dubai') || tz.includes('Asia/Riyadh')) return { symbol: 'AED', pro: { monthly: 49, yearly: 36 }, ultra: { monthly: 149, yearly: 110 } };
-    if (tz.includes('Asia/Singapore') || tz.includes('Asia/Kuala_Lumpur')) return { symbol: 'S$', pro: { monthly: 18, yearly: 13 }, ultra: { monthly: 52, yearly: 38 } };
-  } catch {}
-  return { symbol: '$', pro: { monthly: 14, yearly: 10 }, ultra: { monthly: 39, yearly: 29 } };
-}
+import { Check, Crown, Zap, Sparkles, ArrowRight, Lock } from 'lucide-react';
+import { getLocalePricing } from '@/lib/pricing';
 
 export default function PricingSection() {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
@@ -23,6 +10,8 @@ export default function PricingSection() {
 
   useEffect(() => { setLocale(getLocalePricing()); }, []);
 
+  // ✅ Prices now come from the single source of truth (src/lib/pricing.ts)
+  // instead of a second, slightly different hardcoded copy that lived here before.
   const plans = [
     {
       id: 'free', name: 'Free', tagline: 'A taste of the magic.',
@@ -30,20 +19,23 @@ export default function PricingSection() {
       cta: 'Start Free', ctaStyle: 'secondary', icon: null, highlight: false, border: 'border-white/8',
       features: ['3 generations per day', 'AI Title Generator', 'Hook Generator', 'Short + medium scripts', 'Community updates', 'Basic tone options'],
       locked: ['AI Assistant', 'Smart editing', 'Multi-platform optimization'],
+      roadmap: [],
     },
     {
       id: 'pro', name: 'Pro', tagline: 'For creators who ship weekly.',
-      price: locale.pro, priceLabel: '/ per month',
+      price: { monthly: locale.proRaw, yearly: Math.round(locale.proRaw * 0.75) }, priceLabel: '/ per month',
       cta: 'Get Pro', ctaStyle: 'primary', icon: Zap, highlight: true, border: 'border-purple-500/30',
       features: ['100 generations per day', 'All durations including custom', 'AI Assistant unlocked', 'Smart editing (rewrite, shorten)', 'Multi-platform optimization', 'No watermark', 'Faster generation speed', 'Priority support'],
       locked: [],
+      roadmap: ['Brutal Reviewer — hook & retention scoring', 'Content Expansion Engine — 1 idea → full content batch'],
     },
     {
-      id: 'ultra', name: 'Ultra', tagline: 'Unlimited, priority, holographic.',
-      price: locale.ultra, priceLabel: '/ per month',
+      id: 'ultra', name: 'Ultra', tagline: 'Unlimited, priority, and an AI that learns you.',
+      price: { monthly: locale.ultraRaw, yearly: Math.round(locale.ultraRaw * 0.75) }, priceLabel: '/ per month',
       cta: 'Go Ultra', ctaStyle: 'gold', icon: Crown, highlight: false, border: 'border-pink-500/20',
       features: ['Unlimited generations', 'Priority AI responses', 'Advanced tone & script control', 'Multi-platform optimization', 'Smart AI editing (live rewrites)', 'Early access to new features', 'Premium UI effects unlocked', 'Custom voice profile', 'Dedicated AI co-writer'],
       locked: [],
+      roadmap: ['Creator Memory & Brain — learns your style, niche, audience', 'Brutal Reviewer — hook & retention scoring', 'Content Expansion Engine — 1 idea → full content batch', 'Competitor Intelligence — analyze any channel or profile'],
     },
   ];
 
@@ -67,7 +59,7 @@ export default function PricingSection() {
               <button key={b} onClick={() => setBilling(b)}
                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billing === b ? 'bg-gradient-vyro text-white shadow-lg' : 'text-white/50 hover:text-white/70'}`}>
                 {b === 'monthly' ? 'Monthly' : 'Yearly'}
-                {b === 'yearly' && <span className="ml-2 text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded-full">Save 28%</span>}
+                {b === 'yearly' && <span className="ml-2 text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded-full">Save 25%</span>}
               </button>
             ))}
           </div>
@@ -122,6 +114,21 @@ export default function PricingSection() {
                       <span className="text-white/50 text-sm line-through">{feat}</span>
                     </div>
                   ))}
+
+                  {/* ✅ Roadmap features, per tier — clearly marked "Coming Soon" so nobody thinks these ship today */}
+                  {plan.roadmap.length > 0 && (
+                    <div className="pt-3 mt-2 border-t border-white/8">
+                      <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wide mb-2">Coming Soon</p>
+                      <div className="space-y-2">
+                        {plan.roadmap.map((feat) => (
+                          <div key={feat} className="flex items-start gap-2.5">
+                            <Lock size={12} className={`mt-0.5 flex-shrink-0 ${plan.id === 'ultra' ? 'text-amber-400/60' : 'text-purple-400/60'}`} />
+                            <span className="text-white/45 text-xs leading-relaxed">{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
