@@ -1,59 +1,36 @@
 'use client';
-import React from 'react';
-import { Star, Quote } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShieldCheck, RefreshCw, Lock, CreditCard, TrendingUp } from 'lucide-react';
 
-const testimonials = [
-  {
-    id: 'test-002',
-    quote: 'The hook generator alone is worth it. Retention doubled on my last three videos.',
-    name: 'Dev A.',
-    handle: '@devfilmsit',
-    platform: 'TikTok',
-    avatar: 'D',
-    color: 'pink',
-    stars: 5,
-  },
-  {
-    id: 'test-003',
-    quote: 'I pay for Ultra. Nova feels like a co-writer who knows my voice.',
-    name: 'Noor S.',
-    handle: '@noorthinks',
-    platform: 'Instagram',
-    avatar: 'N',
-    color: 'violet',
-    stars: 5,
-  },
-  {
-    id: 'test-004',
-    quote: 'Titles used to be my weakness. Not anymore.',
-    name: 'Leo M.',
-    handle: '@leorecords',
-    platform: 'YouTube',
-    avatar: 'L',
-    color: 'indigo',
-    stars: 5,
-  },
-  {
-    id: 'test-005',
-    quote: 'I generate a week of content in one Sunday session. VYRO is the only reason I post consistently.',
-    name: 'Priya K.',
-    handle: '@priyacreates',
-    platform: 'Instagram',
-    avatar: 'P',
-    color: 'cyan',
-    stars: 5,
-  },
+interface Stats { totalCreators: number | null; totalGenerated: number | null; }
+
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M+`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K+`;
+  return `${n}`;
+}
+
+// ✅ Real, verifiable claims only — no fabricated names, followers, or quotes.
+// Each of these is actually true today: Razorpay is the live payment processor,
+// the 7-day guarantee is stated on the pricing page, cancel-anytime is how
+// subscriptions work, and "never sell your data" is a Privacy Policy commitment.
+const trustBadges = [
+  { icon: RefreshCw, text: '7-day money-back guarantee' },
+  { icon: CreditCard, text: 'Secure payments via Razorpay' },
+  { icon: Lock, text: 'Cancel anytime, no lock-in' },
+  { icon: ShieldCheck, text: 'We never sell your data' },
 ];
 
-const avatarColors: Record<string, string> = {
-  purple: 'from-purple-500 to-violet-600',
-  pink: 'from-pink-500 to-rose-600',
-  violet: 'from-violet-500 to-purple-700',
-  indigo: 'from-indigo-500 to-blue-600',
-  cyan: 'from-cyan-500 to-teal-600',
-};
-
 export default function SocialProofSection() {
+  const [stats, setStats] = useState<Stats>({ totalCreators: null, totalGenerated: null });
+
+  useEffect(() => {
+    fetch('/api/stats').then((r) => r.json()).then((d) => setStats(d)).catch(() => {});
+  }, []);
+
+  const hasCreatorCount = stats.totalCreators !== null && stats.totalCreators >= 10;
+  const hasGenCount = stats.totalGenerated !== null && stats.totalGenerated >= 10;
+
   return (
     <section className="relative py-24 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
@@ -62,49 +39,46 @@ export default function SocialProofSection() {
 
       <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
         <div className="text-center mb-12">
-          <p className="text-xs font-semibold tracking-[0.2em] text-pink-400 uppercase mb-4">Social Proof</p>
+          <p className="text-xs font-semibold tracking-[0.2em] text-pink-400 uppercase mb-4">Trust</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
-            Creators love CRÉO
+            {hasCreatorCount ? 'Creators are already shipping with CRÉO' : 'Built for creators who ship daily'}
           </h2>
           <p className="text-white/40 text-base">
-            Real results from real creators. No paid testimonials.
+            {hasCreatorCount ? 'Real numbers, updated live. No paid placements.' : 'Real numbers will show here as creators join — no inflated stats, ever.'}
           </p>
         </div>
 
-        {/* Testimonial grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-          {testimonials.map((t) => (
-            <div
-              key={t.id}
-              className="glass rounded-2xl p-5 border border-white/5 hover:border-white/10 hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4"
-            >
-              <div className="flex items-start justify-between">
-                <Quote size={18} className="text-purple-400/50" />
-                <div className="flex gap-0.5">
-                  {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={`star-${t.id}-${i}`} size={11} fill="#a855f7" className="text-purple-400" />
-                  ))}
-                </div>
-              </div>
+        {/* Live stat counters — real data or honest non-numeric framing */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-14">
+          <div className="glass rounded-2xl p-6 text-center border border-white/5">
+            <TrendingUp size={16} className="text-purple-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-gradient tabular-nums mb-1">
+              {hasCreatorCount ? formatCount(stats.totalCreators as number) : 'New'}
+            </p>
+            <p className="text-xs text-white/40 font-medium">{hasCreatorCount ? 'Creators onboard' : 'Just launched'}</p>
+          </div>
+          <div className="glass rounded-2xl p-6 text-center border border-white/5">
+            <TrendingUp size={16} className="text-purple-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-gradient tabular-nums mb-1">
+              {hasGenCount ? formatCount(stats.totalGenerated as number) : '< 60s'}
+            </p>
+            <p className="text-xs text-white/40 font-medium">{hasGenCount ? 'Scripts generated' : 'Per generation'}</p>
+          </div>
+          <div className="glass rounded-2xl p-6 text-center border border-white/5">
+            <TrendingUp size={16} className="text-purple-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-gradient tabular-nums mb-1">6</p>
+            <p className="text-xs text-white/40 font-medium">Platforms supported</p>
+          </div>
+        </div>
 
-              <p className="text-white/75 text-sm leading-relaxed flex-1">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-
-              <div className="flex items-center gap-3 pt-2 border-t border-white/5">
-                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarColors[t.color]} flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-xs font-bold text-white">{t.avatar}</span>
-                </div>
-                <div>
-                  <p className="text-white text-xs font-semibold">{t.name}</p>
-                  <p className="text-white/40 text-[11px]">{t.handle} · {t.platform}</p>
-                </div>
-              </div>
+        {/* Trust badges — removes buying fear at the point of decision */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {trustBadges.map(({ icon: Icon, text }) => (
+            <div key={text} className="flex items-center gap-2 glass rounded-full px-4 py-2 border border-white/8">
+              <Icon size={13} className="text-purple-400" />
+              <span className="text-white/60 text-xs font-medium">{text}</span>
             </div>
           ))}
-        </div>
-           
-          </div>
         </div>
       </div>
     </section>
