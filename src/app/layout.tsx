@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: 'Turn raw ideas into viral titles, hooks, and scripts in seconds.',
   },
   icons: {
-    icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
+    icon: [{ url: '/favicon.ico?v=2', type: 'image/x-icon' }],
   },
 };
 
