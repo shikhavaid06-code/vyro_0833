@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Sparkles, ArrowRight, Zap, TrendingUp, Play, Star } from 'lucide-react';
 import DemoModal from './DemoModal';
+import CountUp from '@/components/ui/CountUp';
 
 // ✅ Platform SVG logos
 const YouTubeLogo = () => (
@@ -103,10 +104,10 @@ export default function HeroSection() {
 
       <div className="relative z-10 max-w-screen-2xl mx-auto px-6 lg:px-10 text-center w-full">
         {/* Badge — real count if we have one, honest "new" framing if we don't */}
-        <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8 border border-purple-500/20">
+        <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8 border border-purple-500/20 animate-slide-up" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           {showCreatorBadge ? (
-            <span className="text-xs font-medium text-white/70">{formatCount(stats.totalCreators as number)} creators already using CRÉO</span>
+            <span className="text-xs font-medium text-white/70"><CountUp value={stats.totalCreators as number} format={formatCount} /> creators already using CRÉO</span>
           ) : (
             <span className="text-xs font-medium text-white/70">Just launched — be one of our first creators</span>
           )}
@@ -114,18 +115,18 @@ export default function HeroSection() {
         </div>
 
         {/* Headline */}
-        <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6">
+        <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 animate-slide-up" style={{ animationDelay: '120ms', animationFillMode: 'both' }}>
           <span className="text-white">Stop Guessing What To Post.</span><br />
           <span className="text-gradient">Build A Content System</span><br />
           <span className="text-white text-4xl md:text-5xl lg:text-6xl">That Never Runs Dry.</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-4 leading-relaxed font-light">
+        <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-4 leading-relaxed font-light animate-slide-up" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
           CRÉO writes hooks, titles and full scripts that keep people watching — in under 60 seconds.
         </p>
 
         {/* Result pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-10 animate-slide-up" style={{ animationDelay: '340ms', animationFillMode: 'both' }}>
           {['Get viewers to stop scrolling', 'Publish-ready scripts instantly', 'Creator Memory that grows with you'].map((t) => (
             <span key={t} className="flex items-center gap-1.5 glass border border-white/8 rounded-full px-3 py-1 text-xs text-white/50">
               <Zap size={10} className="text-purple-400" />{t}
@@ -134,7 +135,7 @@ export default function HeroSection() {
         </div>
 
         {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-slide-up" style={{ animationDelay: '440ms', animationFillMode: 'both' }}>
           <Link href="/sign-up-login-screen" className="group flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-vyro text-white font-semibold text-base glow-button hover:scale-105 active:scale-95 transition-all duration-200">
             <Sparkles size={18} />Start Creating Free
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
@@ -223,19 +224,21 @@ export default function HeroSection() {
         <div className="max-w-2xl mx-auto grid grid-cols-3 gap-4 mb-8">
           {[
             {
-              val: stats.totalCreators !== null && stats.totalCreators >= 10 ? formatCount(stats.totalCreators) : 'New',
+              val: 'New',
+              count: stats.totalCreators !== null && stats.totalCreators >= 10 ? stats.totalCreators : undefined,
               label: 'Creators',
               sub: stats.totalCreators !== null && stats.totalCreators >= 10 ? 'and growing daily' : 'join us early',
             },
             {
-              val: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? formatCount(stats.totalGenerated) : '< 60s',
+              val: '< 60s',
+              count: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? stats.totalGenerated : undefined,
               label: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? 'Scripts made' : 'Per generation',
               sub: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? 'across all niches' : 'idea to script',
             },
-            { val: '6', label: 'Platforms', sub: 'YouTube, TikTok & more' },
-          ].map(({ val, label, sub }) => (
+            { val: '6', count: 6, label: 'Platforms', sub: 'YouTube, TikTok & more' },
+          ].map(({ val, label, sub, count }: any) => (
             <div key={label} className="glass rounded-2xl border border-white/8 p-4 text-center">
-              <p className="text-2xl font-bold text-white mb-0.5">{val}</p>
+              <p className="text-2xl font-bold text-white mb-0.5">{typeof count === 'number' ? <CountUp value={count} format={formatCount} /> : val}</p>
               <p className="text-xs font-semibold text-white/60">{label}</p>
               <p className="text-[10px] text-white/30">{sub}</p>
             </div>
