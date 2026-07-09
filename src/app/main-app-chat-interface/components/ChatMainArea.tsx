@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import TitleCards from './TitleCards';
 import HookCards from './HookCards';
 import ScriptCard from './ScriptCard';
@@ -183,7 +184,22 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   const addAiMessage = (msg: Omit<Message, 'id' | 'timestamp'>) => setMessages((prev) => [...prev, { ...msg, id: `ai-${Date.now()}`, timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) }]);
   const addUserMessage = (content: string) => setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: 'user', type: 'text', content, timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) }]);
-  const callApi = async (idea: string, forceType: string) => { const r = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idea, forceType }) }); return r.json(); };
+  // ✅ Sends the real Supabase session token — the server verifies it and
+  // looks up the actual plan/usage itself. This is the authoritative check;
+  // the client-side pre-check below is just an optimization to avoid an
+  // obviously-wasted round trip.
+  const callApi = async (idea: string, forceType: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const r = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({ idea, forceType }),
+    });
+    return r.json();
+  };
 
   const handleSendWithText = useCallback(async (overrideText?: string) => {
     const userInput = (overrideText ?? inputValue).trim();
@@ -196,6 +212,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       if (step === 'idle') {
         const data = await callApi(userInput, 'titles');
         setIsTyping(false);
+        if (data?.limitReached) { setShowPaywall(true); return; }
         addAiMessage({ role: 'ai', type: 'titles', content: '🎯 Here are 6 viral titles! Click the one you love:', data: data.titles });
         setStep('titles'); bumpGenCount();
         if (onChatSaved) onChatSaved(userInput, selectedPlatforms[0]);
@@ -205,18 +222,21 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         setSelectedTitle(userInput);
         const data = await callApi(userInput, 'hooks');
         setIsTyping(false);
+        if (data?.limitReached) { setShowPaywall(true); return; }
         addAiMessage({ role: 'ai', type: 'hooks', content: '🪝 Here are 3 powerful hooks! Click the one that fits:', data: data.hooks });
         setStep('hooks'); bumpGenCount(); return;
       }
       if (step === 'hooks') {
         const data = await callApi(`Title: "${selectedTitle}". Hook: "${userInput}". Platform: ${selectedPlatforms.join(', ')}. Tone: ${selectedTone}. Duration: ${selectedDuration}.`, 'script');
         setIsTyping(false);
+        if (data?.limitReached) { setShowPaywall(true); return; }
         addAiMessage({ role: 'ai', type: 'script', content: '📝 Here is your full script!', data: data.result });
         setStep('done'); bumpGenCount(); return;
       }
       if (step === 'done') {
         const data = await callApi(`Topic: "${selectedTitle}". Request: "${userInput}". Tone: ${selectedTone}.`, 'script');
         setIsTyping(false);
+        if (data?.limitReached) { setShowPaywall(true); return; }
         addAiMessage({ role: 'ai', type: 'script', content: '✨ Refined script!', data: data.result });
         bumpGenCount(); return;
       }
