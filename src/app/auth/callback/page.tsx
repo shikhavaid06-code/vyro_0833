@@ -47,6 +47,21 @@ export default function AuthCallbackPage() {
 
           if (error) console.error('Profile insert error:', error.message);
 
+          // ✅ Referral claim — if this signup came through someone's ?ref=
+          // link, credit the referrer (+1 permanent daily generation, capped).
+          // Fire-and-forget: a failed claim must never block sign-in.
+          try {
+            const pendingRef = localStorage.getItem('creo_pending_ref');
+            if (pendingRef) {
+              fetch('/api/referral', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+                body: JSON.stringify({ code: pendingRef }),
+              }).catch(() => {});
+              localStorage.removeItem('creo_pending_ref');
+            }
+          } catch {}
+
           localStorage.setItem('creo_current_user', JSON.stringify({
             id: user.id, name: pendingName, email: user.email, plan: pendingPlan,
           }));
