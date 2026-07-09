@@ -42,7 +42,10 @@ export default function ChatAppLayout() {
     };
     setSavedChats((prev) => {
       if (prev.find((c) => c.id === newChat.id)) return prev;
-      return [newChat, ...prev].slice(0, 30);
+      const next = [newChat, ...prev];
+      // ✅ Clean up conversation data for chats that fall off the 30-chat list
+      next.slice(30).forEach((c) => { try { localStorage.removeItem(`creo_chat_data_${c.id}`); } catch {} });
+      return next.slice(0, 30);
     });
     if (!activeChatId) setActiveChatId(newChat.id);
   }, [activeChatId]);
@@ -56,7 +59,10 @@ export default function ChatAppLayout() {
         onSelectChat={(id) => { setActiveChatId(id); setResetKey((p) => p + 1); }}
         onNewChat={handleNewChat}
         chats={savedChats}
-        onDeleteChat={(id) => setSavedChats((prev) => prev.filter((c) => c.id !== id))}
+        onDeleteChat={(id) => {
+          try { localStorage.removeItem(`creo_chat_data_${id}`); } catch {}
+          setSavedChats((prev) => prev.filter((c) => c.id !== id));
+        }}
       />
       <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-72' : 'lg:ml-16'}`}>
         <ChatMainArea
