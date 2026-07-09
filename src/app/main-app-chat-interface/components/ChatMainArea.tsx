@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings } from 'lucide-react';
+import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -10,6 +10,8 @@ import TitleCards from './TitleCards';
 import HookCards from './HookCards';
 import ScriptCard from './ScriptCard';
 import WinningVault from './WinningVault';
+import CreatorBrainModal from './CreatorBrainModal';
+import CompetitorIntelModal from './CompetitorIntelModal';
 
 type ChatStep = 'idle' | 'titles' | 'hooks' | 'script' | 'done';
 interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script'; content?: string; data?: unknown; timestamp: string; }
@@ -77,9 +79,16 @@ const SUSPENSE_LINES: Record<string, string[]> = {
     'Writing like a human — cutting the AI filler...',
     'Timing every section for watch-time...',
   ],
+  expand: [
+    'Expanding one idea across every platform...',
+    'Writing hooks, titles, Shorts and threads...',
+    'Making each piece platform-native...',
+  ],
 };
 
-function SuspenseLoader({ mode }: { mode: 'titles' | 'hooks' | 'script' }) {
+type LoaderMode = 'titles' | 'hooks' | 'script' | 'expand';
+
+function SuspenseLoader({ mode }: { mode: LoaderMode }) {
   const lines = SUSPENSE_LINES[mode];
   const [lineIndex, setLineIndex] = useState(0);
   useEffect(() => {
@@ -144,6 +153,11 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [showControls, setShowControls] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showVault, setShowVault] = useState(false);
+  const [showBrain, setShowBrain] = useState(false);
+  const [showIntel, setShowIntel] = useState(false);
+  // ✅ Streak — served by the API on every generation; cached for display.
+  const [streak, setStreak] = useState(0);
+  const [loaderMode, setLoaderMode] = useState<LoaderMode | null>(null);
   const [userName, setUserName] = useState('');
   const [greetingFn] = useState(() => greetings[Math.floor(Math.random() * greetings.length)]);
   const [promptSet] = useState(() => promptSets[Math.floor(Math.random() * promptSets.length)]);
@@ -178,7 +192,17 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   useEffect(() => {
     try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); if (u.name) setUserName(u.name.split(' ')[0]); } catch {}
+    try { setStreak(parseInt(localStorage.getItem('creo_streak') || '0')); } catch {}
   }, []);
+
+  // ✅ Streak sync — every generation response carries the server-computed
+  // streak; keep the flame chip + local cache up to date.
+  const syncStreak = (data: any) => {
+    if (typeof data?.streak === 'number' && data.streak > 0) {
+      setStreak(data.streak);
+      try { localStorage.setItem('creo_streak', String(data.streak)); } catch {}
+    }
+  };
 
   // ✅ Anonymous entry flow handoff (see /try) — if the user generated hooks
   // before signing in, drop them straight into the workspace instead of
@@ -270,6 +294,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
           return;
         }
+        syncStreak(data);
         addAiMessage({ role: 'ai', type: 'titles', content: '🎯 Here are 6 viral titles! Click the one you love:', data: data.titles });
         setStep('titles'); bumpGenCount();
         if (onChatSaved) onChatSaved(userInput, selectedPlatforms[0]);
@@ -284,6 +309,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
           return;
         }
+        syncStreak(data);
         addAiMessage({ role: 'ai', type: 'hooks', content: '🪝 Here are 3 powerful hooks! Click the one that fits:', data: data.hooks });
         setStep('hooks'); bumpGenCount(); return;
       }
@@ -295,6 +321,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
           return;
         }
+        syncStreak(data);
         addAiMessage({ role: 'ai', type: 'script', content: '📝 Here is your full script!', data: data.result });
         setStep('done'); bumpGenCount(); return;
       }
@@ -306,11 +333,45 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
           return;
         }
+        syncStreak(data);
         addAiMessage({ role: 'ai', type: 'script', content: '✨ Refined script!', data: data.result });
         bumpGenCount(); return;
       }
     } catch { setIsTyping(false); addAiMessage({ role: 'ai', type: 'text', content: 'Something went wrong. Please try again!' }); }
   }, [inputValue, step, selectedTitle, selectedPlatforms, selectedTone, selectedDuration, onChatSaved]);
+
+  // ✅ CONTENT EXPANSION ENGINE (Pro/Ultra) — one idea → hooks, titles,
+  // Shorts, a Reel, a thread and a LinkedIn post in one pass. Server enforces
+  // the plan gate before any credit is spent.
+  const handleExpand = async () => {
+    const topic = selectedTitle || messages.find((m) => m.role === 'user')?.content || '';
+    if (!topic) { toast.error('Generate a script first, then expand it!'); return; }
+    setIsTyping(true);
+    setLoaderMode('expand');
+    try {
+      const data = await callApi(topic, 'expand');
+      setIsTyping(false);
+      setLoaderMode(null);
+      if (data?.upgradeRequired) {
+        toast.error(data.message || 'Content Expansion is a Pro feature.', {
+          action: { label: 'Upgrade', onClick: () => router.push('/upgrade') },
+        });
+        return;
+      }
+      if (data?.limitReached) { setShowPaywall(true); return; }
+      if (typeof data?.result !== 'string' || !data.result) {
+        addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
+        return;
+      }
+      syncStreak(data);
+      addAiMessage({ role: 'ai', type: 'script', content: '🧩 Your full content pack — one idea, every platform!', data: data.result });
+      bumpGenCount();
+    } catch {
+      setIsTyping(false);
+      setLoaderMode(null);
+      addAiMessage({ role: 'ai', type: 'text', content: 'Something went wrong. Please try again!' });
+    }
+  };
 
   const handleTitleSelect = useCallback((t: string) => handleSendWithText(t), [handleSendWithText]);
   const handleHookSelect = useCallback((h: string) => handleSendWithText(h), [handleSendWithText]);
@@ -336,6 +397,8 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     <div className="flex flex-col" style={{ height: '100dvh' }}>
       {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
       {showVault && <WinningVault isOpen={showVault} onClose={() => setShowVault(false)} plan={currentPlan()} />}
+      {showBrain && <CreatorBrainModal onClose={() => setShowBrain(false)} plan={currentPlan()} />}
+      {showIntel && <CompetitorIntelModal onClose={() => setShowIntel(false)} plan={currentPlan()} />}
 
       {/* TOPBAR */}
       <div className="flex-shrink-0 h-14 flex items-center justify-between px-3 md:px-6 border-b border-white/5 bg-[#080812]/90 backdrop-blur-xl">
@@ -347,6 +410,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           </div>
         </div>
         <div className="flex items-center gap-1.5">
+          {/* ✅ Streak flame — the daily habit loop */}
+          {streak > 0 && (
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-400" title={`${streak}-day creation streak — generate tomorrow to keep it alive!`}>
+              <Flame size={11} className="fill-orange-400/40" />{streak} day{streak !== 1 ? 's' : ''}
+            </div>
+          )}
           {!isProUser() && (
             <button onClick={() => setShowPaywall(true)} className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-400 hover:bg-purple-500/20 transition-all">
               <Crown size={11} />{genLeft} free left
@@ -356,6 +425,14 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           {/* ✅ Vault button */}
           <button onClick={() => setShowVault(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-yellow-500/20 text-xs font-medium text-yellow-400/70 hover:text-yellow-400 transition-all">
             <Star size={12} /><span className="hidden sm:inline">Vault</span>
+          </button>
+          {/* ✅ Creator Brain button */}
+          <button onClick={() => setShowBrain(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-fuchsia-500/20 text-xs font-medium text-fuchsia-400/70 hover:text-fuchsia-400 transition-all" title="Creator Brain — teach CRÉO your style">
+            <Brain size={12} /><span className="hidden sm:inline">Brain</span>
+          </button>
+          {/* ✅ Competitor Intelligence button */}
+          <button onClick={() => setShowIntel(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-sky-500/20 text-xs font-medium text-sky-400/70 hover:text-sky-400 transition-all" title="Competitor Intelligence — clone any viral framework (Ultra)">
+            <Radar size={12} /><span className="hidden sm:inline">Intel</span>
           </button>
           <button onClick={() => setShowControls(!showControls)} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${showControls ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400' : 'glass border border-white/8 text-white/50 hover:text-white/70'}`}>
             <Sparkles size={12} /><span className="hidden sm:inline">Controls</span><ChevronDown size={11} className={`transition-transform ${showControls ? 'rotate-180' : ''}`} />
@@ -406,6 +483,20 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                   </button>
                 ))}
               </div>
+              {/* ✅ Daily Mission — the reason to open CRÉO every day */}
+              <div className="glass rounded-2xl border border-orange-500/15 p-4 mb-8 text-left">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <Target size={13} className="text-orange-400" />
+                    <span className="text-xs font-semibold text-white/70">Today's Mission</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-orange-400">
+                    <Flame size={11} className="fill-orange-400/40" />{streak > 0 ? `${streak}-day streak` : 'Start your streak'}
+                  </div>
+                </div>
+                <p className="text-xs text-white/40 leading-relaxed">Create one piece of content today — a title set, a hook, or a full script. Generate on consecutive days and your streak grows. 🔥</p>
+              </div>
+
               <div className="flex items-center justify-center gap-1">
                 {[{ icon: Sparkles, label: 'Idea', color: 'text-purple-400' }, { icon: Zap, label: 'Titles', color: 'text-pink-400' }, { icon: Flame, label: 'Hook', color: 'text-orange-400' }, { icon: Star, label: 'Script', color: 'text-yellow-400' }].map((s, i) => (
                   <React.Fragment key={s.label}>
@@ -449,12 +540,24 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           ))}
           {isTyping && (
             <div className="flex justify-start">
-              <SuspenseLoader mode={step === 'idle' ? 'titles' : step === 'titles' ? 'hooks' : 'script'} />
+              <SuspenseLoader mode={loaderMode ?? (step === 'idle' ? 'titles' : step === 'titles' ? 'hooks' : 'script')} />
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {/* ✅ Expand suggestion — appears once a script exists */}
+      {step === 'done' && !isTyping && (
+        <div className="flex-shrink-0 px-3 md:px-6 pb-1">
+          <div className="max-w-3xl mx-auto">
+            <button onClick={handleExpand}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-full glass border border-emerald-500/25 text-xs font-medium text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all animate-slide-up">
+              <Layers size={13} />Expand this idea — hooks, Shorts, thread & more<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25">PRO</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* INPUT */}
       <div className="flex-shrink-0 px-3 md:px-6 py-3 border-t border-white/5 bg-[#080812]/90 backdrop-blur-xl">
