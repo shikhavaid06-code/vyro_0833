@@ -5,6 +5,7 @@ import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crow
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { getLocalePricing } from '@/lib/pricing';
 import TitleCards from './TitleCards';
 import HookCards from './HookCards';
 import ScriptCard from './ScriptCard';
@@ -58,38 +59,27 @@ const promptSets = [
 
 interface Props { sidebarOpen: boolean; onToggleSidebar: () => void; activeChatId: string; onChatSaved?: (title: string, platform: string) => void; onNewChat?: () => void; }
 
+// ✅ FIXED: this modal used to collect a fake "waitlist" in localStorage with
+// outdated prices (₹999/₹2999) — while a fully working Razorpay checkout
+// already existed at /upgrade. Users who hit their limit were being sent to
+// a dead end instead of the payment page. Now it routes to the real checkout
+// with the real regional prices from lib/pricing.ts.
 function PaywallModal({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const prices = getLocalePricing();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
       <div className="w-full max-w-sm bg-[#0d0d1f] border border-purple-500/30 rounded-2xl p-6 relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white/60"><X size={16} /></button>
         <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center mb-4"><Crown size={22} className="text-white" /></div>
-        <h2 className="text-xl font-bold text-white mb-2">You've used your 3 free generations</h2>
-        <p className="text-white/50 text-sm mb-6 leading-relaxed">Upgrade to Pro or Ultra to keep creating viral content.</p>
+        <h2 className="text-xl font-bold text-white mb-2">You've used today's 3 free generations</h2>
+        <p className="text-white/50 text-sm mb-6 leading-relaxed">Your free generations reset tomorrow — or upgrade now and keep creating without limits.</p>
         <div className="space-y-2">
-          <button onClick={() => {
-            if (typeof window !== 'undefined') {
-              const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}');
-              const w = JSON.parse(localStorage.getItem('creo_upgrade_waitlist') || '[]');
-              w.push({ email: u.email, plan: 'pro', date: new Date().toISOString() });
-              localStorage.setItem('creo_upgrade_waitlist', JSON.stringify(w));
-            }
-            toast.success("You're on the Pro waitlist!");
-            onClose();
-          }} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 transition-all">
-            Join Pro Waitlist — ₹999/mo
+          <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 transition-all">
+            Upgrade to Pro — {prices.symbol}{prices.pro}/mo
           </button>
-          <button onClick={() => {
-            if (typeof window !== 'undefined') {
-              const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}');
-              const w = JSON.parse(localStorage.getItem('creo_upgrade_waitlist') || '[]');
-              w.push({ email: u.email, plan: 'ultra', date: new Date().toISOString() });
-              localStorage.setItem('creo_upgrade_waitlist', JSON.stringify(w));
-            }
-            toast.success("You're on the Ultra waitlist!");
-            onClose();
-          }} className="w-full py-3 rounded-xl border border-purple-500/30 text-purple-300 font-semibold text-sm hover:bg-purple-500/10 transition-all">
-            Join Ultra Waitlist — ₹2999/mo
+          <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl border border-purple-500/30 text-purple-300 font-semibold text-sm hover:bg-purple-500/10 transition-all">
+            Go Ultra — {prices.symbol}{prices.ultra}/mo
           </button>
         </div>
       </div>
@@ -114,8 +104,23 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [greetingFn] = useState(() => greetings[Math.floor(Math.random() * greetings.length)]);
   const [promptSet] = useState(() => promptSets[Math.floor(Math.random() * promptSets.length)]);
 
-  const getGenCount = () => typeof window === 'undefined' ? 0 : parseInt(localStorage.getItem('creo_gen_count') || '0');
-  const bumpGenCount = () => { if (typeof window !== 'undefined') localStorage.setItem('creo_gen_count', String(getGenCount() + 1)); };
+  // ✅ FIXED: this counter never reset — a free user was permanently paywalled
+  // after 3 lifetime generations, even though the server (correctly) allows
+  // 3 per DAY. Now it's date-scoped to match the server's daily reset.
+  // The server check is still the authoritative one; this only exists to
+  // skip an obviously-wasted round trip and show "X free left".
+  const getGenCount = () => {
+    if (typeof window === 'undefined') return 0;
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem('creo_gen_count_date') !== today) return 0;
+    return parseInt(localStorage.getItem('creo_gen_count') || '0');
+  };
+  const bumpGenCount = () => {
+    if (typeof window === 'undefined') return;
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('creo_gen_count', String(getGenCount() + 1));
+    localStorage.setItem('creo_gen_count_date', today);
+  };
   const isProUser = () => { if (typeof window === 'undefined') return false; try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); return u.plan === 'pro' || u.plan === 'ultra'; } catch { return false; } };
   const currentPlan = () => { try { return JSON.parse(localStorage.getItem('creo_current_user') || '{}').plan || 'free'; } catch { return 'free'; } };
 
@@ -174,7 +179,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const handleExport = () => {
     const s = messages.find((m) => m.type === 'script');
     if (!s) { toast.error('No script yet!'); return; }
-    const text = typeof s.data === 'string' ? s.data : JSON.stringify(s.data);
+    // ✅ "Engineered by CRÉO" export footer (Week 1 item) — every exported
+    // script carries the brand, so shared scripts market the product.
+    const scriptText = typeof s.data === 'string' ? s.data : JSON.stringify(s.data);
+    const text = `${scriptText}\n\n${'─'.repeat(40)}\n⚡ Engineered by CRÉO — AI viral titles, hooks & scripts\nhttps://vyro-0833.vercel.app`;
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([text], { type: 'text/plain' })), download: 'creo-script.txt' });
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     toast.success('Script downloaded!');
@@ -213,6 +221,11 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         const data = await callApi(userInput, 'titles');
         setIsTyping(false);
         if (data?.limitReached) { setShowPaywall(true); return; }
+        // ✅ Graceful failure — previously a failed generation rendered broken empty cards.
+        if (!Array.isArray(data?.titles) || data.titles.length === 0) {
+          addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
+          return;
+        }
         addAiMessage({ role: 'ai', type: 'titles', content: '🎯 Here are 6 viral titles! Click the one you love:', data: data.titles });
         setStep('titles'); bumpGenCount();
         if (onChatSaved) onChatSaved(userInput, selectedPlatforms[0]);
@@ -223,6 +236,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         const data = await callApi(userInput, 'hooks');
         setIsTyping(false);
         if (data?.limitReached) { setShowPaywall(true); return; }
+        if (!Array.isArray(data?.hooks) || data.hooks.length === 0) {
+          addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
+          return;
+        }
         addAiMessage({ role: 'ai', type: 'hooks', content: '🪝 Here are 3 powerful hooks! Click the one that fits:', data: data.hooks });
         setStep('hooks'); bumpGenCount(); return;
       }
@@ -230,6 +247,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         const data = await callApi(`Title: "${selectedTitle}". Hook: "${userInput}". Platform: ${selectedPlatforms.join(', ')}. Tone: ${selectedTone}. Duration: ${selectedDuration}.`, 'script');
         setIsTyping(false);
         if (data?.limitReached) { setShowPaywall(true); return; }
+        if (typeof data?.result !== 'string' || !data.result) {
+          addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
+          return;
+        }
         addAiMessage({ role: 'ai', type: 'script', content: '📝 Here is your full script!', data: data.result });
         setStep('done'); bumpGenCount(); return;
       }
@@ -237,6 +258,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         const data = await callApi(`Topic: "${selectedTitle}". Request: "${userInput}". Tone: ${selectedTone}.`, 'script');
         setIsTyping(false);
         if (data?.limitReached) { setShowPaywall(true); return; }
+        if (typeof data?.result !== 'string' || !data.result) {
+          addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
+          return;
+        }
         addAiMessage({ role: 'ai', type: 'script', content: '✨ Refined script!', data: data.result });
         bumpGenCount(); return;
       }
