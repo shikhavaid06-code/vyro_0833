@@ -75,8 +75,8 @@ export default function WinningVault({ isOpen, onClose, plan }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-2xl bg-[#0d0d1f] border border-purple-500/20 rounded-2xl flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
+      <div className="w-full max-w-2xl bg-[#0d0d1f] border border-purple-500/20 rounded-2xl flex flex-col max-h-[85vh] animate-modal-in">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 flex-shrink-0">
           <div className="flex items-center gap-2.5">
