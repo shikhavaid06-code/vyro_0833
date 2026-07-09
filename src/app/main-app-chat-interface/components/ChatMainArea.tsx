@@ -232,6 +232,32 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     try { setStreak(parseInt(localStorage.getItem('creo_streak') || '0')); } catch {}
   }, []);
 
+  // ✅ CHAT HISTORY FIX — previous chats were listed in the sidebar but could
+  // never be reopened (nothing stored the messages). Now every chat's full
+  // conversation is saved and restored when clicked.
+  useEffect(() => {
+    if (!activeChatId) return;
+    try {
+      const raw = localStorage.getItem(`creo_chat_data_${activeChatId}`);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (Array.isArray(d.messages) && d.messages.length > 0) {
+          setMessages(d.messages);
+          setStep(d.step || 'done');
+          setSelectedTitle(d.selectedTitle || '');
+        }
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!activeChatId || messages.length === 0) return;
+    try {
+      localStorage.setItem(`creo_chat_data_${activeChatId}`, JSON.stringify({ messages, step, selectedTitle }));
+    } catch {}
+  }, [messages, step, selectedTitle, activeChatId]);
+
   // ✅ Streak sync — every generation response carries the server-computed
   // streak; keep the flame chip + local cache up to date.
   const syncStreak = (data: any) => {
@@ -445,7 +471,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
             <p className="text-[10px] text-white/30 hidden sm:block">{selectedPlatforms.join(', ')} · {selectedTone}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {/* ✅ Streak flame — the daily habit loop */}
           {streak > 0 && (
             <div className="hidden sm:flex items-center gap-0.5 h-7 px-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[11px] font-semibold text-orange-400 whitespace-nowrap" title={`${streak}-day creation streak — generate tomorrow to keep it alive!`}>
@@ -457,26 +483,28 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               <Crown size={11} className="flex-shrink-0" />{genLeft} left
             </button>
           )}
-          <button onClick={handleNewChat} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Plus size={12} /><span className="hidden xl:inline">New</span></button>
+          <button onClick={handleNewChat} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all"><Plus size={12} /><span className="hidden xl:inline">New</span></button>
+          <div className="w-px h-5 bg-white/8 hidden md:block" />
           {/* ✅ Vault button */}
-          <button onClick={() => setShowVault(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-yellow-500/20 text-xs font-medium text-yellow-400/70 hover:text-yellow-400 transition-all">
-            <Star size={12} /><span className="hidden xl:inline">Vault</span>
+          <button onClick={() => setShowVault(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all">
+            <Star size={12} className="text-yellow-400/70" /><span className="hidden xl:inline">Vault</span>
           </button>
           {/* ✅ Creator Brain button */}
-          <button onClick={() => setShowBrain(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-fuchsia-500/20 text-xs font-medium text-fuchsia-400/70 hover:text-fuchsia-400 transition-all" title="Creator Brain — teach CRÉO your style">
-            <Brain size={12} /><span className="hidden xl:inline">Brain</span>
+          <button onClick={() => setShowBrain(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all" title="Creator Brain — teach CRÉO your style">
+            <Brain size={12} className="text-fuchsia-400/70" /><span className="hidden xl:inline">Brain</span>
           </button>
           {/* ✅ Competitor Intelligence button */}
-          <button onClick={() => setShowIntel(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-sky-500/20 text-xs font-medium text-sky-400/70 hover:text-sky-400 transition-all" title="Competitor Intelligence — clone any viral framework (Ultra)">
-            <Radar size={12} /><span className="hidden xl:inline">Intel</span>
+          <button onClick={() => setShowIntel(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all" title="Competitor Intelligence — clone any viral framework (Ultra)">
+            <Radar size={12} className="text-sky-400/70" /><span className="hidden xl:inline">Intel</span>
           </button>
-          <button onClick={() => setShowControls(!showControls)} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${showControls ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400' : 'glass border border-white/8 text-white/50 hover:text-white/70'}`}>
+          <div className="w-px h-5 bg-white/8 hidden md:block" />
+          <button onClick={() => setShowControls(!showControls)} className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all ${showControls ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400' : 'glass border border-white/8 text-white/55 hover:text-white hover:border-white/15'}`}>
             <Sparkles size={12} /><span className="hidden xl:inline">Controls</span><ChevronDown size={11} className={`transition-transform ${showControls ? 'rotate-180' : ''}`} />
           </button>
-          <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Download size={12} /><span className="hidden xl:inline">Export</span></button>
-          <button onClick={handleShare} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white/70 transition-all"><Share2 size={13} /></button>
-          <button onClick={() => router.push('/settings')} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white/70 transition-all" title="Settings"><Settings size={13} /></button>
-          <button onClick={handleSignOut} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-red-400 transition-all" title="Sign out"><LogOut size={13} /></button>
+          <button onClick={handleExport} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all"><Download size={12} /><span className="hidden xl:inline">Export</span></button>
+          <button onClick={handleShare} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/50 hover:text-white hover:border-white/15 transition-all"><Share2 size={13} /></button>
+          <button onClick={() => router.push('/settings')} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/50 hover:text-white hover:border-white/15 transition-all" title="Settings"><Settings size={13} /></button>
+          <button onClick={handleSignOut} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/50 hover:text-red-400 hover:border-red-500/20 transition-all" title="Sign out"><LogOut size={13} /></button>
         </div>
       </div>
 
@@ -498,7 +526,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px]" />
             </div>
-            <div className="relative z-10 w-full max-w-lg">
+            <div className="relative z-10 w-full max-w-2xl">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto mb-4">
                 <Wand2 size={28} className="text-purple-400" />
               </div>
@@ -525,7 +553,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               {/* ✅ Daily Mission — the reason to open CRÉO every day */}
               <div className="glass rounded-2xl border border-orange-500/15 p-3.5 mb-5 text-left">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <Target size={13} className="text-orange-400" />
                     <span className="text-xs font-semibold text-white/70">Today's Mission</span>
                   </div>
@@ -551,7 +579,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           </div>
         )}
 
-        <div className="px-3 md:px-6 py-4 space-y-4">
+        <div className="max-w-3xl mx-auto px-3 md:px-6 py-4 space-y-4">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex animate-slide-up ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.type === 'text' && (
