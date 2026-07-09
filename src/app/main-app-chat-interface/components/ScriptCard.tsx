@@ -90,7 +90,7 @@ export default function ScriptCard({ script }: Props) {
           </div>
           <div className="flex items-center gap-1.5">
             <button onClick={handleCopy} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/5 transition-all" title="Copy to clipboard">
-              {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+              {copied ? <Check size={13} className="text-green-400 animate-pop-in" /> : <Copy size={13} />}
             </button>
             {/* ✅ Export opens readable HTML in new tab */}
             <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1 rounded-lg glass border border-violet-500/20 text-xs text-violet-400 hover:bg-violet-500/10 transition-all" title="Open & save as PDF">
