@@ -52,7 +52,8 @@ export default function TitleCards({ titles, onSelect, topic = '', platform = ''
       <div className="space-y-2">
         {titles.map((title, i) => (
           <div key={`title-${i}`} onClick={() => handleSelect(title, i)}
-            className={`group flex items-center justify-between gap-3 rounded-xl px-4 py-3 cursor-pointer border transition-all duration-200 ${
+            style={{ animationDelay: `${i * 90}ms`, animationFillMode: 'both' }}
+            className={`group flex items-center justify-between gap-3 rounded-xl px-4 py-3 cursor-pointer border transition-all duration-200 animate-slide-up ${
               selectedTitle === i ? 'bg-purple-500/15 border-purple-500/40 shadow-lg shadow-purple-500/10' : 'glass border-white/8 hover:border-white/15 hover:bg-white/3'
             }`}>
             <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -63,12 +64,13 @@ export default function TitleCards({ titles, onSelect, topic = '', platform = ''
             </div>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
               <button onClick={(e) => handleSave(title, i, e)}
-                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${savedIndex.includes(i) ? 'text-yellow-400' : 'text-white/25 hover:text-yellow-400 hover:bg-yellow-400/10'}`}>
-                <Star size={13} className={savedIndex.includes(i) ? 'fill-yellow-400' : ''} />
+                className={`relative w-7 h-7 rounded-lg flex items-center justify-center transition-all ${savedIndex.includes(i) ? 'text-yellow-400' : 'text-white/25 hover:text-yellow-400 hover:bg-yellow-400/10'}`}>
+                {savedIndex.includes(i) && <span className="absolute inset-0 rounded-full bg-yellow-400/40 animate-burst pointer-events-none" />}
+                <Star size={13} className={savedIndex.includes(i) ? 'fill-yellow-400 animate-pop-in' : ''} />
               </button>
               <button onClick={(e) => handleCopy(title, i, e)}
                 className="w-7 h-7 rounded-lg flex items-center justify-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all">
-                {copiedIndex === i ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                {copiedIndex === i ? <Check size={13} className="text-green-400 animate-pop-in" /> : <Copy size={13} />}
               </button>
             </div>
           </div>
