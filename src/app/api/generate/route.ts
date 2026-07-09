@@ -1,4 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+
+// ✅ The actual enforcement — real limits per plan, checked and written
+// server-side. Before this, the count only ever lived in localStorage,
+// which anyone could clear or bypass entirely by calling this route directly.
+const PLAN_LIMITS: Record<string, number> = { free: 3, pro: 100, ultra: Infinity };
+const ANON_DAILY_LIMIT = 3; // matches the free tier — the /try trial shouldn't out-give the free plan
+
+function todayDate(): string {
+  return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+}
 
 async function callGemini(prompt: string, retries = 3): Promise<string> {
   for (let i = 0; i < retries; i++) {
@@ -23,8 +34,93 @@ async function callGemini(prompt: string, retries = 3): Promise<string> {
   throw new Error("Gemini overloaded after retries");
 }
 
+// ✅ Checks + records usage for a signed-in user, verified via their real
+// Supabase session token — never trusts a client-supplied user ID, since
+// that could be spoofed to attribute usage (or bypass limits) to someone else.
+async function checkAuthenticatedLimit(token: string): Promise<{ allowed: boolean; plan: string; limit: number } | null> {
+  const admin = getSupabaseAdmin();
+  const { data: userData, error: userErr } = await admin.auth.getUser(token);
+  if (userErr || !userData?.user) return null; // invalid/expired token — fall through to anonymous handling
+
+  const userId = userData.user.id;
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('plan, daily_gen_count, daily_gen_reset_date')
+    .eq('user_id', userId)
+    .single();
+
+  const plan = profile?.plan || 'free';
+  const limit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
+  const today = todayDate();
+  const isNewDay = !profile || profile.daily_gen_reset_date !== today;
+  const currentCount = isNewDay ? 0 : (profile.daily_gen_count || 0);
+
+  if (currentCount >= limit) {
+    return { allowed: false, plan, limit };
+  }
+
+  // Record the usage now — if generation fails after this, that's an
+  // acceptable trade-off vs. the complexity of a rollback, and matches how
+  // the old client-only counter behaved too.
+  await admin.from('profiles').update({
+    daily_gen_count: currentCount + 1,
+    daily_gen_reset_date: today,
+  }).eq('user_id', userId);
+
+  return { allowed: true, plan, limit };
+}
+
+async function checkAnonymousLimit(ip: string): Promise<boolean> {
+  const admin = getSupabaseAdmin();
+  const today = todayDate();
+  const { data: existing } = await admin
+    .from('anon_generation_log')
+    .select('count')
+    .eq('ip', ip)
+    .eq('log_date', today)
+    .single();
+
+  const currentCount = existing?.count || 0;
+  if (currentCount >= ANON_DAILY_LIMIT) return false;
+
+  await admin.from('anon_generation_log').upsert({
+    ip, log_date: today, count: currentCount + 1,
+  }, { onConflict: 'ip,log_date' });
+
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   try {
+    // ✅ Limit check happens before any Gemini call — a blocked request
+    // shouldn't cost anything.
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (token) {
+      const result = await checkAuthenticatedLimit(token);
+      if (result && !result.allowed) {
+        return NextResponse.json(
+          { error: 'limit_reached', limitReached: true, plan: result.plan, limit: result.limit },
+          { status: 403 }
+        );
+      }
+      // If result is null (invalid token), fall through to anonymous handling below.
+      if (!result) {
+        const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+        const allowed = await checkAnonymousLimit(ip);
+        if (!allowed) {
+          return NextResponse.json({ error: 'limit_reached', limitReached: true, plan: 'anonymous' }, { status: 403 });
+        }
+      }
+    } else {
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+      const allowed = await checkAnonymousLimit(ip);
+      if (!allowed) {
+        return NextResponse.json({ error: 'limit_reached', limitReached: true, plan: 'anonymous' }, { status: 403 });
+      }
+    }
+
     const body = await req.json();
     const idea: string = body.idea || "make a video";
     const forceType: string = body.forceType || "script";
