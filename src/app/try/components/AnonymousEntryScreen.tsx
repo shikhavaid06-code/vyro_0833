@@ -6,12 +6,26 @@ import { supabase } from '@/lib/supabase';
 
 type Stage = 'entry' | 'loading' | 'gate' | 'sent';
 
+// ✅ Staged suspense lines — rotate during the loading animation
+const LOADING_LINES = [
+  'Creo AI is reverse-engineering viral database structures',
+  'Extracting proven hook frameworks for your topic',
+];
+
 const LOADING_MS = 2000;
 const HANDOFF_KEY = 'creo_pending_handoff';
 
 export default function AnonymousEntryScreen() {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>('entry');
+  const [loadingLine, setLoadingLine] = useState(0);
+
+  // Rotate the suspense line while loading
+  useEffect(() => {
+    if (stage !== 'loading') { setLoadingLine(0); return; }
+    const t = setInterval(() => setLoadingLine((i) => (i + 1) % LOADING_LINES.length), 1100);
+    return () => clearInterval(t);
+  }, [stage]);
   const [topic, setTopic] = useState('');
   const [hooks, setHooks] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -152,15 +166,20 @@ export default function AnonymousEntryScreen() {
         )}
 
         {stage === 'loading' && (
-          <div className="text-center py-20">
+          <div className="text-center py-20 animate-fade-in">
             <div className="w-16 h-16 mx-auto mb-8 relative">
               <div className="absolute inset-0 rounded-full border-2 border-purple-500/20" />
               <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-500 animate-spin" />
+              <div className="absolute -inset-2 rounded-full border border-pink-500/10 animate-ping" />
               <Sparkles size={20} className="absolute inset-0 m-auto text-purple-400 animate-pulse" />
             </div>
-            <p className="text-white/70 text-sm md:text-base font-mono">
-              Creo AI is reverse-engineering viral database structures<span className="animate-pulse">...</span>
+            {/* ✅ Staged suspense — the line changes mid-wait so it reads as real work */}
+            <p key={loadingLine} className="text-white/70 text-sm md:text-base font-mono animate-fade-in">
+              {LOADING_LINES[loadingLine]}<span className="animate-pulse">...</span>
             </p>
+            <div className="max-w-[240px] mx-auto mt-6 h-1 rounded-full bg-white/5 overflow-hidden">
+              <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-loader-sweep" />
+            </div>
           </div>
         )}
       </div>
