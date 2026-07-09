@@ -22,6 +22,12 @@ export default function CompetitorIntelModal({ onClose, plan }: Props) {
   const [copied, setCopied] = useState(false);
 
   const handleAnalyze = async () => {
+    // ✅ Locked feature → straight to the upgrade page, no dead-end error
+    if (!isUltra) {
+      toast.info('Competitor Intelligence is an Ultra feature — taking you to upgrade!');
+      router.push('/upgrade');
+      return;
+    }
     if (material.trim().length < 40) {
       toast.error('Paste more competitor material — a transcript, several titles, or hooks (at least a few lines).');
       return;
@@ -40,9 +46,8 @@ export default function CompetitorIntelModal({ onClose, plan }: Props) {
       });
       const d = await r.json();
       if (d?.upgradeRequired) {
-        toast.error(d.message || 'Competitor Intelligence is an Ultra feature.', {
-          action: { label: 'Go Ultra', onClick: () => router.push('/upgrade') },
-        });
+        toast.info(d.message || 'Competitor Intelligence is an Ultra feature — taking you to upgrade!');
+        router.push('/upgrade');
       } else if (d?.limitReached) {
         toast.error("You've hit today's generation limit.", {
           action: { label: 'Upgrade', onClick: () => router.push('/upgrade') },
