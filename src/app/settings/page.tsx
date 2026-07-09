@@ -1,7 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, ChevronRight, Copy, Check } from 'lucide-react';
+import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, ChevronRight, Copy, Check, Gift, Flame } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { getLocalePricing } from '@/lib/pricing';
 import AppLogo from '@/components/ui/AppLogo';
 
 export default function SettingsPage() {
@@ -9,14 +11,36 @@ export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const [genCount, setGenCount] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [refCopied, setRefCopied] = useState(false);
+  // ✅ Referral program — code, count and earned bonus come from the API.
+  const [referral, setReferral] = useState<{ code: string | null; referrals: number; bonus: number; maxBonus: number } | null>(null);
+  const [streak, setStreak] = useState(0);
 
   useEffect(() => {
     try {
       const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}');
       setUser(u);
       setGenCount(parseInt(localStorage.getItem('creo_gen_count') || '0'));
+      setStreak(parseInt(localStorage.getItem('creo_streak') || '0'));
     } catch {}
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const r = await fetch('/api/referral', { headers: { Authorization: `Bearer ${session.access_token}` } });
+        const d = await r.json();
+        if (d?.code) setReferral(d);
+      } catch {}
+    })();
   }, []);
+
+  const referralLink = referral?.code ? `${typeof window !== 'undefined' ? window.location.origin : ''}/?ref=${referral.code}` : '';
+  const handleCopyReferral = () => {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink).catch(() => {});
+    setRefCopied(true);
+    setTimeout(() => setRefCopied(false), 2000);
+  };
 
   const handleSignOut = () => {
     localStorage.removeItem('creo_current_user');
@@ -95,13 +119,44 @@ export default function SettingsPage() {
               <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-purple-600 to-pink-600 rounded-full transition-all" style={{ width: `${Math.min((genCount / 3) * 100, 100)}%` }} />
               </div>
-              <button onClick={() => router.push('/main-app-chat-interface')}
-                className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold hover:opacity-90 transition-all">
-                Upgrade to Pro — ₹999/mo
+              <button onClick={() => router.push('/upgrade')}
+                className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all">
+                Upgrade to Pro — {getLocalePricing().symbol}{getLocalePricing().pro}/mo
               </button>
             </div>
           )}
         </div>
+
+        {/* ✅ Refer & Earn card */}
+        {referral?.code && (
+          <div className="glass rounded-2xl border border-emerald-500/20 p-5 mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <Gift size={14} className="text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-white/80 font-semibold">Refer & Earn</p>
+                  <p className="text-[11px] text-white/35">+1 permanent daily generation per friend (max +{referral.maxBonus})</p>
+                </div>
+              </div>
+              {streak > 0 && (
+                <div className="flex items-center gap-1 text-[11px] text-orange-400"><Flame size={11} className="fill-orange-400/40" />{streak}d</div>
+              )}
+            </div>
+            <div className="flex gap-2 mt-3">
+              <div className="flex-1 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white/50 font-mono truncate">{referralLink}</div>
+              <button onClick={handleCopyReferral}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all">
+                {refCopied ? <Check size={12} className="animate-pop-in" /> : <Copy size={12} />}{refCopied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <div className="flex items-center gap-4 mt-3 text-[11px] text-white/40">
+              <span><b className="text-emerald-400">{referral.referrals}</b> friend{referral.referrals !== 1 ? 's' : ''} joined</span>
+              <span><b className="text-emerald-400">+{referral.bonus}</b> bonus generations/day earned</span>
+            </div>
+          </div>
+        )}
 
         {/* Settings sections */}
         {[
