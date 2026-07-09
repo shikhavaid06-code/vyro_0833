@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import '../styles/tailwind.css';
 import { Toaster } from 'sonner';
 import CookieConsent from '@/components/ui/CookieConsent';
+import RefCapture from '@/components/ui/RefCapture';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -48,6 +49,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <RefCapture />
         <CookieConsent />
         <Toaster
           position="bottom-right"
