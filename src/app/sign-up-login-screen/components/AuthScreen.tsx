@@ -102,7 +102,7 @@ export default function AuthScreen() {
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = code.replace(/\D/g, '');
-    if (token.length !== 6) { setCodeError('Enter the 6-digit code from the email.'); return; }
+    if (token.length < 6 || token.length > 10) { setCodeError('Enter the code from the email (6-10 digits).'); return; }
     setVerifying(true);
     setCodeError('');
     try {
@@ -271,7 +271,7 @@ export default function AuthScreen() {
                   <Smartphone size={13} className="text-pink-400" />
                   <p className="text-xs font-semibold text-white/70">Reading the email on your phone?</p>
                 </div>
-                <p className="text-xs text-white/40 leading-relaxed mb-3">Type the 6-digit code from the email here — you'll be signed in on <b className="text-white/60">this</b> device, not your phone.</p>
+                <p className="text-xs text-white/40 leading-relaxed mb-3">Type the code from the email here — you'll be signed in on <b className="text-white/60">this</b> device, not your phone.</p>
                 <form onSubmit={handleVerifyCode} className="flex gap-2">
                   <div className="relative flex-1">
                     <KeyRound size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
@@ -279,14 +279,14 @@ export default function AuthScreen() {
                       ref={codeInputRef}
                       inputMode="numeric"
                       autoComplete="one-time-code"
-                      maxLength={6}
+                      maxLength={10}
                       value={code}
                       onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setCodeError(''); }}
                       placeholder="123456"
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl glass border border-white/10 text-white text-sm tracking-[0.3em] font-mono placeholder:text-white/15 placeholder:tracking-[0.3em] focus:outline-none focus:border-purple-500/50 focus:bg-purple-500/5 transition-all bg-transparent"
                     />
                   </div>
-                  <button type="submit" disabled={verifying || code.length !== 6}
+                  <button type="submit" disabled={verifying || code.length < 6}
                     className="px-4 py-2.5 rounded-xl bg-gradient-vyro text-white text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40">
                     {verifying ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Verify<ArrowRight size={12} /></>}
                   </button>
