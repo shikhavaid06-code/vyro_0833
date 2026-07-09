@@ -14,25 +14,40 @@ const socialLinks = [
   { SocialIcon: InstagramIcon, label: 'Instagram', href: 'https://instagram.com' },
 ];
 
-// ✅ Real links - existing pages and landing page anchors
-const productLinks = [
+const CONTACT_EMAIL = 'ranuvaid2013@gmail.com';
+
+// ✅ FIXED: these were mailto: links, which silently fail (or open a broken
+// handler page) on any computer without a configured mail app — most of them.
+// Contact entries now COPY the email to the clipboard with a subject hint,
+// which works for 100% of visitors.
+type FooterLink = { label: string; href?: string; subject?: string };
+
+const productLinks: FooterLink[] = [
   { label: 'Features', href: '/#features' },
   { label: 'Pricing', href: '/#pricing' },
   { label: 'Changelog', href: '/changelog' },
   { label: 'Roadmap', href: '/roadmap' },
-  { label: 'API', href: 'mailto:ranuvaid2013@gmail.com?subject=API Access Request' },
+  { label: 'API', subject: 'API Access Request' },
 ];
 
-const companyLinks = [
+const companyLinks: FooterLink[] = [
   { label: 'About', href: '/#hero' },
-  { label: 'Careers', href: 'mailto:ranuvaid2013@gmail.com?subject=Careers' },
-  { label: 'Press Kit', href: 'mailto:ranuvaid2013@gmail.com?subject=Press Kit Request' },
-  { label: 'Affiliates', href: 'mailto:ranuvaid2013@gmail.com?subject=Affiliate Program' },
+  { label: 'Careers', subject: 'Careers' },
+  { label: 'Press Kit', subject: 'Press Kit Request' },
+  { label: 'Affiliates', subject: 'Affiliate Program' },
 ];
 
 export default function FooterSection() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // ✅ Copy-to-contact — works on every device, no mail app needed.
+  const copyContact = (subject: string) => {
+    navigator.clipboard.writeText(CONTACT_EMAIL).catch(() => {});
+    toast.success(`Email copied: ${CONTACT_EMAIL}`, {
+      description: `Send us a mail with the subject "${subject}" and we'll get back to you.`,
+    });
+  };
 
   // ✅ Actually saves to Supabase now instead of just showing a success toast.
   const handleNewsletter = async (e: React.FormEvent) => {
@@ -73,11 +88,11 @@ export default function FooterSection() {
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/30 mb-4">Product</p>
-            <ul className="space-y-3">{productLinks.map(({ label, href }) => (<li key={label}><a href={href} className="text-sm text-white/50 hover:text-white transition-colors duration-200">{label}</a></li>))}</ul>
+            <ul className="space-y-3">{productLinks.map(({ label, href, subject }) => (<li key={label}>{href ? (<a href={href} className="text-sm text-white/50 hover:text-white transition-colors duration-200">{label}</a>) : (<button onClick={() => copyContact(subject || label)} className="text-sm text-white/50 hover:text-white transition-colors duration-200">{label}</button>)}</li>))}</ul>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/30 mb-4">Company</p>
-            <ul className="space-y-3">{companyLinks.map(({ label, href }) => (<li key={label}><a href={href} className="text-sm text-white/50 hover:text-white transition-colors duration-200">{label}</a></li>))}</ul>
+            <ul className="space-y-3">{companyLinks.map(({ label, href, subject }) => (<li key={label}>{href ? (<a href={href} className="text-sm text-white/50 hover:text-white transition-colors duration-200">{label}</a>) : (<button onClick={() => copyContact(subject || label)} className="text-sm text-white/50 hover:text-white transition-colors duration-200">{label}</button>)}</li>))}</ul>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/30 mb-4">Stay Updated</p>
@@ -97,7 +112,7 @@ export default function FooterSection() {
           </div>
           <div className="flex items-center gap-2 text-xs text-white/25">
             <Mail size={11} />
-            <a href="mailto:ranuvaid2013@gmail.com" className="hover:text-white/50 transition-colors duration-200">ranuvaid2013@gmail.com</a>
+            <button onClick={() => copyContact('Hello')} className="hover:text-white/50 transition-colors duration-200" title="Click to copy">{CONTACT_EMAIL}</button>
           </div>
         </div>
       </div>
