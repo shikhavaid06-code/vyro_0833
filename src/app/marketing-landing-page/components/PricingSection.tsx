@@ -14,7 +14,8 @@ export default function PricingSection() {
   // instead of a second, slightly different hardcoded copy that lived here before.
   const plans = [
     {
-      id: 'free', name: 'Free', tagline: 'A taste of the magic.',
+      id: 'free', name: 'Free', journey: 'Start', tagline: 'Start your creator journey.',
+      audience: 'For creators finding their voice.',
       price: { monthly: 0, yearly: 0 }, priceLabel: '/ forever',
       cta: 'Start Free', ctaStyle: 'secondary', icon: null, highlight: false, border: 'border-white/8',
       features: ['3 generations per day', 'AI Title Generator', 'Hook Generator', 'Short + medium scripts', 'Community updates', 'Basic tone options'],
@@ -22,20 +23,22 @@ export default function PricingSection() {
       roadmap: [],
     },
     {
-      id: 'pro', name: 'Pro', tagline: 'For creators who ship weekly.',
+      id: 'pro', name: 'Pro', journey: 'Grow', tagline: 'Grow faster. Ship daily.',
+      audience: 'For creators serious about growth.',
       price: { monthly: locale.proRaw, yearly: Math.round(locale.proRaw * 0.75) }, priceLabel: '/ per month',
       cta: 'Get Pro', ctaStyle: 'primary', icon: Zap, highlight: true, border: 'border-purple-500/30',
-      features: ['100 generations per day', 'All durations including custom', 'AI Assistant unlocked', 'Smart editing (rewrite, shorten)', 'Multi-platform optimization', 'No watermark', 'Faster generation speed', 'Priority support'],
+      features: ['100 generations per day', 'Brutal Reviewer — script scoring & fixes', 'Content Expansion Engine — 1 idea → full pack', 'All durations including custom', 'AI Assistant unlocked', 'Smart editing (rewrite, shorten)', 'Multi-platform optimization', 'No watermark', 'Priority support'],
       locked: [],
-      roadmap: ['Brutal Reviewer — hook & retention scoring', 'Content Expansion Engine — 1 idea → full content batch'],
+      roadmap: [],
     },
     {
-      id: 'ultra', name: 'Ultra', tagline: 'Unlimited, priority, and an AI that learns you.',
+      id: 'ultra', name: 'Ultra', journey: 'Build', tagline: 'Build your content empire.',
+      audience: 'For creators building something bigger than themselves.',
       price: { monthly: locale.ultraRaw, yearly: Math.round(locale.ultraRaw * 0.75) }, priceLabel: '/ per month',
       cta: 'Go Ultra', ctaStyle: 'gold', icon: Crown, highlight: false, border: 'border-pink-500/20',
-      features: ['Unlimited generations', 'Priority AI responses', 'Advanced tone & script control', 'Multi-platform optimization', 'Smart AI editing (live rewrites)', 'Early access to new features', 'Premium UI effects unlocked', 'Custom voice profile', 'Dedicated AI co-writer'],
+      features: ['Unlimited generations', 'Creator Memory & Brain — AI that writes in YOUR voice', 'Competitor Intelligence — clone any viral framework', 'Brutal Reviewer — script scoring & fixes', 'Content Expansion Engine — 1 idea → full pack', 'Priority AI responses', 'Advanced tone & script control', 'Smart AI editing (live rewrites)', 'Early access to new features'],
       locked: [],
-      roadmap: ['Creator Memory & Brain — learns your style, niche, audience', 'Brutal Reviewer — hook & retention scoring', 'Content Expansion Engine — 1 idea → full content batch', 'Competitor Intelligence — analyze any channel or profile'],
+      roadmap: [],
     },
   ];
 
@@ -52,7 +55,17 @@ export default function PricingSection() {
             <span className="text-white">Start free. </span>
             <span className="text-gradient">Scale beautifully.</span>
           </h2>
-          <p className="text-white/40 text-base mb-8">No credit card required. Upgrade when you're ready.</p>
+          <p className="text-white/40 text-base mb-6">No credit card required. Upgrade when you're ready.</p>
+
+          {/* ✅ The creator journey — pricing sells a progression, not a feature table */}
+          <div className="flex items-center justify-center gap-2 mb-8 text-sm">
+            {[['Start', 'text-white/50'], ['Grow', 'text-purple-400'], ['Build', 'text-amber-400']].map(([label, color], i) => (
+              <React.Fragment key={label}>
+                {i > 0 && <ArrowRight size={13} className="text-white/20" />}
+                <span className={`font-semibold ${color}`}>{label}</span>
+              </React.Fragment>
+            ))}
+          </div>
 
           <div className="inline-flex items-center glass rounded-full p-1 gap-1">
             {(['monthly', 'yearly'] as const).map((b) => (
@@ -77,8 +90,12 @@ export default function PricingSection() {
                 )}
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="text-white text-xl font-bold">{plan.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-white text-xl font-bold">{plan.name}</h3>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${plan.id === 'ultra' ? 'bg-amber-500/10 text-amber-400' : plan.id === 'pro' ? 'bg-purple-500/10 text-purple-400' : 'bg-white/5 text-white/40'}`}>{plan.journey}</span>
+                    </div>
                     <p className="text-white/40 text-sm mt-1">{plan.tagline}</p>
+                    <p className="text-white/25 text-xs mt-0.5">{plan.audience}</p>
                   </div>
                   {PlanIcon && (
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${plan.id === 'ultra' ? 'bg-amber-500/10' : 'bg-purple-500/10'}`}>
