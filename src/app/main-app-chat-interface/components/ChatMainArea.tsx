@@ -353,9 +353,8 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       setIsTyping(false);
       setLoaderMode(null);
       if (data?.upgradeRequired) {
-        toast.error(data.message || 'Content Expansion is a Pro feature.', {
-          action: { label: 'Upgrade', onClick: () => router.push('/upgrade') },
-        });
+        toast.info(data.message || 'Content Expansion is a Pro feature — taking you to upgrade!');
+        router.push('/upgrade');
         return;
       }
       if (data?.limitReached) { setShowPaywall(true); return; }
@@ -421,23 +420,23 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               <Crown size={11} />{genLeft} free left
             </button>
           )}
-          <button onClick={handleNewChat} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Plus size={12} /><span className="hidden sm:inline">New</span></button>
+          <button onClick={handleNewChat} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Plus size={12} /><span className="hidden xl:inline">New</span></button>
           {/* ✅ Vault button */}
           <button onClick={() => setShowVault(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-yellow-500/20 text-xs font-medium text-yellow-400/70 hover:text-yellow-400 transition-all">
-            <Star size={12} /><span className="hidden sm:inline">Vault</span>
+            <Star size={12} /><span className="hidden xl:inline">Vault</span>
           </button>
           {/* ✅ Creator Brain button */}
           <button onClick={() => setShowBrain(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-fuchsia-500/20 text-xs font-medium text-fuchsia-400/70 hover:text-fuchsia-400 transition-all" title="Creator Brain — teach CRÉO your style">
-            <Brain size={12} /><span className="hidden sm:inline">Brain</span>
+            <Brain size={12} /><span className="hidden xl:inline">Brain</span>
           </button>
           {/* ✅ Competitor Intelligence button */}
           <button onClick={() => setShowIntel(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-sky-500/20 text-xs font-medium text-sky-400/70 hover:text-sky-400 transition-all" title="Competitor Intelligence — clone any viral framework (Ultra)">
-            <Radar size={12} /><span className="hidden sm:inline">Intel</span>
+            <Radar size={12} /><span className="hidden xl:inline">Intel</span>
           </button>
           <button onClick={() => setShowControls(!showControls)} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${showControls ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400' : 'glass border border-white/8 text-white/50 hover:text-white/70'}`}>
-            <Sparkles size={12} /><span className="hidden sm:inline">Controls</span><ChevronDown size={11} className={`transition-transform ${showControls ? 'rotate-180' : ''}`} />
+            <Sparkles size={12} /><span className="hidden xl:inline">Controls</span><ChevronDown size={11} className={`transition-transform ${showControls ? 'rotate-180' : ''}`} />
           </button>
-          <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Download size={12} /><span className="hidden sm:inline">Export</span></button>
+          <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Download size={12} /><span className="hidden xl:inline">Export</span></button>
           <button onClick={handleShare} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white/70 transition-all"><Share2 size={13} /></button>
           <button onClick={() => router.push('/settings')} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white/70 transition-all" title="Settings"><Settings size={13} /></button>
           <button onClick={handleSignOut} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-red-400 transition-all" title="Sign out"><LogOut size={13} /></button>
@@ -463,18 +462,18 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               <div className="w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px]" />
             </div>
             <div className="relative z-10 w-full max-w-lg">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto mb-4">
                 <Wand2 size={28} className="text-purple-400" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">{userName ? greetingFn(userName) : 'What are we creating today? ✨'}</h2>
               <p className="text-white/40 text-sm mb-2">Type your idea or pick a quick start below</p>
               {!isProUser() && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mb-8">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mb-5">
                   <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                   <p className="text-purple-400/80 text-xs">{genLeft} free generation{genLeft !== 1 ? 's' : ''} remaining</p>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-2 mb-8 w-full">
+              <div className="grid grid-cols-2 gap-2 mb-4 w-full">
                 {promptSet.map((prompt) => (
                   <button key={prompt.text} onClick={() => handleSendWithText(prompt.text)}
                     className="flex items-start gap-2.5 p-3.5 rounded-xl glass border border-white/8 hover:border-purple-500/30 hover:bg-purple-500/5 text-left transition-all group">
@@ -484,7 +483,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                 ))}
               </div>
               {/* ✅ Daily Mission — the reason to open CRÉO every day */}
-              <div className="glass rounded-2xl border border-orange-500/15 p-4 mb-8 text-left">
+              <div className="glass rounded-2xl border border-orange-500/15 p-3.5 mb-5 text-left">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5">
                     <Target size={13} className="text-orange-400" />
