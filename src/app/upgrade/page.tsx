@@ -184,9 +184,14 @@ export default function UpgradePage() {
             <TrendingUp size={12} className="text-green-400" />
             <span className="text-xs text-white/60">Every upload is a chance to grow — stop leaving views on the table</span>
           </div>
-          <h1 className="font-display text-4xl md:text-5xl font-bold mb-3">
+          <h1 className="font-display text-4xl md:text-5xl font-bold mb-3 leading-tight">
             <span className="text-white">Your channel won't grow itself.</span><br />
-            <span className="text-gradient">Pick your speed. 📈</span>
+            <span className="inline-flex items-center gap-3">
+              <span className="text-gradient">Pick your speed.</span>
+              <span className="inline-flex w-10 h-10 md:w-11 md:h-11 rounded-xl bg-green-500/10 border border-green-500/25 items-center justify-center align-middle">
+                <TrendingUp size={22} className="text-green-400" />
+              </span>
+            </span>
           </h1>
           <p className="text-white/40 text-base mb-5">Cancel anytime. No hidden fees. Prices shown in {locale.currency}.</p>
 
