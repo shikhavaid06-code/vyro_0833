@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowRight, Mail, Lock, Flame, CheckCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, Mail, Lock, Flame, CheckCircle, KeyRound, Smartphone, Zap, Target, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type Stage = 'entry' | 'loading' | 'gate' | 'sent';
@@ -19,6 +19,9 @@ export default function AnonymousEntryScreen() {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>('entry');
   const [loadingLine, setLoadingLine] = useState(0);
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [codeError, setCodeError] = useState('');
 
   // Rotate the suspense line while loading
   useEffect(() => {
@@ -26,6 +29,29 @@ export default function AnonymousEntryScreen() {
     const t = setInterval(() => setLoadingLine((i) => (i + 1) % LOADING_LINES.length), 1100);
     return () => clearInterval(t);
   }, [stage]);
+
+  // ✅ Cross-device fix (same as the main sign-in page): typing the emailed
+  // code signs the user in on THIS device — the handoff hooks are already in
+  // localStorage here, so the callback drops them straight into the workspace.
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = code.replace(/\D/g, '');
+    if (token.length < 6 || token.length > 10) { setCodeError('Enter the code from the email.'); return; }
+    setVerifying(true);
+    setCodeError('');
+    try {
+      const { data, error: otpError } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+      if (otpError || !data?.session) {
+        setCodeError(otpError?.message || 'Invalid or expired code — request a new one.');
+        setVerifying(false);
+        return;
+      }
+      router.replace('/auth/callback');
+    } catch {
+      setCodeError('Verification failed — please try again.');
+      setVerifying(false);
+    }
+  };
   const [topic, setTopic] = useState('');
   const [hooks, setHooks] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -166,18 +192,45 @@ export default function AnonymousEntryScreen() {
         )}
 
         {stage === 'loading' && (
-          <div className="text-center py-20 animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-8 relative">
-              <div className="absolute inset-0 rounded-full border-2 border-purple-500/20" />
+          <div className="text-center py-16 animate-fade-in relative">
+            {/* Ambient glow behind the core */}
+            <div className="absolute left-1/2 top-16 -translate-x-1/2 w-[320px] h-[320px] bg-purple-600/15 rounded-full blur-[90px] pointer-events-none" />
+
+            {/* ✅ The reactor core — layered rings + orbiting sparks */}
+            <div className="relative w-28 h-28 mx-auto mb-8">
+              <div className="absolute inset-0 rounded-full border border-purple-500/15" />
+              <div className="absolute inset-2 rounded-full border border-pink-500/15" />
               <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-500 animate-spin" />
-              <div className="absolute -inset-2 rounded-full border border-pink-500/10 animate-ping" />
-              <Sparkles size={20} className="absolute inset-0 m-auto text-purple-400 animate-pulse" />
+              <div className="absolute inset-3 rounded-full border-2 border-transparent border-b-pink-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '2.2s' }} />
+              <div className="absolute -inset-3 rounded-full border border-purple-500/10 animate-ping" />
+              {/* Orbiting sparks */}
+              <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s' }}>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-pink-400 shadow-[0_0_8px_rgba(236,72,153,0.8)]" />
+              </div>
+              <div className="absolute inset-0 animate-spin" style={{ animationDuration: '4.5s', animationDirection: 'reverse' }}>
+                <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.8)]" />
+              </div>
+              <div className="absolute inset-0 m-auto w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-400/30 flex items-center justify-center animate-pulse">
+                <Sparkles size={22} className="text-white" />
+              </div>
             </div>
-            {/* ✅ Staged suspense — the line changes mid-wait so it reads as real work */}
-            <p key={loadingLine} className="text-white/70 text-sm md:text-base font-mono animate-fade-in">
+
+            {/* Staged suspense line */}
+            <p key={loadingLine} className="text-white/70 text-sm md:text-base font-mono animate-fade-in px-4">
               {LOADING_LINES[loadingLine]}<span className="animate-pulse">...</span>
             </p>
-            <div className="max-w-[240px] mx-auto mt-6 h-1 rounded-full bg-white/5 overflow-hidden">
+
+            {/* ✅ Live analysis chips — light up in sequence with the lines */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
+              {[{ icon: Target, label: 'Hook patterns' }, { icon: TrendingUp, label: 'Retention curves' }, { icon: Zap, label: 'Curiosity gaps' }].map(({ icon: ChipIcon, label }, i) => (
+                <span key={label} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] border transition-all duration-500 ${i <= loadingLine ? 'bg-purple-500/15 border-purple-500/40 text-purple-300' : 'bg-white/[0.02] border-white/8 text-white/25'}`}>
+                  <ChipIcon size={11} />{label}
+                  {i <= loadingLine && <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse" />}
+                </span>
+              ))}
+            </div>
+
+            <div className="max-w-[240px] mx-auto mt-7 h-1 rounded-full bg-white/5 overflow-hidden">
               <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-loader-sweep" />
             </div>
           </div>
@@ -237,13 +290,33 @@ export default function AnonymousEntryScreen() {
               </>
             ) : (
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto mb-5">
-                  <CheckCircle size={30} className="text-purple-400" />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto mb-4 animate-pop-in">
+                  <CheckCircle size={26} className="text-purple-400" />
                 </div>
-                <h2 className="text-xl font-bold text-white mb-2">Check your inbox! 📬</h2>
-                <p className="text-white/50 text-sm mb-1">We sent a magic link to</p>
+                <h2 className="text-xl font-bold text-white mb-1.5">Check your inbox! 📬</h2>
+                <p className="text-white/50 text-sm mb-1">We sent a sign-in email to</p>
                 <p className="text-purple-400 font-semibold mb-4">{email}</p>
-                <p className="text-white/30 text-xs">Click the link and your hooks + workspace will be waiting for you.</p>
+                <p className="text-white/40 text-xs mb-5">Click the link — or if you're reading the email on your phone, type the code here to unlock your hooks on <b className="text-white/60">this</b> device:</p>
+                {/* ✅ Same cross-device code entry as the main sign-in page */}
+                <form onSubmit={handleVerifyCode} className="flex gap-2 text-left">
+                  <div className="relative flex-1">
+                    <KeyRound size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                    <input
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={10}
+                      value={code}
+                      onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setCodeError(''); }}
+                      placeholder="Code from email"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl glass border border-white/10 text-white text-sm tracking-[0.2em] font-mono placeholder:text-white/15 placeholder:tracking-normal focus:outline-none focus:border-purple-500/50 focus:bg-purple-500/5 transition-all bg-transparent"
+                    />
+                  </div>
+                  <button type="submit" disabled={verifying || code.length < 6}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-vyro text-white text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40">
+                    {verifying ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Unlock<ArrowRight size={12} /></>}
+                  </button>
+                </form>
+                {codeError && <p className="text-red-400 text-xs mt-2 text-left animate-fade-in">{codeError}</p>}
               </div>
             )}
           </div>
