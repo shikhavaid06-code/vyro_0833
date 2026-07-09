@@ -64,7 +64,7 @@ export default function ChatAppLayout() {
           setSavedChats((prev) => prev.filter((c) => c.id !== id));
         }}
       />
-      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-72' : 'lg:ml-16'}`}>
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 transition-all duration-300">
         <ChatMainArea
           key={resetKey}
           sidebarOpen={sidebarOpen}
