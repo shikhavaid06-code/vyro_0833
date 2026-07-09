@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Check, X, Star, Vault, ChevronDown, Sparkles, ArrowRight } from 'lucide-react';
+import Reveal from '@/components/ui/Reveal';
 
 // ✅ Week 1 conversion items in one section, all honest — no fake numbers,
 // no fake testimonials (deliberate: real ones get added when real users
@@ -54,15 +55,15 @@ export default function WhyCreoSection() {
 
       <div className="relative z-10 max-w-screen-2xl mx-auto px-6 lg:px-10">
         {/* ─── COMPARISON TABLE ─── */}
-        <div className="text-center mb-12">
+        <Reveal><div className="text-center mb-12">
           <p className="text-xs font-semibold tracking-[0.2em] text-purple-400 uppercase mb-4">Why CRÉO</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             <span className="text-white">You could prompt ChatGPT for an hour.</span><br />
             <span className="text-gradient">Or type your topic once.</span>
           </h2>
-        </div>
+        </div></Reveal>
 
-        <div className="max-w-3xl mx-auto glass rounded-2xl border border-white/8 overflow-hidden mb-24">
+        <Reveal delay={100}><div className="max-w-3xl mx-auto glass rounded-2xl border border-white/8 overflow-hidden mb-24">
           <div className="grid grid-cols-[1fr_80px_80px] sm:grid-cols-[1fr_110px_110px] items-center px-5 py-4 border-b border-white/8 bg-white/[0.02]">
             <span className="text-xs font-semibold text-white/40 uppercase tracking-wide">Feature</span>
             <span className="text-sm font-bold text-gradient text-center">CRÉO</span>
@@ -86,10 +87,10 @@ export default function WhyCreoSection() {
               </div>
             </div>
           ))}
-        </div>
+        </div></Reveal>
 
         {/* ─── WINNING VAULT CARD ─── */}
-        <div className="max-w-3xl mx-auto mb-24">
+        <Reveal><div className="max-w-3xl mx-auto mb-24">
           <div className="relative glass-strong rounded-2xl border border-yellow-500/20 p-8 overflow-hidden">
             <div className="absolute top-0 right-0 w-[250px] h-[250px] bg-yellow-500/5 rounded-full blur-[80px] pointer-events-none" />
             <div className="relative z-10 flex flex-col sm:flex-row items-start gap-6">
@@ -117,10 +118,10 @@ export default function WhyCreoSection() {
               </div>
             </div>
           </div>
-        </div>
+        </div></Reveal>
 
         {/* ─── FAQ ─── */}
-        <div className="max-w-2xl mx-auto">
+        <Reveal><div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-2">Questions, answered</h2>
             <p className="text-white/40 text-sm">Everything a smart creator asks before trusting a new tool.</p>
@@ -147,7 +148,7 @@ export default function WhyCreoSection() {
             <Sparkles size={11} className="inline mr-1 text-purple-400" />
             Still unsure? Try it free — 3 generations a day, no card, no catch.
           </p>
-        </div>
+        </div></Reveal>
       </div>
     </section>
   );
