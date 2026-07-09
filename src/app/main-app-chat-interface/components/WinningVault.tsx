@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Trash2, Copy, Check, X, Zap, FileText, Sparkles, Filter } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export interface VaultItem {
   id: string;
@@ -32,6 +33,7 @@ export function saveToVault(item: Omit<VaultItem, 'id' | 'savedAt'>, plan: strin
 }
 
 export default function WinningVault({ isOpen, onClose, plan }: Props) {
+  const router = useRouter();
   const [items, setItems] = useState<VaultItem[]>([]);
   const [filter, setFilter] = useState<'all' | 'hook' | 'title' | 'script'>('all');
   const [copied, setCopied] = useState('');
@@ -152,7 +154,7 @@ export default function WinningVault({ isOpen, onClose, plan }: Props) {
         {/* Upgrade prompt for free users */}
         {isFree && (
           <div className="px-6 py-4 border-t border-white/5 flex-shrink-0">
-            <button className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold hover:opacity-90 transition-all">
+            <button onClick={() => router.push('/upgrade')} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all">
               Upgrade to Pro — Unlimited Vault Storage
             </button>
           </div>
