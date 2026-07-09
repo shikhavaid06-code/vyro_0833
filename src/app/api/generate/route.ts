@@ -10,8 +10,9 @@ const ANON_DAILY_LIMIT = 3; // matches the free tier — the /try trial shouldn'
 // ✅ Premium feature gates — checked server-side BEFORE consuming a
 // generation credit, so a blocked request never costs the user anything.
 const PREMIUM_TYPES: Record<string, string[]> = {
-  review: ['pro', 'ultra'],   // Brutal Reviewer
-  expand: ['pro', 'ultra'],   // Content Expansion Engine
+  review: ['pro', 'ultra'],       // Brutal Reviewer
+  expand: ['pro', 'ultra'],       // Content Expansion Engine
+  competitor: ['ultra'],          // Competitor Intelligence + Link Cloner
 };
 
 // ✅ COST OPTIMIZATION — two levers, both big:
@@ -31,6 +32,7 @@ const MODEL_FOR: Record<string, string> = {
   script: "gemini-2.5-flash",
   review: "gemini-2.5-flash",
   expand: "gemini-2.5-flash",
+  competitor: "gemini-2.5-flash",
 };
 const MAX_TOKENS_FOR: Record<string, number> = {
   titles: 512,
@@ -39,6 +41,7 @@ const MAX_TOKENS_FOR: Record<string, number> = {
   script: 4096, // generous cap so long scripts never truncate, but a runaway response can't blow the token budget
   review: 4096,
   expand: 6144, // a full multi-platform content pack is long by design
+  competitor: 4096,
 };
 
 // Filler words/phrases that scream "AI-generated" — banned in every prompt.
@@ -94,6 +97,8 @@ interface AuthedProfile {
   limit: number;
   currentCount: number;
   memory: Record<string, string> | null;
+  streak: number;
+  lastGenDate: string | null;
 }
 
 // ✅ Verified via the caller's real Supabase session token — never trusts a
@@ -107,12 +112,17 @@ async function getAuthedProfile(token: string): Promise<AuthedProfile | null> {
   const userId = userData.user.id;
   const { data: profile } = await admin
     .from('profiles')
-    .select('plan, daily_gen_count, daily_gen_reset_date, creator_memory')
+    .select('plan, daily_gen_count, daily_gen_reset_date, creator_memory, streak_count, last_gen_date, referral_bonus')
     .eq('user_id', userId)
     .single();
 
   const plan = profile?.plan || 'free';
-  const limit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
+  // ✅ Referral reward: each successful referral permanently adds +1 to the
+  // FREE daily limit (capped at +10 in the referral API). Paid plans keep
+  // their own limits.
+  const referralBonus = Math.min(profile?.referral_bonus || 0, 10);
+  const baseLimit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
+  const limit = plan === 'free' ? baseLimit + referralBonus : baseLimit;
   const today = todayDate();
   const isNewDay = !profile || profile.daily_gen_reset_date !== today;
   const currentCount = isNewDay ? 0 : (profile.daily_gen_count || 0);
@@ -120,17 +130,41 @@ async function getAuthedProfile(token: string): Promise<AuthedProfile | null> {
     ? profile.creator_memory
     : null;
 
-  return { userId, plan, limit, currentCount, memory };
+  return {
+    userId, plan, limit, currentCount, memory,
+    streak: profile?.streak_count || 0,
+    lastGenDate: profile?.last_gen_date || null,
+  };
 }
 
-// Record the usage. If generation fails after this, that's an acceptable
-// trade-off vs. the complexity of a rollback.
-async function recordUsage(userId: string, currentCount: number) {
+// Record the usage + advance the streak. If generation fails after this,
+// that's an acceptable trade-off vs. the complexity of a rollback.
+// ✅ STREAK SYSTEM: generate on consecutive days → streak grows; miss a day →
+// back to 1. Computed server-side so it can't be faked client-side.
+function yesterdayDate(): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+async function recordUsage(profile: AuthedProfile): Promise<number> {
   const admin = getSupabaseAdmin();
+  const today = todayDate();
+  let newStreak = profile.streak;
+  if (profile.lastGenDate === today) {
+    newStreak = Math.max(profile.streak, 1); // already counted today
+  } else if (profile.lastGenDate === yesterdayDate()) {
+    newStreak = profile.streak + 1;
+  } else {
+    newStreak = 1;
+  }
   await admin.from('profiles').update({
-    daily_gen_count: currentCount + 1,
-    daily_gen_reset_date: todayDate(),
-  }).eq('user_id', userId);
+    daily_gen_count: profile.currentCount + 1,
+    daily_gen_reset_date: today,
+    streak_count: newStreak,
+    last_gen_date: today,
+  }).eq('user_id', profile.userId);
+  return newStreak;
 }
 
 async function checkAnonymousLimit(ip: string): Promise<boolean> {
@@ -260,6 +294,33 @@ Output in EXACTLY this structure with these exact headers:
 Rules: every piece platform-native, human, specific. NEVER use: ${BANNED_PHRASES}.`;
   }
 
+  // ✅ COMPETITOR INTELLIGENCE + LINK CLONER (Ultra) — paste a competitor's
+  // transcript, titles, or hooks; extract their viral framework; generate
+  // matched variations for the user's own topic.
+  if (forceType === "competitor") {
+    return `${mem}You are CRÉO's Competitor Intelligence engine. A creator has pasted material from a competitor's high-performing content (a transcript, titles, hooks, or descriptions), possibly followed by their own topic.
+
+Do TWO jobs, in EXACTLY this structure with these exact headers:
+
+🔬 FRAMEWORK BREAKDOWN
+Hook Style: <what technique their openings use — curiosity gap, stakes, bold claim, story cold-open, etc. Quote one example>
+Structure: <how their content is built — pacing, sections, payoff placement>
+Psychological Triggers: <the specific emotions/drives they exploit — FOMO, status, curiosity, outrage, belonging>
+Title Patterns: <the repeatable formulas in their titles, as fill-in-the-blank templates>
+
+🧬 CLONED FOR YOU
+3 HOOKS — using their exact framework but for the creator's topic (never copy their words — clone the STRUCTURE, not the content):
+<3 hooks>
+
+3 TITLES — using their title patterns for the creator's topic:
+<3 titles>
+
+Rules: extract patterns, never plagiarize actual sentences. Concrete beats vague. NEVER use: ${BANNED_PHRASES}.
+
+COMPETITOR MATERIAL + CREATOR'S TOPIC:
+"${idea}"`;
+  }
+
   // default: full script
   return `${mem}You are a professional YouTube scriptwriter whose scripts sound like a real person talking, never like AI. Write a full YouTube script for: "${idea}".
 Format:
@@ -301,6 +362,7 @@ export async function POST(req: NextRequest) {
 
     // ✅ Limit check happens before any Gemini call — a blocked request
     // shouldn't cost anything.
+    let streak = 0;
     if (profile) {
       if (profile.currentCount >= profile.limit) {
         return NextResponse.json(
@@ -308,7 +370,7 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
-      await recordUsage(profile.userId, profile.currentCount);
+      streak = await recordUsage(profile);
     } else {
       // Anonymous (no token or invalid/expired token) — IP-capped trial.
       const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -340,27 +402,31 @@ export async function POST(req: NextRequest) {
 
     if (forceType === "titles") {
       const titles = text.split("\n").map((t) => t.trim()).filter((t) => t.length > 0).slice(0, 6);
-      return NextResponse.json({ type: "titles", titles });
+      return NextResponse.json({ type: "titles", titles, streak });
     }
 
     if (forceType === "hooks") {
       const hooks = text.split(/\n\n+/).map((h) => h.trim()).filter((h) => h.length > 0).slice(0, 3);
-      return NextResponse.json({ type: "hooks", hooks });
+      return NextResponse.json({ type: "hooks", hooks, streak });
     }
 
     if (forceType === "assistant") {
-      return NextResponse.json({ type: "assistant", result: text });
+      return NextResponse.json({ type: "assistant", result: text, streak });
     }
 
     if (forceType === "review") {
-      return NextResponse.json({ type: "review", result: text });
+      return NextResponse.json({ type: "review", result: text, streak });
     }
 
     if (forceType === "expand") {
-      return NextResponse.json({ type: "expand", result: text });
+      return NextResponse.json({ type: "expand", result: text, streak });
     }
 
-    return NextResponse.json({ type: "script", result: text });
+    if (forceType === "competitor") {
+      return NextResponse.json({ type: "competitor", result: text, streak });
+    }
+
+    return NextResponse.json({ type: "script", result: text, streak });
 
   } catch (err: any) {
     console.error('generate route error:', err?.message);
