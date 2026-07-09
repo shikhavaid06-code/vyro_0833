@@ -47,6 +47,13 @@ export default function AnonymousEntryScreen() {
         new Promise((r) => setTimeout(r, LOADING_MS)),
       ]);
       const data = await res.json();
+
+      if (data.limitReached) {
+        setError("You've used today's free trial hooks — sign up free to keep going.");
+        setStage('entry');
+        return;
+      }
+
       const generatedHooks: string[] = Array.isArray(data.hooks) ? data.hooks : [];
 
       if (!generatedHooks.length) {
