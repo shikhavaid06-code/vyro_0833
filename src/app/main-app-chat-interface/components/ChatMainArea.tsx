@@ -59,6 +59,50 @@ const promptSets = [
 
 interface Props { sidebarOpen: boolean; onToggleSidebar: () => void; activeChatId: string; onChatSaved?: (title: string, platform: string) => void; onNewChat?: () => void; }
 
+// ✅ THE SIGNATURE SUSPENSE LOADER (from the product spec) — rotating status
+// lines that make the wait feel like heavy machinery working, not a spinner.
+const SUSPENSE_LINES: Record<string, string[]> = {
+  titles: [
+    'Creo AI is reverse-engineering viral title structures...',
+    'Scanning proven curiosity-gap patterns...',
+    'Ranking titles by click-pull...',
+  ],
+  hooks: [
+    'Creo AI is reverse-engineering viral database structures...',
+    'Testing openers against retention curves...',
+    'Sharpening your three strongest hooks...',
+  ],
+  script: [
+    'Structuring your script beat by beat...',
+    'Writing like a human — cutting the AI filler...',
+    'Timing every section for watch-time...',
+  ],
+};
+
+function SuspenseLoader({ mode }: { mode: 'titles' | 'hooks' | 'script' }) {
+  const lines = SUSPENSE_LINES[mode];
+  const [lineIndex, setLineIndex] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setLineIndex((i) => (i + 1) % lines.length), 1500);
+    return () => clearInterval(t);
+  }, [lines.length]);
+  return (
+    <div className="glass border border-purple-500/15 rounded-2xl rounded-bl-sm px-4 py-3.5 w-full max-w-sm animate-slide-up">
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="relative w-5 h-5 flex-shrink-0">
+          <div className="absolute inset-0 rounded-full border-2 border-purple-500/20" />
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-500 animate-spin" />
+          <Sparkles size={9} className="absolute inset-0 m-auto text-purple-400 animate-pulse" />
+        </div>
+        <span key={lineIndex} className="text-xs text-white/60 animate-fade-in">{lines[lineIndex]}</span>
+      </div>
+      <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+        <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-loader-sweep" />
+      </div>
+    </div>
+  );
+}
+
 // ✅ FIXED: this modal used to collect a fake "waitlist" in localStorage with
 // outdated prices (₹999/₹2999) — while a fully working Razorpay checkout
 // already existed at /upgrade. Users who hit their limit were being sent to
@@ -68,8 +112,8 @@ function PaywallModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const prices = getLocalePricing();
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-[#0d0d1f] border border-purple-500/30 rounded-2xl p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
+      <div className="w-full max-w-sm bg-[#0d0d1f] border border-purple-500/30 rounded-2xl p-6 relative animate-modal-in">
         <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white/60"><X size={16} /></button>
         <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center mb-4"><Crown size={22} className="text-white" /></div>
         <h2 className="text-xl font-bold text-white mb-2">You've used today's 3 free generations</h2>
@@ -325,7 +369,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
       {/* CONTROLS */}
       {showControls && (
-        <div className="flex-shrink-0 px-3 md:px-6 py-3 border-b border-white/5 bg-[#0a0a1a]/50 backdrop-blur-sm animate-in slide-in-from-top-2 duration-200">
+        <div className="flex-shrink-0 px-3 md:px-6 py-3 border-b border-white/5 bg-[#0a0a1a]/50 backdrop-blur-sm animate-slide-down">
           <div className="flex flex-wrap gap-3">
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Platform</p><div className="flex flex-wrap gap-1">{platforms.map((p) => <button key={p} onClick={() => togglePlatform(p)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedPlatforms.includes(p) ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' : 'glass border border-white/8 text-white/40'}`}>{p}</button>)}</div></div>
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Tone</p><div className="flex flex-wrap gap-1">{tones.map((t) => <button key={t} onClick={() => setSelectedTone(t)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedTone === t ? 'bg-pink-500/20 border border-pink-500/30 text-pink-300' : 'glass border border-white/8 text-white/40'}`}>{t}</button>)}</div></div>
@@ -379,7 +423,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
         <div className="px-3 md:px-6 py-4 space-y-4">
           {messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={msg.id} className={`flex animate-slide-up ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.type === 'text' && (
                 <div className={`max-w-[85%] sm:max-w-lg px-4 py-2.5 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-purple-600/80 text-white rounded-br-sm' : 'glass border border-white/8 text-white/80 rounded-bl-sm'}`}>{msg.content}</div>
               )}
@@ -405,15 +449,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           ))}
           {isTyping && (
             <div className="flex justify-start">
-              <div className="glass border border-white/8 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2">
-                <Sparkles size={12} className="text-purple-400 animate-pulse" />
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-                <span className="text-xs text-white/30">CRÉO is thinking...</span>
-              </div>
+              <SuspenseLoader mode={step === 'idle' ? 'titles' : step === 'titles' ? 'hooks' : 'script'} />
             </div>
           )}
           <div ref={messagesEndRef} />
