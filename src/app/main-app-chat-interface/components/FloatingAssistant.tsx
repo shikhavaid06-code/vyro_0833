@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, X, Send, Minimize2, Maximize2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface AssistantMessage {
   id: string;
@@ -51,10 +52,17 @@ export default function FloatingAssistant() {
     setIsTyping(true);
 
     try {
-      // ✅ Real AI call to Anthropic API
+      // ✅ FIXED: now sends the user's session token — before, every Nova
+      // message was counted against the anonymous 3/day IP limit instead of
+      // the signed-in user's real plan limit, so Nova silently stopped
+      // working after 3 messages even for Pro/Ultra users.
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch('/api/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({
           idea: text,
           forceType: 'assistant',
@@ -67,7 +75,9 @@ export default function FloatingAssistant() {
       const aiMsg: AssistantMessage = {
         id: `a-ai-${Date.now()}`,
         role: 'ai',
-        content: data.result || data.message || "I'm on it! Let me help you refine your content.",
+        content: data.limitReached
+          ? "You've hit today's generation limit — upgrade on the Upgrade page to keep chatting with me!"
+          : (data.result || data.message || "Hmm, that didn't go through — try again in a moment."),
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
