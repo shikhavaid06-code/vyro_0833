@@ -1,7 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import { Copy, Check, RefreshCw, Download, Wand2, ChevronDown, ChevronUp, Edit3, MessageSquare } from 'lucide-react';
+import { Copy, Check, RefreshCw, Download, Wand2, ChevronDown, ChevronUp, Edit3, MessageSquare, Flame, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 interface Props { script: string; }
 
@@ -10,6 +11,44 @@ export default function ScriptCard({ script }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editedScript, setEditedScript] = useState(script);
+  const [reviewing, setReviewing] = useState(false);
+  const [review, setReview] = useState<string | null>(null);
+
+  // ✅ BRUTAL REVIEWER (Pro/Ultra) — scores the script server-side, shows the
+  // brutal truth + a fixed version. Gating is enforced by the API; Free users
+  // get an honest upsell toast, never a broken panel.
+  const handleBrutalReview = async () => {
+    if (reviewing) return;
+    setReviewing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const r = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ idea: editedScript.slice(0, 12000), forceType: 'review' }),
+      });
+      const d = await r.json();
+      if (d?.upgradeRequired) {
+        toast.info(d.message || 'Brutal Reviewer is a Pro feature — taking you to upgrade!');
+        setTimeout(() => { window.location.href = '/upgrade'; }, 900);
+      } else if (d?.limitReached) {
+        toast.error("You've hit today's generation limit — upgrade to keep going.", {
+          action: { label: 'Upgrade', onClick: () => { window.location.href = '/upgrade'; } },
+        });
+      } else if (typeof d?.result === 'string' && d.result) {
+        setReview(d.result);
+        toast.success('The Brutal Reviewer has spoken 🔥');
+      } else {
+        toast.error(d?.message || 'Review failed — try again in a moment.');
+      }
+    } catch {
+      toast.error('Review failed — try again in a moment.');
+    }
+    setReviewing(false);
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(editedScript).catch(() => {});
@@ -87,6 +126,10 @@ export default function ScriptCard({ script }: Props) {
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border border-white/8 text-xs font-medium text-white/40 hover:text-white/60 transition-all">
               <RefreshCw size={12} />Regenerate
             </button>
+            <button onClick={handleBrutalReview} disabled={reviewing}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border border-red-500/20 text-xs font-medium text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50" title="Get your script brutally scored & fixed (Pro)">
+              <Flame size={12} />{reviewing ? 'Reviewing...' : 'Brutal Review'}
+            </button>
           </div>
           <div className="flex items-center gap-1.5">
             <button onClick={handleCopy} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/5 transition-all" title="Copy to clipboard">
@@ -124,6 +167,20 @@ export default function ScriptCard({ script }: Props) {
           </button>
         )}
       </div>
+
+      {/* ✅ Brutal Review result panel */}
+      {review && (
+        <div className="mt-3 glass rounded-2xl border border-red-500/25 overflow-hidden animate-slide-up">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-red-500/5">
+            <div className="flex items-center gap-2">
+              <Flame size={13} className="text-red-400" />
+              <span className="text-xs font-semibold text-red-400 uppercase tracking-[0.1em]">Brutal Review</span>
+            </div>
+            <button onClick={() => setReview(null)} className="text-white/30 hover:text-white/60"><X size={14} /></button>
+          </div>
+          <pre className="p-4 text-sm text-white/75 leading-relaxed whitespace-pre-wrap font-sans">{review}</pre>
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {['Make intro shorter', 'Add more emotion', 'Change outro CTA', 'Make it funnier', 'Add timestamps'].map((cmd) => (
