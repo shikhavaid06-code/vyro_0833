@@ -421,10 +421,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   };
 
   const getStepLabel = () => {
-    if (step === 'idle') return 'New Chat — Tell CRÉO your video topic';
-    if (step === 'titles') return 'Step 2 — Pick a title';
-    if (step === 'hooks') return 'Step 3 — Pick a hook';
-    return '🎉 Script ready — refine anytime!';
+    if (step === 'idle') return 'New chat';
+    if (step === 'titles') return 'Pick a title';
+    if (step === 'hooks') return 'Pick a hook';
+    return 'Script ready 🎉';
   };
 
   const genLeft = Math.max(0, FREE_LIMIT - getGenCount());
@@ -448,13 +448,13 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         <div className="flex items-center gap-1.5">
           {/* ✅ Streak flame — the daily habit loop */}
           {streak > 0 && (
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-400" title={`${streak}-day creation streak — generate tomorrow to keep it alive!`}>
-              <Flame size={11} className="fill-orange-400/40" />{streak} day{streak !== 1 ? 's' : ''}
+            <div className="hidden sm:flex items-center gap-0.5 h-7 px-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[11px] font-semibold text-orange-400 whitespace-nowrap" title={`${streak}-day creation streak — generate tomorrow to keep it alive!`}>
+              <Flame size={11} className="fill-orange-400/40 flex-shrink-0" />{streak}d
             </div>
           )}
           {!isProUser() && (
-            <button onClick={() => setShowPaywall(true)} className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-400 hover:bg-purple-500/20 transition-all">
-              <Crown size={11} />{genLeft} free left
+            <button onClick={() => setShowPaywall(true)} className="hidden sm:flex items-center gap-1 h-7 px-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[11px] font-semibold text-purple-400 hover:bg-purple-500/20 transition-all whitespace-nowrap">
+              <Crown size={11} className="flex-shrink-0" />{genLeft} left
             </button>
           )}
           <button onClick={handleNewChat} className="flex items-center gap-1 px-2 py-1.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/50 hover:text-white/70 transition-all"><Plus size={12} /><span className="hidden xl:inline">New</span></button>
@@ -494,7 +494,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       {/* MESSAGES */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto overscroll-contain">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full px-4 text-center">
+          <div className="flex flex-col items-center justify-center min-h-full px-4 py-10 text-center">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px]" />
             </div>
@@ -502,8 +502,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto mb-4">
                 <Wand2 size={28} className="text-purple-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">{userName ? greetingFn(userName) : 'What are we creating today? ✨'}</h2>
-              <p className="text-white/40 text-sm mb-2">Type your idea or pick a quick start below</p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">
+                <span className="text-white">{userName ? greetingFn(userName) : 'What are we creating today? ✨'}</span>
+              </h2>
+              <p className="text-white/40 text-sm mb-3">Type your idea or pick a quick start below</p>
               {!isProUser() && (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mb-5">
                   <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
@@ -511,11 +513,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                 </div>
               )}
               <div className="grid grid-cols-2 gap-2 mb-4 w-full">
-                {promptSet.map((prompt) => (
+                {promptSet.map((prompt, pi) => (
                   <button key={prompt.text} onClick={() => handleSendWithText(prompt.text)}
-                    className="flex items-start gap-2.5 p-3.5 rounded-xl glass border border-white/8 hover:border-purple-500/30 hover:bg-purple-500/5 text-left transition-all group">
-                    <span className="text-lg flex-shrink-0">{prompt.icon}</span>
-                    <span className="text-xs text-white/50 group-hover:text-white/70 transition-colors leading-snug">{prompt.text}</span>
+                    style={{ animationDelay: `${pi * 70}ms`, animationFillMode: 'both' }}
+                    className="flex items-center gap-3 p-3 rounded-xl glass border border-white/8 hover:border-purple-500/30 hover:bg-purple-500/5 hover:-translate-y-0.5 text-left transition-all group animate-slide-up">
+                    <span className="w-9 h-9 rounded-lg bg-white/5 border border-white/8 group-hover:border-purple-500/20 group-hover:bg-purple-500/10 flex items-center justify-center text-base flex-shrink-0 transition-all">{prompt.icon}</span>
+                    <span className="text-xs text-white/55 group-hover:text-white/80 transition-colors leading-snug">{prompt.text}</span>
                   </button>
                 ))}
               </div>
