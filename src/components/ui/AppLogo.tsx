@@ -1,20 +1,21 @@
 'use client';
 
 import React, { memo, useMemo } from 'react';
-import AppIcon from './AppIcon';
+import { Sparkles } from 'lucide-react';
 import AppImage from './AppImage';
 
 interface AppLogoProps {
   src?: string; // Image source (optional)
-  iconName?: string; // Icon name when no image
   size?: number; // Size for icon/image
   className?: string; // Additional classes
   onClick?: () => void; // Click handler
 }
 
+// ✅ Icon fallback now uses lucide-react (already used app-wide) instead of
+// AppIcon, which imported the ENTIRE @heroicons library into the bundle for
+// a fallback branch that never rendered (src always has a default).
 const AppLogo = memo(function AppLogo({
   src = '/assets/images/app_logo.png',
-  iconName = 'SparklesIcon',
   size = 64,
   className = '',
   onClick,
@@ -33,7 +34,7 @@ const AppLogo = memo(function AppLogo({
       {src ? (
         <AppImage
           src={src}
-          alt="Logo" 
+          alt="Logo"
           width={size}
           height={size}
           className="flex-shrink-0"
@@ -41,7 +42,7 @@ const AppLogo = memo(function AppLogo({
           unoptimized={src.endsWith('.svg')}
         />
       ) : (
-        <AppIcon name={iconName} size={size} className="flex-shrink-0" />
+        <Sparkles size={size} className="flex-shrink-0 text-purple-400" />
       )}
     </div>
   );
