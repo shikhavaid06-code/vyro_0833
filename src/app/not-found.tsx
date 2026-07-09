@@ -14,9 +14,9 @@ export default function NotFound() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#080812] p-4">
-      <div className="text-center max-w-md">
+      <div className="text-center max-w-md animate-slide-up">
         <div className="flex justify-center mb-2">
-          <h1 className="text-9xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent opacity-40">
+          <h1 className="text-9xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent opacity-40 animate-float">
             404
           </h1>
         </div>
