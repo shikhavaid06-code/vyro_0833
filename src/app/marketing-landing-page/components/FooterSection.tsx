@@ -20,14 +20,14 @@ const productLinks = [
   { label: 'Pricing', href: '/#pricing' },
   { label: 'Changelog', href: '/changelog' },
   { label: 'Roadmap', href: '/roadmap' },
-  { label: 'API', href: 'mailto:hello@creo.ai?subject=API Access Request' },
+  { label: 'API', href: 'mailto:ranuvaid2013@gmail.com?subject=API Access Request' },
 ];
 
 const companyLinks = [
   { label: 'About', href: '/#hero' },
-  { label: 'Careers', href: 'mailto:hello@creo.ai?subject=Careers' },
-  { label: 'Press Kit', href: 'mailto:hello@creo.ai?subject=Press Kit Request' },
-  { label: 'Affiliates', href: 'mailto:hello@creo.ai?subject=Affiliate Program' },
+  { label: 'Careers', href: 'mailto:ranuvaid2013@gmail.com?subject=Careers' },
+  { label: 'Press Kit', href: 'mailto:ranuvaid2013@gmail.com?subject=Press Kit Request' },
+  { label: 'Affiliates', href: 'mailto:ranuvaid2013@gmail.com?subject=Affiliate Program' },
 ];
 
 export default function FooterSection() {
@@ -97,7 +97,7 @@ export default function FooterSection() {
           </div>
           <div className="flex items-center gap-2 text-xs text-white/25">
             <Mail size={11} />
-            <a href="mailto:hello@creo.ai" className="hover:text-white/50 transition-colors duration-200">hello@creo.ai</a>
+            <a href="mailto:ranuvaid2013@gmail.com" className="hover:text-white/50 transition-colors duration-200">ranuvaid2013@gmail.com</a>
           </div>
         </div>
       </div>
