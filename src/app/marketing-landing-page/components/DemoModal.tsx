@@ -35,8 +35,8 @@ export default function DemoModal({ onClose }: { onClose: () => void }) {
   const Icon = current.icon;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-[#0d0d1f] border border-purple-500/30 rounded-2xl p-6 relative">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
+      <div className="w-full max-w-lg bg-[#0d0d1f] border border-purple-500/30 rounded-2xl p-6 relative animate-modal-in">
         <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white/60">
           <X size={16} />
         </button>
