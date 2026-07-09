@@ -74,49 +74,59 @@ const features = [
   },
 ];
 
-// ✅ Coming soon — real roadmap items, clearly marked as upcoming, tied to the tier they'll ship on
-const upcomingFeatures = [
+// ✅ SHIPPED (moved out of Coming Soon the day they went live, per the rule
+// that roadmap tags only come off once a feature actually exists):
+const shippedFeatures = [
   {
     id: 'creator-memory',
     icon: Brain,
     color: 'fuchsia',
     title: 'Creator Memory & Brain',
-    description: 'CRÉO learns your niche, tone, audience, and best-performing style — and generates using your own winning formula.',
-    detail: 'The more you create, the smarter your results get. Painful to leave once it knows your voice.',
+    description: 'Teach CRÉO your niche, audience, voice, and goals once — every generation is written in YOUR style, not generic AI.',
+    detail: 'Set it up from the Brain button in your workspace. The more specific your profile, the more it sounds like you.',
     badge: 'Ultra',
-    status: 'soon' as const,
+    status: 'live' as const,
   },
   {
     id: 'brutal-reviewer',
     icon: ShieldAlert,
     color: 'red',
     title: 'Brutal Reviewer',
-    description: 'A no-mercy AI critique that scores your hook strength, curiosity, emotional pull, and retention before you post.',
-    detail: 'Catches weak openings and slow endings so you fix them before they cost you views.',
+    description: 'A no-mercy AI critique that scores your hook strength, curiosity, emotional pull, and retention — then fixes the weak parts.',
+    detail: 'One tap on any generated script. Catches weak openings and slow endings before they cost you views.',
     badge: 'Pro + Ultra',
-    status: 'soon' as const,
+    status: 'live' as const,
   },
   {
     id: 'content-expansion',
     icon: Layers,
     color: 'emerald',
     title: 'Content Expansion Engine',
-    description: 'Turn one idea into a full content batch — Shorts, Reels, threads, and a long-form script, all in one pass.',
+    description: 'Turn one idea into a full content pack — hooks, titles, Shorts, a Reel, an X thread, and a LinkedIn post in one pass.',
     detail: 'Stop starting from scratch for every format. One idea, a week of content.',
     badge: 'Pro + Ultra',
-    status: 'soon' as const,
+    status: 'live' as const,
   },
+];
+
+// ✅ Shipped too — Competitor Intelligence graduated from Coming Soon the day
+// it went live (framework extraction + structure cloning, Ultra).
+const intelFeature = [
   {
     id: 'competitor-intel',
     icon: Radar,
     color: 'sky',
     title: 'Competitor Intelligence',
-    description: 'Paste a competitor\'s channel or profile and CRÉO breaks down their hooks, titles, and posting patterns.',
-    detail: 'See exactly what\'s working for creators in your niche — then build your own edge.',
+    description: 'Paste a competitor\'s transcript, titles, or hooks — CRÉO extracts their viral framework and clones the structure for your topic.',
+    detail: 'The Intel button in your workspace. Clone the psychology, never the words.',
     badge: 'Ultra',
-    status: 'soon' as const,
+    status: 'live' as const,
   },
 ];
+
+// Nothing on the near-term roadmap right now — new roadmap items get added
+// here (and to PricingSection simultaneously) when they're announced.
+const upcomingFeatures: typeof intelFeature = [];
 
 const colorMap: Record<string, { bg: string; text: string; border: string; glow: string }> = {
   purple: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20', glow: 'group-hover:shadow-purple-500/20' },
@@ -139,7 +149,7 @@ export default function FeaturesSection() {
     fetch('/api/stats').then((r) => r.json()).then((d) => setStats(d)).catch(() => {});
   }, []);
 
-  const allFeatures = [...features, ...upcomingFeatures];
+  const liveFeatures = [...features, ...shippedFeatures, ...intelFeature];
 
   return (
     <section id="features" className="relative py-32 overflow-hidden">
@@ -157,13 +167,13 @@ export default function FeaturesSection() {
             <span className="text-gradient">ship content daily</span>
           </h2>
           <p className="text-white/40 text-lg max-w-xl mx-auto">
-            Six tools live today. Four more shipping soon to make CRÉO impossible to outgrow.
+            Ten tools live today — including an AI Brain that learns your voice and a competitor framework cloner.
           </p>
         </div>
 
         {/* Live feature grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {features.map((feature) => {
+          {liveFeatures.map((feature) => {
             const colors = colorMap[feature.color];
             const Icon = feature.icon;
             const isActive = activeFeature === feature.id;
@@ -206,6 +216,7 @@ export default function FeaturesSection() {
         </div>
 
         {/* Coming soon grid — visually distinct so it never reads as "already shipped" */}
+        {upcomingFeatures.length > 0 && (
         <div className="mt-14">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-px flex-1 bg-white/8" />
@@ -241,6 +252,7 @@ export default function FeaturesSection() {
             })}
           </div>
         </div>
+        )}
 
         {/* Stats row — real numbers only, honest fallback copy otherwise */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
