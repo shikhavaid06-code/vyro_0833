@@ -52,8 +52,9 @@ function todayDate(): string {
   return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
 }
 
-async function callGemini(prompt: string, forceType: string, retries = 3): Promise<{ ok: true; text: string } | { ok: false; rateLimited: boolean }> {
-  const model = MODEL_FOR[forceType] || MODEL_FOR.script;
+const FALLBACK_MODEL = "gemini-2.5-flash-lite"; // biggest free-tier quota
+
+async function callModel(model: string, prompt: string, forceType: string, retries = 3): Promise<{ ok: true; text: string } | { ok: false; rateLimited: boolean }> {
   for (let i = 0; i < retries; i++) {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -77,18 +78,36 @@ async function callGemini(prompt: string, forceType: string, retries = 3): Promi
       continue;
     }
     if (response.status === 429) {
-      // ✅ Free-tier rate limit hit — don't burn retries (per-minute windows
-      // don't clear in 1s); tell the client honestly so it can say "try again
-      // in a moment" instead of showing broken output.
       return { ok: false, rateLimited: true };
     }
-    const data = await response.json();
-    if (!response.ok) throw new Error(JSON.stringify(data));
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      console.error(`Gemini ${model} error ${response.status}:`, JSON.stringify(data)?.slice(0, 300));
+      return { ok: false, rateLimited: false };
+    }
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (typeof text === "string" && text.trim().length > 0) return { ok: true, text };
-    throw new Error("Empty Gemini response");
+    // Empty response — treat as failure so the fallback model gets a shot.
+    return { ok: false, rateLimited: false };
   }
   return { ok: false, rateLimited: false };
+}
+
+// ✅ RESILIENT GENERATION: try the task's primary model; if it fails for ANY
+// reason (free-tier quota exhausted, overloaded, empty output), automatically
+// retry on Flash-Lite — which has the largest free-tier allowance — before
+// ever showing the user an error. Scripts kept dying when Flash's small free
+// quota ran out while hooks (Lite) still worked; this fixes exactly that.
+async function callGemini(prompt: string, forceType: string): Promise<{ ok: true; text: string } | { ok: false; rateLimited: boolean }> {
+  const primary = MODEL_FOR[forceType] || MODEL_FOR.script;
+  const first = await callModel(primary, prompt, forceType);
+  if (first.ok) return first;
+  if (primary !== FALLBACK_MODEL) {
+    const second = await callModel(FALLBACK_MODEL, prompt, forceType);
+    if (second.ok) return second;
+    return second; // report the fallback's failure state (incl. rateLimited)
+  }
+  return first;
 }
 
 interface AuthedProfile {
