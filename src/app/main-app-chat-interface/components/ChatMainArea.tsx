@@ -117,23 +117,60 @@ function SuspenseLoader({ mode }: { mode: LoaderMode }) {
 // already existed at /upgrade. Users who hit their limit were being sent to
 // a dead end instead of the payment page. Now it routes to the real checkout
 // with the real regional prices from lib/pricing.ts.
-function PaywallModal({ onClose }: { onClose: () => void }) {
+function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: number }) {
   const router = useRouter();
   const prices = getLocalePricing();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
-      <div className="w-full max-w-sm bg-[#0d0d1f] border border-purple-500/30 rounded-2xl p-6 relative animate-modal-in">
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white/60"><X size={16} /></button>
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center mb-4"><Crown size={22} className="text-white" /></div>
-        <h2 className="text-xl font-bold text-white mb-2">You've used today's 3 free generations</h2>
-        <p className="text-white/50 text-sm mb-6 leading-relaxed">Your free generations reset tomorrow — or upgrade now and keep creating without limits.</p>
-        <div className="space-y-2">
-          <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 transition-all">
-            Upgrade to Pro — {prices.symbol}{prices.pro}/mo
+      <div className="w-full max-w-sm rounded-2xl relative animate-modal-in overflow-hidden border border-purple-500/30 bg-[#0d0d1f]">
+        {/* Ambient glow */}
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[280px] h-[160px] bg-purple-600/25 rounded-full blur-[70px] pointer-events-none" />
+        <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white/60 z-10"><X size={16} /></button>
+
+        <div className="relative p-6">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center mb-4 shadow-lg shadow-purple-500/30 animate-pop-in">
+            <Crown size={26} className="text-white" />
+          </div>
+
+          <h2 className="text-xl font-bold text-white mb-1.5">You're out of free generations — for today</h2>
+          {streak > 0 ? (
+            <p className="text-orange-400/90 text-xs font-medium mb-1 flex items-center gap-1">
+              <Flame size={12} className="fill-orange-400/40" />Your {streak}-day streak is alive — don't let the limit stop it.
+            </p>
+          ) : null}
+          <p className="text-white/45 text-sm mb-5 leading-relaxed">They reset tomorrow. Or keep the momentum going right now:</p>
+
+          {/* What upgrading unlocks — concrete, not vague */}
+          <div className="space-y-1.5 mb-5">
+            {[
+              ['🚀', '100 generations/day', 'Pro'],
+              ['🔥', 'Brutal Reviewer — score & fix scripts', 'Pro'],
+              ['🧩', '1 idea → a full week of content', 'Pro'],
+              ['🧠', 'An AI that learns YOUR voice', 'Ultra'],
+            ].map(([emoji, text, tier]) => (
+              <div key={text as string} className="flex items-center gap-2.5 rounded-lg bg-white/[0.03] border border-white/6 px-3 py-2">
+                <span className="text-sm">{emoji}</span>
+                <span className="text-xs text-white/70 flex-1">{text}</span>
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier === 'Ultra' ? 'bg-amber-500/10 text-amber-400' : 'bg-purple-500/10 text-purple-400'}`}>{tier}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all glow-button">
+              🚀 Grow with Pro — {prices.symbol}{prices.pro}/mo
+            </button>
+            <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-pink-500/15 border border-amber-500/30 text-amber-300 font-semibold text-sm hover:bg-amber-500/15 active:scale-[0.98] transition-all">
+              👑 Build with Ultra — {prices.symbol}{prices.ultra}/mo
+            </button>
+          </div>
+
+          {/* Free alternative — honest, and it fuels the referral loop */}
+          <button onClick={() => router.push('/settings')} className="w-full mt-3 flex items-center justify-center gap-1.5 text-[11px] text-emerald-400/80 hover:text-emerald-300 transition-colors">
+            🎁 Or invite a friend — earn +1 free generation every day, forever
           </button>
-          <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl border border-purple-500/30 text-purple-300 font-semibold text-sm hover:bg-purple-500/10 transition-all">
-            Go Ultra — {prices.symbol}{prices.ultra}/mo
-          </button>
+
+          <p className="text-center text-[10px] text-white/25 mt-3">7-day money-back guarantee · Cancel anytime</p>
         </div>
       </div>
     </div>
@@ -394,7 +431,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   return (
     <div className="flex flex-col" style={{ height: '100dvh' }}>
-      {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
+      {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} streak={streak} />}
       {showVault && <WinningVault isOpen={showVault} onClose={() => setShowVault(false)} plan={currentPlan()} />}
       {showBrain && <CreatorBrainModal onClose={() => setShowBrain(false)} plan={currentPlan()} />}
       {showIntel && <CompetitorIntelModal onClose={() => setShowIntel(false)} plan={currentPlan()} />}
