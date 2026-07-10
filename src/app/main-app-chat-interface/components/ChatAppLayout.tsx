@@ -51,7 +51,7 @@ export default function ChatAppLayout() {
   }, [activeChatId]);
 
   return (
-    <div className="min-h-screen bg-[#080812] flex overflow-hidden">
+    <div className="min-h-screen bg-workspace-glow flex overflow-hidden">
       <ChatSidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -72,6 +72,7 @@ export default function ChatAppLayout() {
           activeChatId={activeChatId}
           onChatSaved={handleChatSaved}
           onNewChat={handleNewChat}
+          chats={savedChats}
         />
       </div>
       <FloatingAssistant />
