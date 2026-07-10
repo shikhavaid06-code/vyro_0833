@@ -314,16 +314,18 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // flicker/redirect-loop that looked like the app glitching. Now we end the
   // real Supabase session FIRST and wait for it to finish before redirecting.
   const handleSignOut = async () => {
-    // ✅ SECOND SIGN-OUT FIX — the previous fix (calling signOut() before
-    // redirecting) wasn't enough: the sign-in page still independently checks
-    // "is there a valid session?" on mount, and if that check ever runs
-    // before the Supabase sign-out has fully finished clearing storage, it
-    // sends the user straight back into the app — which then immediately
-    // detects no local `creo_session` flag and sends them right back out
-    // again, forever. This flag makes the sign-in page skip that check
-    // entirely for a few seconds right after a deliberate sign-out, so
-    // nothing can race it into a loop no matter how slow signOut() is.
-    try { sessionStorage.setItem('creo_just_signed_out', String(Date.now())); } catch {}
+    // ✅ THIRD SIGN-OUT FIX — the first two fixes attacked the timing race
+    // (clearing the real session before redirecting, then a grace-period
+    // flag), but the loop kept happening because of something underneath
+    // both of those: Next.js's client-side router can reuse an already-
+    // mounted copy of the sign-in page from its cache instead of mounting a
+    // fresh one, so its "already logged in?" check either doesn't re-run or
+    // runs against stale state — which is what "remembers" the login and
+    // sends you right back into the app no matter how well the sign-out
+    // itself clears storage. The only bulletproof fix for that class of bug
+    // is to stop using client-side navigation for sign-out entirely and force
+    // a real full-page reload instead — that guarantees a 100% fresh app
+    // load with no cached router state of any kind to race against.
     try {
       await supabase.auth.signOut();
     } catch {
@@ -343,7 +345,8 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       } catch {}
     }
     toast.success('Signed out');
-    router.push('/sign-up-login-screen');
+    // Hard navigation, not router.push — see comment above.
+    if (typeof window !== 'undefined') window.location.href = '/sign-up-login-screen';
   };
 
   const handleExport = () => {
