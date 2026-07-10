@@ -24,6 +24,26 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    /* ✅ Dark, brand-tinted scrollbars everywhere (Firefox) — replaces the
+       default light/gray OS scrollbar that clashed with the dark UI. */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.35) transparent;
+  }
+
+  /* ✅ Same fix for Chrome/Edge/Safari (WebKit) */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.32);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 85, 247, 0.6);
   }
 
   html {
@@ -58,7 +78,7 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.22), 0 4px 14px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 22px rgba(168, 85, 247, 0.35), 0 4px 16px rgba(0, 0, 0, 0.3);
   }
 
   button[class*="bg-gradient"]::after,
@@ -83,7 +103,7 @@
 
   button[class*="bg-gradient"]:hover,
   a[class*="bg-gradient"]:hover {
-    box-shadow: 0 0 28px rgba(168, 85, 247, 0.4), 0 6px 20px rgba(236, 72, 153, 0.2);
+    box-shadow: 0 0 36px rgba(168, 85, 247, 0.55), 0 6px 24px rgba(236, 72, 153, 0.3);
   }
 
   .font-display {
@@ -92,6 +112,19 @@
 }
 
 @layer utilities {
+  /* ✅ Bakes the ambient purple/pink glow directly onto the workspace's own
+     background instead of relying on body::before — the workspace renders
+     its own opaque full-screen container, which was completely hiding the
+     global ambient glow behind it. This guarantees the glow is visible here
+     regardless of any inner element's stacking/z-index. */
+  .bg-workspace-glow {
+    background-color: #080812;
+    background-image:
+      radial-gradient(ellipse 900px 650px at 12% -8%, rgba(147, 51, 234, 0.24), transparent 60%),
+      radial-gradient(ellipse 750px 600px at 92% 105%, rgba(236, 72, 153, 0.18), transparent 60%);
+    background-attachment: fixed;
+  }
+
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
