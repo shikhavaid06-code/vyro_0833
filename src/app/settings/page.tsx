@@ -27,6 +27,15 @@ export default function SettingsPage() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
+        // ✅ Email/name fallback from the real session — fixes "No email" when
+        // localStorage is missing or stale.
+        if (session.user?.email) {
+          setUser((u: any) => ({
+            ...(u || {}),
+            email: u?.email || session.user.email,
+            name: u?.name || session.user.email?.split('@')[0],
+          }));
+        }
         const r = await fetch('/api/referral', { headers: { Authorization: `Bearer ${session.access_token}` } });
         const d = await r.json();
         if (d?.code) setReferral(d);
@@ -113,7 +122,7 @@ export default function SettingsPage() {
           {plan === 'free' && (
             <div className="mt-4 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-white/40">Free generations used</span>
+                <span className="text-xs text-white/40">Free generations used today</span>
                 <span className="text-xs text-purple-400">{genCount} / 3</span>
               </div>
               <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -163,15 +172,15 @@ export default function SettingsPage() {
           {
             title: 'Account',
             items: [
-              { icon: User, label: 'Profile', sub: 'Name and email', action: () => {} },
-              { icon: Shield, label: 'Privacy', sub: 'Data and permissions', action: () => router.push('/privacy') },
+              { icon: Crown, label: 'Manage subscription', sub: 'Upgrade, change or renew your plan', action: () => router.push('/upgrade') },
+              { icon: Sparkles, label: 'Back to workspace', sub: 'Creator Brain, Vault & Intel live here', action: () => router.push('/main-app-chat-interface') },
             ]
           },
           {
             title: 'Preferences',
             items: [
-              { icon: Palette, label: 'Appearance', sub: 'Dark mode (default)', action: () => {} },
-              { icon: Bell, label: 'Notifications', sub: 'Coming soon', action: () => {} },
+              { icon: Palette, label: 'Appearance', sub: 'Dark mode — always on, the CRÉO way', action: null },
+              { icon: Bell, label: 'Notifications', sub: 'Coming soon', action: null },
             ]
           },
           {
@@ -184,19 +193,26 @@ export default function SettingsPage() {
         ].map((section) => (
           <div key={section.title} className="glass rounded-2xl border border-white/8 mb-4 overflow-hidden">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25 px-5 pt-4 pb-2">{section.title}</p>
-            {section.items.map((item, i) => (
-              <button key={item.label} onClick={item.action}
-                className={`w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/5 transition-all text-left ${i < section.items.length - 1 ? 'border-b border-white/5' : ''}`}>
-                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-                  <item.icon size={14} className="text-white/40" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-white/80 font-medium">{item.label}</p>
-                  <p className="text-xs text-white/30">{item.sub}</p>
-                </div>
-                <ChevronRight size={14} className="text-white/20" />
-              </button>
-            ))}
+            {section.items.map((item, i) => {
+              const rowInner = (
+                <>
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                    <item.icon size={14} className="text-white/40" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-white/80 font-medium">{item.label}</p>
+                    <p className="text-xs text-white/30">{item.sub}</p>
+                  </div>
+                  {item.action && <ChevronRight size={14} className="text-white/20" />}
+                </>
+              );
+              const rowClass = `w-full flex items-center gap-3 px-5 py-3.5 text-left ${i < section.items.length - 1 ? 'border-b border-white/5' : ''}`;
+              return item.action ? (
+                <button key={item.label} onClick={item.action} className={`${rowClass} hover:bg-white/5 transition-all`}>{rowInner}</button>
+              ) : (
+                <div key={item.label} className={`${rowClass} opacity-70 cursor-default`}>{rowInner}</div>
+              );
+            })}
           </div>
         ))}
 
