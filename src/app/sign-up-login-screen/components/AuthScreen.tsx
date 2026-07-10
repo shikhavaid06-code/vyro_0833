@@ -34,9 +34,28 @@ export default function AuthScreen() {
 
   useEffect(() => {
     setPricing(getLocalePricing());
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace('/main-app-chat-interface');
-    }).catch(() => {});
+
+    // ✅ SIGN-OUT LOOP FIX — right after a deliberate sign-out, a stale
+    // Supabase session token can still be sitting in storage for a moment.
+    // If we ran the "already logged in? bounce back to the app" check here
+    // during that window, it would send the user straight back in — which
+    // then bounces them right back out, forever. Skip that check for a few
+    // seconds right after sign-out so nothing can race it into a loop.
+    let skipSessionCheck = false;
+    try {
+      const justSignedOut = sessionStorage.getItem('creo_just_signed_out');
+      if (justSignedOut && Date.now() - Number(justSignedOut) < 8000) {
+        skipSessionCheck = true;
+        sessionStorage.removeItem('creo_just_signed_out');
+      }
+    } catch {}
+
+    if (!skipSessionCheck) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) router.replace('/main-app-chat-interface');
+      }).catch(() => {});
+    }
+
     // ✅ Real stats only — no fabricated testimonials or follower counts.
     fetch('/api/stats').then((r) => r.json()).then((d) => setStats(d)).catch(() => {});
   }, []);
