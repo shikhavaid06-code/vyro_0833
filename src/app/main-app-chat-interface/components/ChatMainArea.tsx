@@ -59,7 +59,8 @@ const promptSets = [
   ],
 ];
 
-interface Props { sidebarOpen: boolean; onToggleSidebar: () => void; activeChatId: string; onChatSaved?: (title: string, platform: string) => void; onNewChat?: () => void; }
+interface SavedChat { id: string; title: string; preview: string; time: string; platform: string; generated: number; }
+interface Props { sidebarOpen: boolean; onToggleSidebar: () => void; activeChatId: string; onChatSaved?: (title: string, platform: string) => void; onNewChat?: () => void; chats?: SavedChat[]; }
 
 // ✅ THE SIGNATURE SUSPENSE LOADER (from the product spec) — rotating status
 // lines that make the wait feel like heavy machinery working, not a spinner.
@@ -177,7 +178,7 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
   );
 }
 
-export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatId, onChatSaved, onNewChat }: Props) {
+export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatId, onChatSaved, onNewChat, chats = [] }: Props) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [step, setStep] = useState<ChatStep>('idle');
@@ -234,7 +235,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   // ✅ CHAT HISTORY FIX — previous chats were listed in the sidebar but could
   // never be reopened (nothing stored the messages). Now every chat's full
-  // conversation is saved and restored when clicked.
+  // conversation is saved and restored when clicked. If a chat is a KNOWN
+  // sidebar entry but genuinely has no saved data (e.g. it's from before this
+  // fix shipped), we surface that clearly instead of silently showing a
+  // blank screen that looks broken.
   useEffect(() => {
     if (!activeChatId) return;
     try {
@@ -245,7 +249,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           setMessages(d.messages);
           setStep(d.step || 'done');
           setSelectedTitle(d.selectedTitle || '');
+          return;
         }
+      }
+      const isKnownChat = chats.some((c) => c.id === activeChatId);
+      if (isKnownChat) {
+        toast.info("This chat has no saved messages — it's likely from before chat history was fixed.");
       }
     } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -297,14 +306,27 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   const handleNewChat = () => { setMessages([]); setInputValue(''); setIsTyping(false); setStep('idle'); setSelectedTitle(''); if (onNewChat) onNewChat(); };
 
-  const handleSignOut = () => {
+  // ✅ SIGN-OUT GLITCH FIX — this used to only clear the app's own
+  // `creo_session` flag and never actually ended the real Supabase session.
+  // That left a valid Supabase auth token sitting in storage, so the sign-in
+  // page's "already logged in? bounce back to the app" check would silently
+  // redirect the user right back in a fraction of a second later — a
+  // flicker/redirect-loop that looked like the app glitching. Now we end the
+  // real Supabase session FIRST and wait for it to finish before redirecting.
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // even if this fails (e.g. offline), still clear local state below so
+      // the user isn't stuck looking logged in on this device.
+    }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('creo_current_user');
       localStorage.removeItem('creo_session');
       sessionStorage.removeItem('creo_session');
     }
     toast.success('Signed out');
-    setTimeout(() => router.push('/sign-up-login-screen'), 600);
+    router.push('/sign-up-login-screen');
   };
 
   const handleExport = () => {
@@ -522,7 +544,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       {/* MESSAGES */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto overscroll-contain">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center min-h-full px-4 py-10 text-center">
+          <div className="relative flex flex-col items-center justify-center min-h-full px-4 py-10 text-center">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px]" />
             </div>
