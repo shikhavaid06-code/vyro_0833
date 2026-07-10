@@ -11,14 +11,19 @@ import Reveal from '@/components/ui/Reveal';
 //   2. Winning Vault marketing card (the feature exists in-app already)
 //   3. FAQ — answers the trust questions a stranger actually asks
 
+// ✅ Honest comparison vs the big general chatbots — they're all brilliant
+// general assistants; none of them is a creator content pipeline. The last
+// row concedes their strength, which makes the rest believable.
+const RIVALS = ['ChatGPT', 'Gemini', 'Claude'] as const;
 const comparison = [
-  { feature: 'Built only for creator content', creo: true, chatgpt: false, note: 'Viral hook frameworks are baked in — not something you prompt for' },
-  { feature: 'Idea → titles → hooks → script workflow', creo: true, chatgpt: false, note: 'One guided flow instead of 15 copy-pasted prompts' },
-  { feature: 'Anti-AI-filler engine', creo: true, chatgpt: false, note: 'Banned phrases like "delve" and "game-changer" — output sounds human by default' },
-  { feature: 'Platform-aware output', creo: true, chatgpt: false, note: 'YouTube, TikTok, Reels & X formats without re-explaining every time' },
-  { feature: 'Winning Vault for your best content', creo: true, chatgpt: false, note: 'Your winners saved and organized — not lost in chat history' },
-  { feature: 'Zero prompt engineering needed', creo: true, chatgpt: false, note: 'Type your topic. That\'s the whole learning curve.' },
-  { feature: 'General-purpose chat about anything', creo: false, chatgpt: true, note: 'Not our job — CRÉO does one thing at a professional level' },
+  { feature: 'Built only for creator content', creo: true, rivals: false, note: 'Viral hook frameworks are baked in — not something you prompt for' },
+  { feature: 'Idea → titles → hooks → script workflow', creo: true, rivals: false, note: 'One guided flow instead of 15 copy-pasted prompts' },
+  { feature: 'Anti-AI-filler engine', creo: true, rivals: false, note: 'Banned phrases like "delve" and "game-changer" — output sounds human by default' },
+  { feature: 'Retention scoring (Brutal Reviewer)', creo: true, rivals: false, note: 'Your script scored & fixed before you post — built in, one tap' },
+  { feature: 'AI that learns YOUR voice over time', creo: true, rivals: false, note: 'Creator Brain remembers your niche, audience & style on every generation' },
+  { feature: 'Winning Vault for your best content', creo: true, rivals: false, note: 'Your winners saved and organized — not lost in chat history' },
+  { feature: 'Zero prompt engineering needed', creo: true, rivals: false, note: 'Type your topic. That\'s the whole learning curve.' },
+  { feature: 'General-purpose chat about anything', creo: false, rivals: true, note: 'Their job, not ours — CRÉO does one thing at a professional level' },
 ];
 
 const faqs = [
@@ -58,20 +63,22 @@ export default function WhyCreoSection() {
         <Reveal><div className="text-center mb-12">
           <p className="text-xs font-semibold tracking-[0.2em] text-purple-400 uppercase mb-4">Why CRÉO</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-white">You could prompt ChatGPT for an hour.</span><br />
+            <span className="text-white">You could prompt a chatbot for an hour.</span><br />
             <span className="text-gradient">Or type your topic once.</span>
           </h2>
         </div></Reveal>
 
-        <Reveal delay={100}><div className="max-w-3xl mx-auto glass rounded-2xl border border-white/8 overflow-hidden mb-24">
-          <div className="grid grid-cols-[1fr_80px_80px] sm:grid-cols-[1fr_110px_110px] items-center px-5 py-4 border-b border-white/8 bg-white/[0.02]">
+        <Reveal delay={100}><div className="max-w-4xl mx-auto glass rounded-2xl border border-white/8 overflow-hidden mb-24">
+          <div className="grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,88px)] items-center px-5 py-4 border-b border-white/8 bg-white/[0.02]">
             <span className="text-xs font-semibold text-white/40 uppercase tracking-wide">Feature</span>
             <span className="text-sm font-bold text-gradient text-center">CRÉO</span>
-            <span className="text-sm font-semibold text-white/40 text-center">ChatGPT</span>
+            {RIVALS.map((r) => (
+              <span key={r} className="text-xs sm:text-sm font-semibold text-white/40 text-center">{r}</span>
+            ))}
           </div>
           {comparison.map((row) => (
-            <div key={row.feature} className="grid grid-cols-[1fr_80px_80px] sm:grid-cols-[1fr_110px_110px] items-center px-5 py-4 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors">
-              <div>
+            <div key={row.feature} className="grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,88px)] items-center px-5 py-4 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors">
+              <div className="pr-2">
                 <p className="text-sm text-white/80 font-medium">{row.feature}</p>
                 <p className="text-xs text-white/30 mt-0.5 hidden sm:block">{row.note}</p>
               </div>
@@ -80,13 +87,16 @@ export default function WhyCreoSection() {
                   ? <div className="w-6 h-6 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center"><Check size={13} className="text-purple-400" /></div>
                   : <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center"><X size={13} className="text-white/25" /></div>}
               </div>
-              <div className="flex justify-center">
-                {row.chatgpt
-                  ? <div className="w-6 h-6 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"><Check size={13} className="text-white/50" /></div>
-                  : <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center"><X size={13} className="text-white/25" /></div>}
-              </div>
+              {RIVALS.map((r) => (
+                <div key={r} className="flex justify-center">
+                  {row.rivals
+                    ? <div className="w-6 h-6 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"><Check size={13} className="text-white/50" /></div>
+                    : <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center"><X size={13} className="text-white/25" /></div>}
+                </div>
+              ))}
             </div>
           ))}
+          <p className="px-5 py-3 text-[11px] text-white/25 bg-white/[0.02]">ChatGPT, Gemini and Claude are excellent general assistants — CRÉO is a specialist built for one job: content that keeps people watching.</p>
         </div></Reveal>
 
         {/* ─── WINNING VAULT CARD ─── */}
