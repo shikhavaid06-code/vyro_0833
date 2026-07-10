@@ -35,15 +35,27 @@ export default function AuthScreen() {
   useEffect(() => {
     setPricing(getLocalePricing());
 
-    // ✅ This "already logged in? go straight to the app" convenience check
-    // is now safe to run unconditionally — sign-out (in ChatMainArea.tsx)
-    // does a full hard-reload navigation instead of a client-side route
-    // change, so this page always mounts 100% fresh after a sign-out, with
-    // storage already genuinely cleared by the time this runs. No more
-    // racing needed.
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace('/main-app-chat-interface');
-    }).catch(() => {});
+    // ✅ SIGN-OUT LOOP FIX (4th time's the charm — this is the actual root
+    // cause). This "already logged in? go straight to the app" check used
+    // to ask Supabase directly via supabase.auth.getSession(). The problem:
+    // main-app-chat-interface/page.tsx's OWN "am I allowed here?" guard does
+    // NOT ask Supabase at all — it checks the app's own creo_session /
+    // creo_current_user flags in localStorage. That's two different sources
+    // of truth for the same question. Sign-out clears creo_session /
+    // creo_current_user synchronously, but supabase.auth.getSession() can
+    // still resolve with a still-live session for a brief moment afterwards
+    // (its own internal cache/refresh timing doesn't move in lockstep with
+    // our manual cleanup). That gap is exactly what caused the flicker:
+    // this page saw "Supabase says logged in" and bounced to the app, the
+    // app's guard saw "creo_session is gone" and bounced right back here —
+    // forever, with neither guard ever agreeing.
+    // The fix: both guards now check the EXACT same thing — the app's own
+    // creo_session / creo_current_user flags. Both are plain synchronous
+    // localStorage reads with zero network round-trip involved, so there is
+    // no longer any timing window where the two pages can disagree.
+    const hasSession = localStorage.getItem('creo_session') || sessionStorage.getItem('creo_session');
+    const user = localStorage.getItem('creo_current_user');
+    if (hasSession && user) router.replace('/main-app-chat-interface');
 
     // ✅ Real stats only — no fabricated testimonials or follower counts.
     fetch('/api/stats').then((r) => r.json()).then((d) => setStats(d)).catch(() => {});
