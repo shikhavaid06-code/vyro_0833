@@ -35,12 +35,19 @@ export default function AuthCallbackPage() {
           .single();
 
         if (!existing) {
-          // ✅ New user — save to profiles
+          // ✅ PAYWALL BYPASS FIX — this used to insert the plan the user
+          // PICKED on the sign-up form (pendingPlan) directly into the
+          // database, with zero payment ever collected. That meant anyone
+          // could get Pro or Ultra for free just by selecting it at signup.
+          // Every new profile is now created as 'free', no exceptions. If
+          // they picked Pro/Ultra, we still honor that choice — we just send
+          // them straight to the real Razorpay checkout to actually pay for
+          // it instead of silently granting it.
           const { error } = await supabase.from('profiles').insert({
             user_id: user.id,
             email: user.email,
             name: pendingName,
-            plan: pendingPlan,
+            plan: 'free',
             gen_count: 0,
             last_active: new Date().toISOString(),
           });
@@ -63,13 +70,19 @@ export default function AuthCallbackPage() {
           } catch {}
 
           localStorage.setItem('creo_current_user', JSON.stringify({
-            id: user.id, name: pendingName, email: user.email, plan: pendingPlan,
+            id: user.id, name: pendingName, email: user.email, plan: 'free',
           }));
           localStorage.setItem('creo_session', 'true');
 
           localStorage.removeItem('creo_pending_name');
           localStorage.removeItem('creo_pending_plan');
-          router.replace(hasHandoff ? '/main-app-chat-interface' : '/onboarding-flow');
+
+          const wantsPaidPlan = pendingPlan === 'pro' || pendingPlan === 'ultra';
+          if (wantsPaidPlan && !hasHandoff) {
+            router.replace(`/upgrade?plan=${pendingPlan}&welcome=1`);
+          } else {
+            router.replace(hasHandoff ? '/main-app-chat-interface' : '/onboarding-flow');
+          }
         } else {
           // ✅ Existing user — update last_active, and sync their real plan
           // into localStorage (this is what makes an upgrade actually unlock
