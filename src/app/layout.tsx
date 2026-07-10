@@ -34,9 +34,6 @@ export const metadata: Metadata = {
     title: 'CRÉO — Create Viral Content with AI',
     description: 'Turn raw ideas into viral titles, hooks, and scripts in seconds.',
   },
-  icons: {
-    icon: [{ url: '/favicon.ico?v=2', type: 'image/x-icon' }],
-  },
 };
 
 // ✅ Rocket.new tracker scripts removed — they loaded third-party analytics
