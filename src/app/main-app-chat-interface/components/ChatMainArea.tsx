@@ -314,6 +314,16 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // flicker/redirect-loop that looked like the app glitching. Now we end the
   // real Supabase session FIRST and wait for it to finish before redirecting.
   const handleSignOut = async () => {
+    // ✅ SECOND SIGN-OUT FIX — the previous fix (calling signOut() before
+    // redirecting) wasn't enough: the sign-in page still independently checks
+    // "is there a valid session?" on mount, and if that check ever runs
+    // before the Supabase sign-out has fully finished clearing storage, it
+    // sends the user straight back into the app — which then immediately
+    // detects no local `creo_session` flag and sends them right back out
+    // again, forever. This flag makes the sign-in page skip that check
+    // entirely for a few seconds right after a deliberate sign-out, so
+    // nothing can race it into a loop no matter how slow signOut() is.
+    try { sessionStorage.setItem('creo_just_signed_out', String(Date.now())); } catch {}
     try {
       await supabase.auth.signOut();
     } catch {
@@ -324,6 +334,13 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       localStorage.removeItem('creo_current_user');
       localStorage.removeItem('creo_session');
       sessionStorage.removeItem('creo_session');
+      // Belt-and-suspenders: directly remove any lingering Supabase session
+      // token too, in case signOut()'s own storage write hadn't landed yet.
+      try {
+        Object.keys(localStorage).forEach((k) => {
+          if (k.startsWith('sb-') && k.includes('-auth-token')) localStorage.removeItem(k);
+        });
+      } catch {}
     }
     toast.success('Signed out');
     router.push('/sign-up-login-screen');
