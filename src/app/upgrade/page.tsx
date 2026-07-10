@@ -1,6 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Check, Crown, Zap, Sparkles, ArrowLeft, ShieldCheck, RefreshCw, Lock, TrendingUp, Rocket, ArrowRight, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import AppLogo from '@/components/ui/AppLogo';
@@ -48,7 +48,22 @@ const plans = [
 ];
 
 export default function UpgradePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#080812]" />}>
+      <UpgradePageInner />
+    </Suspense>
+  );
+}
+
+function UpgradePageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // ✅ Lands here with ?plan=pro|ultra right after signup — the sign-up form
+  // lets people pick a plan, but we never grant Pro/Ultra without an actual
+  // payment (see auth/callback fix), so instead we bring them straight here
+  // with their choice pre-highlighted to finish paying for real.
+  const requestedPlan = searchParams.get('plan');
+  const isWelcome = searchParams.get('welcome') === '1';
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [currentPlan, setCurrentPlan] = useState('free');
   const [userId, setUserId] = useState<string | null>(null);
@@ -73,6 +88,13 @@ export default function UpgradePage() {
         setUserName(u.name || '');
       } catch {}
     });
+  }, []);
+
+  useEffect(() => {
+    if (isWelcome && (requestedPlan === 'pro' || requestedPlan === 'ultra')) {
+      toast.info(`You picked ${requestedPlan === 'pro' ? 'Pro' : 'Ultra'} at signup — complete payment below to activate it.`, { duration: 6000 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const priceFor = (planId: string) => {
@@ -221,10 +243,13 @@ export default function UpgradePage() {
             const price = priceFor(plan.id);
             const isCurrent = currentPlan === plan.id;
             const isLoading = loadingPlan === plan.id;
+            const isRequested = requestedPlan === plan.id && !isCurrent;
 
             return (
-              <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col border transition-all duration-300 ${plan.highlight ? 'glass-strong border-purple-500/30 shadow-lg shadow-purple-500/10' : 'glass border-white/8'}`}>
-                {plan.highlight && (
+              <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col border transition-all duration-300 ${isRequested ? 'glass-strong border-purple-500/60 shadow-lg shadow-purple-500/20 ring-2 ring-purple-500/30' : plan.highlight ? 'glass-strong border-purple-500/30 shadow-lg shadow-purple-500/10' : 'glass border-white/8'}`}>
+                {isRequested ? (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-vyro text-white text-xs font-semibold shadow-lg shadow-purple-500/30">Your pick at signup</div>
+                ) : plan.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-vyro text-white text-xs font-semibold shadow-lg shadow-purple-500/30">Most Popular</div>
                 )}
                 <div className="flex items-start justify-between mb-1">
