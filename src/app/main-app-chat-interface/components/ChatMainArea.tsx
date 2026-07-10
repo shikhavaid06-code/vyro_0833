@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target } from 'lucide-react';
+import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -60,7 +60,7 @@ const promptSets = [
 ];
 
 interface SavedChat { id: string; title: string; preview: string; time: string; platform: string; generated: number; }
-interface Props { sidebarOpen: boolean; onToggleSidebar: () => void; activeChatId: string; onChatSaved?: (title: string, platform: string) => void; onNewChat?: () => void; chats?: SavedChat[]; }
+interface Props { sidebarOpen: boolean; onToggleSidebar: () => void; activeChatId: string; onChatSaved?: (title: string, platform: string) => void; onNewChat?: () => void; chats?: SavedChat[]; onOpenNova?: () => void; }
 
 // ✅ THE SIGNATURE SUSPENSE LOADER (from the product spec) — rotating status
 // lines that make the wait feel like heavy machinery working, not a spinner.
@@ -178,7 +178,7 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
   );
 }
 
-export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatId, onChatSaved, onNewChat, chats = [] }: Props) {
+export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatId, onChatSaved, onNewChat, chats = [], onOpenNova }: Props) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [step, setStep] = useState<ChatStep>('idle');
@@ -539,6 +539,14 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           <button onClick={() => setShowIntel(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all" title="Competitor Intelligence — clone any viral framework (Ultra)">
             <Radar size={12} className="text-sky-400/70" /><span className="hidden xl:inline">Intel</span>
           </button>
+          {/* ✅ Nova — moved here from a corner-floating launcher so she has one
+              predictable, always-visible spot instead of a circle that could
+              end up crowding other controls depending on screen size. */}
+          {onOpenNova && (
+            <button onClick={onOpenNova} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all" title="Nova — your AI co-writer">
+              <Bot size={12} className="text-pink-400/70" /><span className="hidden xl:inline">Nova</span>
+            </button>
+          )}
           <div className="w-px h-5 bg-white/8 hidden md:block" />
           <button onClick={() => setShowControls(!showControls)} className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all ${showControls ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400' : 'glass border border-white/8 text-white/55 hover:text-white hover:border-white/15'}`}>
             <Sparkles size={12} /><span className="hidden xl:inline">Controls</span><ChevronDown size={11} className={`transition-transform ${showControls ? 'rotate-180' : ''}`} />
