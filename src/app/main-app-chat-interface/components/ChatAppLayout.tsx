@@ -13,6 +13,13 @@ export default function ChatAppLayout() {
   const [activeChatId, setActiveChatId] = useState('');
   const [resetKey, setResetKey] = useState(0);
   const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
+  // ✅ Nova's open/closed state now lives up here, one level above
+  // ChatMainArea's own remount boundary (it remounts on "New chat" via
+  // `key={resetKey}`) — so switching or starting chats no longer force-closes
+  // Nova mid-conversation. The topbar button that opens her now lives inside
+  // ChatMainArea (next to Vault/Brain/Intel) instead of a corner-floating
+  // launcher, which is what made her easy to miss/collide with other UI.
+  const [showNova, setShowNova] = useState(false);
 
   useEffect(() => {
     // ✅ Open sidebar by default on desktop only
@@ -73,9 +80,10 @@ export default function ChatAppLayout() {
           onChatSaved={handleChatSaved}
           onNewChat={handleNewChat}
           chats={savedChats}
+          onOpenNova={() => setShowNova(true)}
         />
       </div>
-      <FloatingAssistant />
+      {showNova && <FloatingAssistant onClose={() => setShowNova(false)} />}
     </div>
   );
 }
