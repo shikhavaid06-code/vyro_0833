@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Check, Crown, Zap, Sparkles, ArrowLeft, ShieldCheck, RefreshCw, Lock, TrendingUp, Rocket, ArrowRight, Flame } from 'lucide-react';
 import { toast } from 'sonner';
@@ -103,6 +103,8 @@ function UpgradePageInner() {
   const [locale] = useState(getLocalePricing());
   // ✅ Which plan's "here's what you unlocked" celebration to show (null = none)
   const [celebrate, setCelebrate] = useState<'pro' | 'ultra' | null>(null);
+  // ✅ Guards the signup → auto-checkout handoff so it fires exactly once
+  const autoCheckoutRef = useRef(false);
 
   useEffect(() => {
     // ✅ userId/email come from the actual Supabase session, not localStorage —
@@ -122,12 +124,23 @@ function UpgradePageInner() {
     });
   }, []);
 
+  // ✅ RAZORPAY-AT-SIGNUP: users who picked Pro/Ultra on the sign-up form
+  // land here right after email verification. Instead of making them find
+  // and click the right button, the secure checkout opens AUTOMATICALLY —
+  // the signup plan choice flows straight into payment with zero extra
+  // clicks. (Payment can't happen before this point: the account has to
+  // exist first so the payment has a userId to attach to.)
   useEffect(() => {
-    if (isWelcome && (requestedPlan === 'pro' || requestedPlan === 'ultra')) {
-      toast.info(`You picked ${requestedPlan === 'pro' ? 'Pro' : 'Ultra'} at signup — complete payment below to activate it.`, { duration: 6000 });
+    if (!userId || autoCheckoutRef.current) return;
+    if (isWelcome && (requestedPlan === 'pro' || requestedPlan === 'ultra') && currentPlan === 'free') {
+      autoCheckoutRef.current = true;
+      // Brief pause so the page paints first — the popup appearing over a
+      // fully-rendered pricing page feels intentional, not jarring.
+      const t = setTimeout(() => handleUpgrade(requestedPlan), 900);
+      return () => clearTimeout(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userId]);
 
   const priceFor = (planId: string) => {
     if (planId === 'free') return 0;
@@ -234,6 +247,25 @@ function UpgradePageInner() {
           <AppLogo size={24} />
           <span className="font-display text-lg font-semibold text-white">CRÉO</span>
         </div>
+
+        {/* ✅ Signup-arrival welcome banner — replaces the old toast. Tells the
+            new user their account is live and that checkout is opening for
+            the plan they picked, with an honest no-pressure escape hatch. */}
+        {isWelcome && (requestedPlan === 'pro' || requestedPlan === 'ultra') && currentPlan === 'free' && !celebrate && (
+          <div className="glass-strong rounded-2xl border border-purple-500/30 p-5 mb-8 flex items-start gap-3 animate-slide-up">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+              <Rocket size={18} className="text-purple-400" />
+            </div>
+            <div>
+              <p className="text-sm text-white font-semibold mb-0.5">
+                Account created{userName ? `, ${userName}` : ''}! 🎉 Opening secure checkout for your {requestedPlan === 'pro' ? 'Pro' : 'Ultra'} plan…
+              </p>
+              <p className="text-xs text-white/40 leading-relaxed">
+                Changed your mind? No problem — you're on the Free plan right now and nothing gets charged unless you complete the payment. You can upgrade anytime.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 glass rounded-full px-3 py-1.5 mb-4 border border-purple-500/20">
