@@ -1,10 +1,24 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, ChevronRight, Copy, Check, Gift, Flame } from 'lucide-react';
+import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, ChevronRight, Copy, Check, Gift, Flame, XCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
 import AppLogo from '@/components/ui/AppLogo';
+
+// Shape returned by GET /api/subscription — the refund preview.
+interface SubQuote {
+  plan: string;
+  endDate: string | null;
+  currency: string;
+  paidAmount: number;
+  refundAmount: number;
+  unusedDays: number;
+  totalDays: number;
+  usedDays: number;
+  fullRefund: boolean;
+  reason: string;
+}
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -15,6 +29,11 @@ export default function SettingsPage() {
   // ✅ Referral program — code, count and earned bonus come from the API.
   const [referral, setReferral] = useState<{ code: string | null; referrals: number; bonus: number; maxBonus: number } | null>(null);
   const [streak, setStreak] = useState(0);
+  // ✅ Cancellation + prorated refund — quote fetched from /api/subscription.
+  const [sub, setSub] = useState<SubQuote | null>(null);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelResult, setCancelResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   useEffect(() => {
     try {
@@ -39,6 +58,12 @@ export default function SettingsPage() {
         const r = await fetch('/api/referral', { headers: { Authorization: `Bearer ${session.access_token}` } });
         const d = await r.json();
         if (d?.code) setReferral(d);
+        // Refund preview — 400s harmlessly for Free users, so ignore errors.
+        const s = await fetch('/api/subscription', { headers: { Authorization: `Bearer ${session.access_token}` } });
+        if (s.ok) {
+          const q = await s.json();
+          if (q?.plan && q.plan !== 'free') setSub(q);
+        }
       } catch {}
     })();
   }, []);
@@ -65,6 +90,46 @@ export default function SettingsPage() {
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  // ✅ The actual cancel action — refund first (server-side), then immediate
+  // downgrade. On success we sync localStorage so the whole app agrees.
+  const handleConfirmCancel = async () => {
+    if (cancelling) return;
+    setCancelling(true);
+    setCancelResult(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setCancelResult({ ok: false, message: 'Your session expired — please sign in again.' });
+        setCancelling(false);
+        return;
+      }
+      const res = await fetch('/api/subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action: 'cancel' }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        setCancelResult({ ok: false, message: data?.error || 'Cancellation failed — your plan is unchanged.' });
+      } else {
+        setCancelResult({ ok: true, message: data.message });
+        setSub(null);
+        setConfirmingCancel(false);
+        try {
+          const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}');
+          localStorage.setItem('creo_current_user', JSON.stringify({ ...u, plan: 'free' }));
+          setUser({ ...u, plan: 'free' });
+        } catch {}
+      }
+    } catch {
+      setCancelResult({ ok: false, message: 'Network error — your plan is unchanged. Please try again.' });
+    }
+    setCancelling(false);
+  };
+
+  const formatRefund = (q: SubQuote) =>
+    `${q.currency === 'INR' ? '₹' : ''}${q.refundAmount.toLocaleString()}${q.currency === 'INR' ? '' : ` ${q.currency}`}`;
 
   const planColors: Record<string, string> = {
     free: 'text-white/60',
@@ -135,6 +200,63 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
+
+        {/* ✅ Cancellation result banner — shown after a cancel attempt */}
+        {cancelResult && (
+          <div className={`glass rounded-2xl p-4 mb-4 border ${cancelResult.ok ? 'border-emerald-500/25' : 'border-red-500/25'}`}>
+            <p className={`text-sm ${cancelResult.ok ? 'text-emerald-300' : 'text-red-300'}`}>{cancelResult.message}</p>
+          </div>
+        )}
+
+        {/* ✅ Subscription management card — paid plans only */}
+        {sub && plan !== 'free' && (
+          <div className="glass rounded-2xl border border-white/8 p-5 mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${plan === 'ultra' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-purple-500/10 border border-purple-500/20'}`}>
+                  {plan === 'ultra' ? <Crown size={14} className="text-amber-400" /> : <Zap size={14} className="text-purple-400" />}
+                </div>
+                <div>
+                  <p className="text-sm text-white/80 font-semibold capitalize">{sub.plan} plan — active</p>
+                  <p className="text-[11px] text-white/35">
+                    {sub.endDate ? `Access until ${new Date(sub.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Active period'}
+                    {' · '}does not auto-renew
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {!confirmingCancel ? (
+              <button onClick={() => setConfirmingCancel(true)}
+                className="w-full mt-3 py-2.5 rounded-xl border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all text-xs font-medium flex items-center justify-center gap-1.5">
+                <XCircle size={13} /> Cancel plan
+              </button>
+            ) : (
+              <div className="mt-3 pt-3 border-t border-white/5">
+                <p className="text-xs text-white/60 leading-relaxed mb-1">
+                  {sub.refundAmount > 0 ? (
+                    sub.fullRefund
+                      ? <>You're within the 7-day money-back window. Cancelling refunds the full <b className="text-emerald-400">{formatRefund(sub)}</b> to your original payment method.</>
+                      : <>You've used {sub.usedDays} of {sub.totalDays} days. Cancelling now refunds <b className="text-emerald-400">{formatRefund(sub)}</b> for the {sub.unusedDays} unused day{sub.unusedDays !== 1 ? 's' : ''}, to your original payment method in 5–7 business days.</>
+                  ) : (
+                    <>{sub.reason} Cancelling will switch you to the Free plan immediately.</>
+                  )}
+                </p>
+                <p className="text-[11px] text-white/30 mb-3">Your plan ends immediately — this can't be undone.</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setConfirmingCancel(false)} disabled={cancelling}
+                    className="flex-1 py-2.5 rounded-xl glass border border-white/10 text-white/60 hover:text-white text-xs font-medium transition-all">
+                    Keep my plan
+                  </button>
+                  <button onClick={handleConfirmCancel} disabled={cancelling}
+                    className="flex-1 py-2.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 hover:bg-red-500/25 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 disabled:opacity-60">
+                    {cancelling ? <><Loader2 size={13} className="animate-spin" /> Cancelling…</> : sub.refundAmount > 0 ? `Cancel & refund ${formatRefund(sub)}` : 'Confirm cancel'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ✅ Refer & Earn card */}
         {referral?.code && (
@@ -227,4 +349,4 @@ export default function SettingsPage() {
       </div>
     </div>
   );
-}
+}}
