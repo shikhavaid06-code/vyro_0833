@@ -43,8 +43,10 @@ const phases: Phase[] = [
       { label: 'Nova AI assistant & smart editing', done: true },
       { label: 'Content Expansion Engine', done: true },
       { label: 'Brutal Reviewer — hook & retention scoring', done: true },
-      { label: 'Script-to-Shot Planner', done: false },
-      { label: 'Audience Simulator', done: false },
+      { label: 'Script-to-Shot Planner', done: true },
+      { label: 'Audience Simulator', done: true },
+      { label: 'Content Resurrection', done: true },
+      { label: 'Content Risk Detector', done: true },
     ],
   },
   {
