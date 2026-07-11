@@ -226,6 +226,15 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            {/* ✅ Pro → Ultra upgrade path — Pro users get a one-tap route to the
+                next tier right where they manage their plan. */}
+            {plan === 'pro' && !confirmingCancel && (
+              <button onClick={() => router.push('/upgrade?plan=ultra')}
+                className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-pink-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 active:scale-[0.98] transition-all">
+                <Crown size={13} /> Upgrade to Ultra — unlock Creator Brain & Competitor Intelligence
+              </button>
+            )}
+
             {!confirmingCancel ? (
               <button onClick={() => setConfirmingCancel(true)}
                 className="w-full mt-3 py-2.5 rounded-xl border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all text-xs font-medium flex items-center justify-center gap-1.5">
