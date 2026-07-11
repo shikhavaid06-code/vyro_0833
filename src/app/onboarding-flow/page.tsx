@@ -46,14 +46,19 @@ export default function OnboardingFlowPage() {
     setIsLoading(true);
 
     try {
-      // ✅ Save hear + skill to Supabase profiles
+      // ✅ Save through the API (service role) — the old direct client-side
+      // profiles.update() was silently blocked by row-level security, so
+      // answers never actually saved. The API route saves for real.
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await supabase.from('profiles').update({
-          hear: selectedHear,
-          skill: selectedSkill,
-        }).eq('user_id', session.user.id);
+      if (session) {
+        await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ hear: selectedHear, skill: selectedSkill }),
+        });
       }
+      // Mark done locally so the workspace never re-prompts this browser.
+      localStorage.setItem('creo_onboarded', 'true');
     } catch (err) {
       console.error('Onboarding save error:', err);
     }
