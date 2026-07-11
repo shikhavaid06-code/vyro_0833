@@ -1,25 +1,69 @@
 'use client';
 import React, { useState } from 'react';
-import { Copy, Check, RefreshCw, Download, Wand2, ChevronDown, ChevronUp, Edit3, MessageSquare, Flame, X } from 'lucide-react';
+import { Copy, Check, RefreshCw, Download, Wand2, ChevronDown, ChevronUp, Edit3, MessageSquare, Flame, X, Clapperboard, Recycle, Users, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 interface Props { script: string; }
+
+// ✅ POWER TOOLS — every tool that operates on the generated script. Each is
+// gated server-side (see PREMIUM_TYPES in the generate route); the client just
+// renders the result or an honest upsell. Split by feature weight:
+//   Pro   → production tools (Brutal Review, Shot Plan, Resurrect)
+//   Ultra → intelligence tools (Audience Simulator, Risk Detector)
+const TOOLS = [
+  {
+    key: 'review', label: 'Brutal Review', runningLabel: 'Reviewing...', icon: Flame,
+    tier: 'Pro', color: 'red', title: 'Get your script brutally scored & fixed (Pro)',
+    panelTitle: 'Brutal Review', successToast: 'The Brutal Reviewer has spoken 🔥',
+  },
+  {
+    key: 'shotplan', label: 'Shot Plan', runningLabel: 'Planning...', icon: Clapperboard,
+    tier: 'Pro', color: 'violet', title: 'Turn this script into a ready-to-film shot list (Pro)',
+    panelTitle: 'Script-to-Shot Plan', successToast: 'Your shot list is ready 🎬',
+  },
+  {
+    key: 'resurrect', label: 'Resurrect', runningLabel: 'Reviving...', icon: Recycle,
+    tier: 'Pro', color: 'emerald', title: 'Give this content new life — fresh angles, hooks & a remix (Pro)',
+    panelTitle: 'Content Resurrection', successToast: 'Back from the dead — fresh angles ready 💀→✨',
+  },
+  {
+    key: 'simulate', label: 'Simulate', runningLabel: 'Simulating...', icon: Users,
+    tier: 'Ultra', color: 'sky', title: 'Test how 4 real viewer types would react before you post (Ultra)',
+    panelTitle: 'Audience Simulation', successToast: 'Your simulated audience has reacted 🧪',
+  },
+  {
+    key: 'risk', label: 'Risk Check', runningLabel: 'Scanning...', icon: ShieldAlert,
+    tier: 'Ultra', color: 'amber', title: 'Find retention leaks before your audience does (Ultra)',
+    panelTitle: 'Content Risk Scan', successToast: 'Risk scan complete 🚨',
+  },
+] as const;
+
+type ToolKey = (typeof TOOLS)[number]['key'];
+
+// Tailwind-safe static class lookups (dynamic template classes get purged).
+const TOOL_CLASSES: Record<string, { btn: string; panel: string; header: string; text: string }> = {
+  red: { btn: 'border-red-500/20 text-red-400/80 hover:text-red-400 hover:bg-red-500/10', panel: 'border-red-500/25', header: 'bg-red-500/5', text: 'text-red-400' },
+  violet: { btn: 'border-violet-500/20 text-violet-400/80 hover:text-violet-400 hover:bg-violet-500/10', panel: 'border-violet-500/25', header: 'bg-violet-500/5', text: 'text-violet-400' },
+  emerald: { btn: 'border-emerald-500/20 text-emerald-400/80 hover:text-emerald-400 hover:bg-emerald-500/10', panel: 'border-emerald-500/25', header: 'bg-emerald-500/5', text: 'text-emerald-400' },
+  sky: { btn: 'border-sky-500/20 text-sky-400/80 hover:text-sky-400 hover:bg-sky-500/10', panel: 'border-sky-500/25', header: 'bg-sky-500/5', text: 'text-sky-400' },
+  amber: { btn: 'border-amber-500/20 text-amber-400/80 hover:text-amber-400 hover:bg-amber-500/10', panel: 'border-amber-500/25', header: 'bg-amber-500/5', text: 'text-amber-400' },
+};
 
 export default function ScriptCard({ script }: Props) {
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editedScript, setEditedScript] = useState(script);
-  const [reviewing, setReviewing] = useState(false);
-  const [review, setReview] = useState<string | null>(null);
+  const [runningTool, setRunningTool] = useState<ToolKey | null>(null);
+  const [results, setResults] = useState<Partial<Record<ToolKey, string>>>({});
 
-  // ✅ BRUTAL REVIEWER (Pro/Ultra) — scores the script server-side, shows the
-  // brutal truth + a fixed version. Gating is enforced by the API; Free users
-  // get an honest upsell toast, never a broken panel.
-  const handleBrutalReview = async () => {
-    if (reviewing) return;
-    setReviewing(true);
+  // ✅ One handler for every power tool — same auth, gating and error pattern
+  // that Brutal Reviewer proved out. The server enforces the plan gate BEFORE
+  // any credit is spent; Free users get an honest upsell, never a broken panel.
+  const runTool = async (tool: (typeof TOOLS)[number]) => {
+    if (runningTool) return;
+    setRunningTool(tool.key);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch('/api/generate', {
@@ -28,26 +72,26 @@ export default function ScriptCard({ script }: Props) {
           'Content-Type': 'application/json',
           ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
-        body: JSON.stringify({ idea: editedScript.slice(0, 12000), forceType: 'review' }),
+        body: JSON.stringify({ idea: editedScript.slice(0, 12000), forceType: tool.key }),
       });
       const d = await r.json();
       if (d?.upgradeRequired) {
-        toast.info(d.message || 'Brutal Reviewer is a Pro feature — taking you to upgrade!');
+        toast.info(d.message || `${tool.panelTitle} is a ${tool.tier} feature — taking you to upgrade!`);
         setTimeout(() => { window.location.href = '/upgrade'; }, 900);
       } else if (d?.limitReached) {
         toast.error("You've hit today's generation limit — upgrade to keep going.", {
           action: { label: 'Upgrade', onClick: () => { window.location.href = '/upgrade'; } },
         });
       } else if (typeof d?.result === 'string' && d.result) {
-        setReview(d.result);
-        toast.success('The Brutal Reviewer has spoken 🔥');
+        setResults((prev) => ({ ...prev, [tool.key]: d.result }));
+        toast.success(tool.successToast);
       } else {
-        toast.error(d?.message || 'Review failed — try again in a moment.');
+        toast.error(d?.message || `${tool.panelTitle} failed — try again in a moment.`);
       }
     } catch {
-      toast.error('Review failed — try again in a moment.');
+      toast.error(`${tool.panelTitle} failed — try again in a moment.`);
     }
-    setReviewing(false);
+    setRunningTool(null);
   };
 
   const handleCopy = () => {
@@ -126,10 +170,6 @@ export default function ScriptCard({ script }: Props) {
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border border-white/8 text-xs font-medium text-white/40 hover:text-white/60 transition-all">
               <RefreshCw size={12} />Regenerate
             </button>
-            <button onClick={handleBrutalReview} disabled={reviewing}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border border-red-500/20 text-xs font-medium text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50" title="Get your script brutally scored & fixed (Pro)">
-              <Flame size={12} />{reviewing ? 'Reviewing...' : 'Brutal Review'}
-            </button>
           </div>
           <div className="flex items-center gap-1.5">
             <button onClick={handleCopy} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/5 transition-all" title="Copy to clipboard">
@@ -144,6 +184,23 @@ export default function ScriptCard({ script }: Props) {
               <Download size={12} />TXT
             </button>
           </div>
+        </div>
+
+        {/* ✅ POWER TOOLS ROW — Pro production tools + Ultra intelligence tools */}
+        <div className="flex flex-wrap items-center gap-1.5 px-4 py-2 border-b border-white/5 bg-white/[0.015]">
+          <span className="text-[9px] font-bold uppercase tracking-widest text-white/25 mr-1">Power tools</span>
+          {TOOLS.map((tool) => {
+            const c = TOOL_CLASSES[tool.color];
+            const ToolIcon = tool.icon;
+            const isRunning = runningTool === tool.key;
+            return (
+              <button key={tool.key} onClick={() => runTool(tool)} disabled={!!runningTool} title={tool.title}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border text-xs font-medium transition-all disabled:opacity-50 ${c.btn}`}>
+                <ToolIcon size={12} />{isRunning ? tool.runningLabel : tool.label}
+                <span className={`text-[8px] font-bold px-1 py-px rounded-full ${tool.tier === 'Ultra' ? 'bg-amber-500/10 text-amber-400' : 'bg-purple-500/10 text-purple-400'}`}>{tool.tier}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="p-4">
@@ -168,19 +225,31 @@ export default function ScriptCard({ script }: Props) {
         )}
       </div>
 
-      {/* ✅ Brutal Review result panel */}
-      {review && (
-        <div className="mt-3 glass rounded-2xl border border-red-500/25 overflow-hidden animate-slide-up">
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-red-500/5">
-            <div className="flex items-center gap-2">
-              <Flame size={13} className="text-red-400" />
-              <span className="text-xs font-semibold text-red-400 uppercase tracking-[0.1em]">Brutal Review</span>
+      {/* ✅ Power tool result panels — one per tool that has run */}
+      {TOOLS.map((tool) => {
+        const result = results[tool.key];
+        if (!result) return null;
+        const c = TOOL_CLASSES[tool.color];
+        const ToolIcon = tool.icon;
+        return (
+          <div key={`panel-${tool.key}`} className={`mt-3 glass rounded-2xl border overflow-hidden animate-slide-up ${c.panel}`}>
+            <div className={`flex items-center justify-between px-4 py-2.5 border-b border-white/5 ${c.header}`}>
+              <div className="flex items-center gap-2">
+                <ToolIcon size={13} className={c.text} />
+                <span className={`text-xs font-semibold uppercase tracking-[0.1em] ${c.text}`}>{tool.panelTitle}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => { navigator.clipboard.writeText(result).catch(() => {}); toast.success('Copied!'); }}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center text-white/30 hover:text-white/60 transition-all" title="Copy">
+                  <Copy size={12} />
+                </button>
+                <button onClick={() => setResults((prev) => ({ ...prev, [tool.key]: undefined }))} className="text-white/30 hover:text-white/60"><X size={14} /></button>
+              </div>
             </div>
-            <button onClick={() => setReview(null)} className="text-white/30 hover:text-white/60"><X size={14} /></button>
+            <pre className="p-4 text-sm text-white/75 leading-relaxed whitespace-pre-wrap font-sans">{result}</pre>
           </div>
-          <pre className="p-4 text-sm text-white/75 leading-relaxed whitespace-pre-wrap font-sans">{review}</pre>
-        </div>
-      )}
+        );
+      })}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {['Make intro shorter', 'Add more emotion', 'Change outro CTA', 'Make it funnier', 'Add timestamps'].map((cmd) => (
