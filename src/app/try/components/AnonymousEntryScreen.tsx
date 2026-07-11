@@ -59,6 +59,8 @@ export default function AnonymousEntryScreen() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  // ✅ Guards the landing-page handoff so it can only auto-run once.
+  const autoRanRef = useRef(false);
 
   // ✅ Already signed in? This flow is for anonymous visitors — send them straight in.
   useEffect(() => {
@@ -67,8 +69,8 @@ export default function AnonymousEntryScreen() {
     }).catch(() => {});
   }, []);
 
-  const handleGenerate = async () => {
-    const trimmed = topic.trim();
+  const handleGenerate = async (topicOverride?: string) => {
+    const trimmed = (topicOverride ?? topic).trim();
     if (!trimmed) { setError('Enter a topic or keyword first'); return; }
     setError('');
     setStage('loading');
@@ -116,6 +118,26 @@ export default function AnonymousEntryScreen() {
       setStage('entry');
     }
   };
+
+  // ✅ LANDING-PAGE HANDOFF: the hero input on the marketing page sends
+  // visitors here as /try?topic=... — we pick the topic up, prefill it, and
+  // start generating immediately so the "Generate Hooks" click on the landing
+  // page flows straight into the suspense animation with zero re-typing.
+  // (Read from window.location instead of useSearchParams so this page can
+  // stay statically prerendered without a Suspense boundary.)
+  useEffect(() => {
+    if (autoRanRef.current) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const t = (params.get('topic') || '').trim().slice(0, 200);
+      if (t) {
+        autoRanRef.current = true;
+        setTopic(t);
+        handleGenerate(t);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,7 +204,7 @@ export default function AnonymousEntryScreen() {
             {error && <p className="text-red-400 text-xs mb-4">{error}</p>}
 
             <button
-              onClick={handleGenerate}
+              onClick={() => handleGenerate()}
               className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-vyro text-white font-semibold text-base glow-button hover:scale-105 active:scale-95 transition-all duration-200"
             >
               <Flame size={18} />Generate Retention Hooks
