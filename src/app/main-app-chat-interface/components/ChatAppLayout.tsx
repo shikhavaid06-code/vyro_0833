@@ -67,6 +67,32 @@ export default function ChatAppLayout() {
     setRenewal(null);
   };
 
+  // ✅ ONBOARDING CATCH-ALL — paid-plan signups and /try signups skip the
+  // onboarding flow on their first landing (deliberate: payment and their
+  // generated hooks come first). This sends anyone who has never answered
+  // "How did you find CRÉO?" + "creator level" there exactly once. The
+  // localStorage flag short-circuits the check on every later visit, and
+  // users who answered on another device get the flag set from the server
+  // without being re-asked.
+  useEffect(() => {
+    (async () => {
+      try {
+        if (localStorage.getItem('creo_onboarded') === 'true') return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const r = await fetch('/api/onboarding', { headers: { Authorization: `Bearer ${session.access_token}` } });
+        if (!r.ok) return; // fail open — never lock someone out of the workspace over a survey
+        const d = await r.json();
+        if (d?.completed) {
+          localStorage.setItem('creo_onboarded', 'true');
+        } else {
+          router.push('/onboarding-flow');
+        }
+      } catch {}
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     try { const s = localStorage.getItem(STORAGE_KEY); if (s) setSavedChats(JSON.parse(s)); } catch {}
   }, []);
