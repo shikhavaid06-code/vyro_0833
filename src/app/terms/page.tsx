@@ -42,14 +42,15 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-white font-semibold text-base mb-3">5. Subscription Plans & Billing</h2>
-            <p>CRÉO offers a Free plan and paid subscription plans (Pro and Ultra) with different generation limits and features. By subscribing to a paid plan, you authorise us (via our payment processor, currently Razorpay, with Stripe planned for international billing) to charge the applicable fee on a recurring basis until you cancel.</p>
+            <h2 className="text-white font-semibold text-base mb-3">5. Subscription Plans, Billing & Refunds</h2>
+            <p>CRÉO offers a Free plan and paid plans (Pro and Ultra) with different generation limits and features. Paid plans are purchased as a one-time payment (via our payment processor, currently Razorpay) covering a fixed period — one month or one year depending on the billing option you choose.</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Prices are displayed in your local currency where supported and may vary by region.</li>
-              <li>Subscriptions renew automatically at the end of each billing period unless cancelled beforehand.</li>
-              <li>You may cancel at any time from Settings; your plan remains active until the end of the current billing period, after which it will not renew.</li>
-              <li>Refunds are handled on a case-by-case basis; paid plans currently include a 7-day money-back guarantee from the date of purchase.</li>
-              <li>We reserve the right to change pricing with reasonable advance notice; changes will not apply retroactively to an already-paid billing period.</li>
+              <li>Paid plans do <b className="text-white/80">not</b> auto-renew and we never charge your payment method automatically. When your paid period ends, your account simply returns to the Free plan unless you choose to renew from the Upgrade page.</li>
+              <li>You may cancel at any time from Settings. Cancellation takes effect immediately: your account switches to the Free plan and we automatically refund you the prorated value of the unused full days remaining in your paid period, back to your original payment method (typically within 5–7 business days).</li>
+              <li>7-day money-back guarantee: if you cancel within 7 days of purchasing a paid plan, you receive a full refund of that payment instead of a prorated one.</li>
+              <li>Refund amounts are calculated automatically per day: for example, cancelling a 30-day plan on day 26 refunds the value of the 4 unused days. The day on which you cancel counts as a used day.</li>
+              <li>We reserve the right to change pricing with reasonable advance notice; changes will not apply retroactively to an already-paid period.</li>
             </ul>
           </section>
 
