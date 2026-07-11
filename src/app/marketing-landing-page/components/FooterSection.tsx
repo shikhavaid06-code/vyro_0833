@@ -108,7 +108,8 @@ export default function FooterSection() {
           <div className="flex items-center gap-6">
             <a href="/privacy" className="text-xs text-white/30 hover:text-white/60 transition-colors duration-200">Privacy Policy</a>
             <a href="/terms" className="text-xs text-white/30 hover:text-white/60 transition-colors duration-200">Terms of Service</a>
-            <a href="/privacy" className="text-xs text-white/30 hover:text-white/60 transition-colors duration-200">Cookie Policy</a>
+            <a href="/refunds" className="text-xs text-white/30 hover:text-white/60 transition-colors duration-200">Refund Policy</a>
+            <a href="/contact" className="text-xs text-white/30 hover:text-white/60 transition-colors duration-200">Contact Us</a>
           </div>
           <div className="flex items-center gap-2 text-xs text-white/25">
             <Mail size={11} />
