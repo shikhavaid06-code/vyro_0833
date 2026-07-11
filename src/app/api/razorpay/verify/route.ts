@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { grantUpgradeCredit } from '@/lib/upgradeCredit';
 
 function addPeriod(billing: 'monthly' | 'yearly'): string {
   const end = new Date();
@@ -38,7 +39,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 });
     }
 
-    const { error } = await getSupabaseAdmin()
+    const admin = getSupabaseAdmin();
+
+    // ✅ PRO → ULTRA FAIR UPGRADE: before overwriting the profile, refund the
+    // unused days of the old Pro payment automatically. Must run BEFORE the
+    // update below — it reads the OLD last_payment_id / end date. Never
+    // blocks activation; returns null if there's nothing to credit.
+    const credit = await grantUpgradeCredit(admin, userId, plan, razorpay_payment_id);
+
+    const { error } = await admin
       .from('profiles')
       .update({
         plan,
@@ -52,7 +61,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Payment succeeded but activating your plan failed — contact support' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      upgradeCredit: credit ? { amount: credit.credited, currency: credit.currency, unusedDays: credit.unusedDays } : null,
+    });
   } catch (err) {
     console.error('verify error:', err);
     return NextResponse.json({ error: 'Something went wrong verifying your payment' }, { status: 500 });
