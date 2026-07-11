@@ -1,11 +1,24 @@
 'use client';
 import React, { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Hourglass, X, Zap, Crown } from 'lucide-react';
 import ChatSidebar from './ChatSidebar';
 import ChatMainArea from './ChatMainArea';
 import FloatingAssistant from './FloatingAssistant';
+import { supabase } from '@/lib/supabase';
 
 interface SavedChat { id: string; title: string; preview: string; time: string; platform: string; generated: number; }
 const STORAGE_KEY = 'creo_chat_history';
+
+// ✅ RENEWAL REMINDER — plans don't auto-renew (deliberate, honest), which
+// means paid users silently drop to Free when their period ends. This banner
+// shows during the final days so renewing is a choice they get to make, not
+// something they forget. Dismissing hides it for the rest of the day; it
+// returns each day until renewal or expiry.
+const RENEW_WINDOW_DAYS = 5;
+const RENEW_DISMISS_KEY = 'creo_renew_dismissed_on';
+
+interface RenewalInfo { plan: string; daysLeft: number; endDate: string; }
 
 export default function ChatAppLayout() {
   // ✅ Sidebar closed by default on mobile, open on desktop
@@ -20,11 +33,39 @@ export default function ChatAppLayout() {
   // ChatMainArea (next to Vault/Brain/Intel) instead of a corner-floating
   // launcher, which is what made her easy to miss/collide with other UI.
   const [showNova, setShowNova] = useState(false);
+  const [renewal, setRenewal] = useState<RenewalInfo | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     // ✅ Open sidebar by default on desktop only
     if (window.innerWidth >= 1024) setSidebarOpen(true);
   }, []);
+
+  // ✅ Renewal reminder check — one lightweight call per workspace load.
+  useEffect(() => {
+    (async () => {
+      try {
+        // Dismissed today already? Stay quiet until tomorrow.
+        if (localStorage.getItem(RENEW_DISMISS_KEY) === new Date().toISOString().slice(0, 10)) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const res = await fetch('/api/subscription', { headers: { Authorization: `Bearer ${session.access_token}` } });
+        if (!res.ok) return; // free users get a 400 here — nothing to remind
+        const q = await res.json();
+        if (!q?.plan || q.plan === 'free' || !q.endDate) return;
+        const msLeft = new Date(q.endDate).getTime() - Date.now();
+        const daysLeft = Math.ceil(msLeft / 86_400_000);
+        if (daysLeft > 0 && daysLeft <= RENEW_WINDOW_DAYS) {
+          setRenewal({ plan: q.plan, daysLeft, endDate: q.endDate });
+        }
+      } catch {}
+    })();
+  }, []);
+
+  const dismissRenewal = () => {
+    try { localStorage.setItem(RENEW_DISMISS_KEY, new Date().toISOString().slice(0, 10)); } catch {}
+    setRenewal(null);
+  };
 
   useEffect(() => {
     try { const s = localStorage.getItem(STORAGE_KEY); if (s) setSavedChats(JSON.parse(s)); } catch {}
@@ -72,6 +113,27 @@ export default function ChatAppLayout() {
         }}
       />
       <div className="flex-1 flex flex-col min-h-screen min-w-0 transition-all duration-300">
+        {/* ✅ Renewal reminder banner — final days of a paid period */}
+        {renewal && (
+          <div className="relative z-20 flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border-b border-amber-500/25 animate-slide-up">
+            <Hourglass size={14} className="text-amber-400 flex-shrink-0" />
+            <p className="flex-1 text-xs text-white/75 leading-snug">
+              Your <b className="capitalize text-amber-300">{renewal.plan}</b> plan ends in{' '}
+              <b className="text-amber-300">{renewal.daysLeft} day{renewal.daysLeft !== 1 ? 's' : ''}</b>
+              {' '}({new Date(renewal.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}). Plans don't auto-renew — renew to keep{' '}
+              {renewal.plan === 'ultra' ? 'unlimited generations, Creator Brain & Competitor Intelligence' : 'your 100 generations/day, Brutal Reviewer & Expansion Engine'}.
+            </p>
+            <button
+              onClick={() => router.push(`/upgrade?plan=${renewal.plan}`)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-semibold hover:opacity-90 active:scale-95 transition-all flex-shrink-0">
+              {renewal.plan === 'ultra' ? <Crown size={11} /> : <Zap size={11} />}Renew now
+            </button>
+            <button onClick={dismissRenewal} aria-label="Dismiss renewal reminder"
+              className="text-white/30 hover:text-white/70 transition-colors flex-shrink-0 p-1">
+              <X size={13} />
+            </button>
+          </div>
+        )}
         <ChatMainArea
           key={resetKey}
           sidebarOpen={sidebarOpen}
