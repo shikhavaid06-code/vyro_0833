@@ -253,6 +253,15 @@ export default function AuthScreen() {
                       );
                     })}
                   </div>
+                  {/* ✅ Razorpay-at-signup: set the expectation honestly — the
+                      secure checkout opens automatically right after email
+                      verification (payment can't precede the account existing). */}
+                  {plan !== 'free' && (
+                    <p className="flex items-center gap-1.5 text-[11px] text-white/35 mt-2 animate-fade-in">
+                      <Zap size={10} className="text-purple-400 flex-shrink-0" />
+                      Secure Razorpay checkout ({pricing.symbol}{plan === 'pro' ? pricing.pro : pricing.ultra}/mo) opens automatically right after you verify your email.
+                    </p>
+                  )}
                 </div>
 
                 <button type="submit" disabled={isLoading || !email}
