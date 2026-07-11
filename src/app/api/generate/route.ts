@@ -13,6 +13,22 @@ const PREMIUM_TYPES: Record<string, string[]> = {
   review: ['pro', 'ultra'],       // Brutal Reviewer
   expand: ['pro', 'ultra'],       // Content Expansion Engine
   competitor: ['ultra'],          // Competitor Intelligence + Link Cloner
+  // ✅ Split by feature weight: production tools → Pro, intelligence → Ultra.
+  shotplan: ['pro', 'ultra'],     // Script-to-Shot Planner
+  resurrect: ['pro', 'ultra'],    // Content Resurrection
+  simulate: ['ultra'],            // Audience Simulator
+  risk: ['ultra'],                // Content Risk Detector
+};
+
+// Upsell copy per gated feature — shown to Free/Pro users tapping above their tier.
+const UPGRADE_MESSAGES: Record<string, string> = {
+  review: 'Brutal Reviewer is a Pro feature — upgrade to get your scripts scored and fixed.',
+  expand: 'The Content Expansion Engine is a Pro feature — upgrade to turn one idea into a full content pack.',
+  competitor: 'Competitor Intelligence is an Ultra feature — upgrade to clone any viral framework.',
+  shotplan: 'The Script-to-Shot Planner is a Pro feature — upgrade to turn scripts into ready-to-film shot lists.',
+  resurrect: 'Content Resurrection is a Pro feature — upgrade to give your old content new life.',
+  simulate: 'The Audience Simulator is an Ultra feature — upgrade to test how real viewers would react before you post.',
+  risk: 'The Content Risk Detector is an Ultra feature — upgrade to find retention leaks before your audience does.',
 };
 
 // ✅ COST OPTIMIZATION — two levers, both big:
@@ -33,6 +49,10 @@ const MODEL_FOR: Record<string, string> = {
   review: "gemini-2.5-flash",
   expand: "gemini-2.5-flash",
   competitor: "gemini-2.5-flash",
+  shotplan: "gemini-2.5-flash",
+  resurrect: "gemini-2.5-flash",
+  simulate: "gemini-2.5-flash",
+  risk: "gemini-2.5-flash",
 };
 const MAX_TOKENS_FOR: Record<string, number> = {
   titles: 512,
@@ -42,6 +62,10 @@ const MAX_TOKENS_FOR: Record<string, number> = {
   review: 4096,
   expand: 6144, // a full multi-platform content pack is long by design
   competitor: 4096,
+  shotplan: 4096,
+  resurrect: 4096,
+  simulate: 2048,
+  risk: 2048,
 };
 
 // Filler words/phrases that scream "AI-generated" — banned in every prompt.
@@ -340,6 +364,128 @@ COMPETITOR MATERIAL + CREATOR'S TOPIC:
 "${idea}"`;
   }
 
+  // ✅ SCRIPT-TO-SHOT PLANNER (Pro/Ultra) — script → a ready-to-film shot list.
+  if (forceType === "shotplan") {
+    return `${mem}You are CRÉO's Script-to-Shot Planner — a video director who turns scripts into shoot-ready plans. Break the script below into a scene-by-scene shot list a solo creator can film today.
+
+Output in EXACTLY this structure, one block per scene:
+
+🎬 SHOT LIST
+
+SCENE 1 — <short scene name> (<estimated timestamp range>)
+Shot: <TALKING HEAD / B-ROLL / SCREEN RECORDING / TEXT OVERLAY / PRODUCT SHOT>
+Show: <exactly what's on screen, concrete and filmable>
+Line: <the first few words of the script this covers>
+Tip: <one framing/energy/pacing note>
+
+<repeat for every scene>
+
+⚡ QUICK PRODUCTION NOTES
+- <total shots + estimated filming time>
+- <the 2-3 B-roll clips to capture first because they're reused>
+- <one editing note that will most improve retention>
+
+Rules: keep it practical for ONE person with a phone camera. NEVER use: ${BANNED_PHRASES}.
+
+SCRIPT:
+"${idea}"`;
+  }
+
+  // ✅ CONTENT RESURRECTION (Pro/Ultra) — old content → new life.
+  if (forceType === "resurrect") {
+    return `${mem}You are CRÉO's Content Resurrection engine. The creator is giving you OLD content (a past script, post, or video idea). Your job: bring it back to life as NEW content — fresh angles, not a re-post.
+
+Output in EXACTLY this structure with these exact headers:
+
+💀 WHY IT'S WORTH RESURRECTING
+<one honest line on the core idea that still has value>
+
+🔄 3 FRESH ANGLES
+1. <a new angle on the same core idea — different emotion, audience, or stakes>
+2. <a contrarian or updated take ("what I got wrong / what changed")>
+3. <a format flip — story version, listicle version, or reaction version>
+
+🎣 NEW HOOKS (one per angle)
+<3 spoken-aloud hooks, one per line>
+
+🏷️ NEW TITLES (one per angle)
+<3 titles, under 60 characters>
+
+📱 1 SHORT-FORM REMIX
+<a 20-30 second Reel/Short script from the strongest angle, timestamped>
+
+Rules: never just rephrase the old content — every angle must give a returning viewer something NEW. NEVER use: ${BANNED_PHRASES}.
+
+OLD CONTENT:
+"${idea}"`;
+  }
+
+  // ✅ AUDIENCE SIMULATOR (Ultra) — how would real viewer types react?
+  if (forceType === "simulate") {
+    return `${mem}You are CRÉO's Audience Simulator. Simulate how 4 distinct real viewers would react to the content below. Be honest — simulated viewers don't flatter creators.
+
+Output in EXACTLY this structure, one block per persona:
+
+🧪 AUDIENCE SIMULATION
+
+👤 THE SCROLLER (decides in 3 seconds)
+First reaction: <their gut response to the opening, quoted in their voice>
+Keeps watching? <YES/NO + the exact moment they'd swipe away>
+What would hold them: <one concrete change>
+
+👤 THE SKEPTIC (has seen 100 videos like this)
+First reaction: <...>
+Keeps watching? <...>
+What would hold them: <...>
+
+👤 THE NEWBIE (new to this topic)
+First reaction: <...>
+Keeps watching? <...>
+What would hold them: <...>
+
+👤 THE SUPERFAN (watches everything in this niche)
+First reaction: <...>
+Would they comment/share? <what they'd actually type>
+What would hold them: <...>
+
+🎯 VERDICT
+<2 lines: which persona this content wins, which it loses, and the ONE change that helps most>
+
+Rules: reactions must sound like real people, not marketing personas. NEVER use: ${BANNED_PHRASES}.
+
+CONTENT:
+"${idea}"`;
+  }
+
+  // ✅ CONTENT RISK DETECTOR (Ultra) — find retention leaks before posting.
+  if (forceType === "risk") {
+    return `${mem}You are CRÉO's Content Risk Detector — a retention analyst who finds exactly where viewers will leave. Scan the content below for retention risks.
+
+Output in EXACTLY this structure:
+
+🚨 RISK SCAN
+
+RISK LEVEL: <LOW / MEDIUM / HIGH> — <one-line summary>
+
+⛔ DROP-OFF POINTS
+1. [<severity: HIGH/MED/LOW>] <quote the risky line/moment> — <why viewers leave here> — FIX: <the specific rewrite or cut>
+2. <...>
+3. <...>
+
+🕳️ STRUCTURAL RISKS
+Opening: <is the payoff teased early enough? verdict + fix>
+Middle: <does it sag? where? verdict + fix>
+Ending: <does it end strong or fizzle? verdict + fix>
+
+✅ WHAT'S ALREADY WORKING
+<1-2 lines on the strongest retention elements — so the creator doesn't "fix" what isn't broken>
+
+Rules: quote the actual content when flagging a risk — never vague. NEVER use: ${BANNED_PHRASES}.
+
+CONTENT:
+"${idea}"`;
+  }
+
   // default: full script
   return `${mem}You are a professional YouTube scriptwriter whose scripts sound like a real person talking, never like AI. Write a full YouTube script for: "${idea}".
 Format:
@@ -371,9 +517,7 @@ export async function POST(req: NextRequest) {
           error: 'upgrade_required',
           upgradeRequired: true,
           feature: forceType,
-          message: forceType === 'review'
-            ? 'Brutal Reviewer is a Pro feature — upgrade to get your scripts scored and fixed.'
-            : 'The Content Expansion Engine is a Pro feature — upgrade to turn one idea into a full content pack.',
+          message: UPGRADE_MESSAGES[forceType] || 'This is a premium feature — upgrade to unlock it.',
         },
         { status: 403 }
       );
