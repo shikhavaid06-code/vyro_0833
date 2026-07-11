@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, ChevronRight, Copy, Check, Gift, Flame, XCircle, Loader2 } from 'lucide-react';
+import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, ChevronRight, Copy, Check, Gift, Flame, XCircle, Loader2, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
 import AppLogo from '@/components/ui/AppLogo';
@@ -34,6 +34,13 @@ export default function SettingsPage() {
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelResult, setCancelResult] = useState<{ ok: boolean; message: string } | null>(null);
+  // ✅ Review collector — one review per user, editable anytime.
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewSaved, setReviewSaved] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [hoverStar, setHoverStar] = useState(0);
 
   useEffect(() => {
     try {
@@ -64,9 +71,46 @@ export default function SettingsPage() {
           const q = await s.json();
           if (q?.plan && q.plan !== 'free') setSub(q);
         }
+        // Prefill an existing review so users can edit rather than re-type.
+        const rv = await fetch('/api/reviews', { headers: { Authorization: `Bearer ${session.access_token}` } });
+        if (rv.ok) {
+          const d = await rv.json();
+          if (d?.review) {
+            setReviewRating(d.review.rating || 0);
+            setReviewText(d.review.review || '');
+          }
+        }
       } catch {}
     })();
   }, []);
+
+  // ✅ Submit (or update) the review.
+  const handleSubmitReview = async () => {
+    if (reviewSaving) return;
+    if (!reviewRating) { setReviewError('Tap a star rating first'); return; }
+    setReviewSaving(true);
+    setReviewError('');
+    setReviewSaved(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setReviewError('Session expired — sign in again'); setReviewSaving(false); return; }
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ rating: reviewRating, review: reviewText }),
+      });
+      const d = await res.json();
+      if (!res.ok || !d?.success) {
+        setReviewError(d?.error || 'Could not save — try again');
+      } else {
+        setReviewSaved(true);
+        setTimeout(() => setReviewSaved(false), 3000);
+      }
+    } catch {
+      setReviewError('Network error — try again');
+    }
+    setReviewSaving(false);
+  };
 
   const referralLink = referral?.code ? `${typeof window !== 'undefined' ? window.location.origin : ''}/?ref=${referral.code}` : '';
   const handleCopyReferral = () => {
@@ -297,6 +341,48 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+
+        {/* ✅ Rate CRÉO — the review collector. Reviews land in Supabase
+            (reviews table) for the founder to read; nothing is auto-published. */}
+        <div className="glass rounded-2xl border border-white/8 p-5 mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+              <Star size={14} className="text-yellow-400" />
+            </div>
+            <div>
+              <p className="text-sm text-white/80 font-semibold">Rate CRÉO</p>
+              <p className="text-[11px] text-white/35">Your feedback goes straight to the founder — it shapes what gets built next.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 mt-3 mb-3">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} type="button"
+                onClick={() => { setReviewRating(n); setReviewError(''); }}
+                onMouseEnter={() => setHoverStar(n)}
+                onMouseLeave={() => setHoverStar(0)}
+                aria-label={`${n} star${n !== 1 ? 's' : ''}`}
+                className="p-0.5 transition-transform hover:scale-110 active:scale-95">
+                <Star size={22} className={`transition-colors ${(hoverStar || reviewRating) >= n ? 'text-yellow-400 fill-yellow-400' : 'text-white/20'}`} />
+              </button>
+            ))}
+            {reviewRating > 0 && <span className="text-xs text-white/40 ml-1">{['', 'Ouch — tell us why', 'Needs work', 'Decent', 'Great', 'Love it!'][reviewRating]}</span>}
+          </div>
+          <textarea
+            value={reviewText}
+            onChange={(e) => { setReviewText(e.target.value); setReviewError(''); }}
+            placeholder="What's working? What's missing? Brutal honesty welcome — that's kind of our thing."
+            rows={3}
+            maxLength={2000}
+            className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs leading-relaxed placeholder:text-white/20 focus:outline-none focus:border-yellow-500/40 transition-all resize-none"
+          />
+          {reviewError && <p className="text-red-400 text-xs mt-1.5">{reviewError}</p>}
+          <button onClick={handleSubmitReview} disabled={reviewSaving}
+            className="w-full mt-2.5 py-2.5 rounded-xl bg-gradient-to-r from-yellow-500/90 to-amber-500/90 text-black text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-60">
+            {reviewSaving ? <><Loader2 size={13} className="animate-spin" /> Saving…</>
+              : reviewSaved ? <><Check size={13} /> Saved — thank you!</>
+              : <><Star size={13} /> Submit review</>}
+          </button>
+        </div>
 
         {/* Settings sections */}
         {[
