@@ -177,31 +177,56 @@ export async function POST(req: NextRequest) {
     const q = quote!;
 
     // 1. Refund first (only if there is something to refund).
+    //
+    // ✅ FIX for Razorpay "invalid request sent" (BAD_REQUEST_ERROR): keep the
+    // refund body MINIMAL. Razorpay rejects requests carrying parameters an
+    // account isn't enabled for (e.g. `speed` without the Instant Refunds
+    // feature), and for a FULL refund the documented pattern is to omit
+    // `amount` entirely — Razorpay then refunds everything remaining itself.
+    // We try with notes first (nice for bookkeeping) and, if Razorpay still
+    // complains about the request shape, retry once with the barest possible
+    // body before giving up.
     let refundId: string | null = null;
     if (q.refundAmountSmallest > 0 && q.paymentId) {
       const auth = razorpayAuth();
       if (!auth) return NextResponse.json({ error: 'Payments are not configured yet' }, { status: 500 });
 
-      const refundRes = await fetch(`https://api.razorpay.com/v1/payments/${q.paymentId}/refund`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: auth.header },
-        body: JSON.stringify({
-          amount: q.refundAmountSmallest,
-          speed: 'normal',
-          notes: {
-            reason: q.fullRefund ? 'money_back_guarantee' : 'prorated_cancellation',
-            userId,
-            unusedDays: String(q.unusedDays),
-            totalDays: String(q.totalDays),
-          },
-        }),
+      const refundUrl = `https://api.razorpay.com/v1/payments/${q.paymentId}/refund`;
+      const doRefund = async (body: Record<string, unknown>) => {
+        const res = await fetch(refundUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: auth.header },
+          body: JSON.stringify(body),
+        });
+        return { res, data: await res.json().catch(() => null) };
+      };
+
+      // Full refund → omit amount (refunds the full remaining automatically).
+      // Partial (prorated) refund → amount in the currency's smallest unit.
+      const baseBody: Record<string, unknown> = q.fullRefund ? {} : { amount: q.refundAmountSmallest };
+
+      let { res: refundRes, data: refund } = await doRefund({
+        ...baseBody,
+        notes: {
+          reason: q.fullRefund ? 'money_back_guarantee' : 'prorated_cancellation',
+          userId,
+          unusedDays: String(q.unusedDays),
+          totalDays: String(q.totalDays),
+        },
       });
-      const refund = await refundRes.json();
+
+      // Retry once with the minimal body if Razorpay rejected the request shape.
+      if ((!refundRes.ok || !refund?.id) && refund?.error?.code === 'BAD_REQUEST_ERROR') {
+        console.error('Razorpay refund BAD_REQUEST, retrying with minimal body:', JSON.stringify(refund?.error));
+        ({ res: refundRes, data: refund } = await doRefund(baseBody));
+      }
+
       if (!refundRes.ok || !refund?.id) {
-        console.error('Razorpay refund failed:', refund);
+        console.error('Razorpay refund failed:', JSON.stringify(refund));
         // Do NOT downgrade — the user keeps their paid plan and can retry.
+        const rzpMsg = refund?.error?.description;
         return NextResponse.json(
-          { error: refund?.error?.description || 'Refund could not be processed — your plan is unchanged. Please try again or contact support.' },
+          { error: rzpMsg ? `Refund was declined by the payment provider (${rzpMsg}) — your plan is unchanged. Please try again or contact support.` : 'Refund could not be processed — your plan is unchanged. Please try again or contact support.' },
           { status: 502 },
         );
       }
