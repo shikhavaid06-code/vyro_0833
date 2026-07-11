@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { grantUpgradeCredit } from '@/lib/upgradeCredit';
 
 function addPeriod(billing: 'monthly' | 'yearly'): string {
   const end = new Date();
@@ -34,7 +35,15 @@ export async function POST(req: NextRequest) {
       const { userId, plan, billing } = notes;
 
       if (userId && plan && billing) {
-        const { error } = await getSupabaseAdmin()
+        const admin = getSupabaseAdmin();
+
+        // ✅ PRO → ULTRA FAIR UPGRADE (webhook path — the safety net when the
+        // browser died before /verify ran). Same call as verify; the guards
+        // inside (old-payment-already-refunded, last_payment_id already
+        // updated) make it a no-op if verify handled it first.
+        await grantUpgradeCredit(admin, userId, plan, payment.id);
+
+        const { error } = await admin
           .from('profiles')
           .update({
             plan,
