@@ -47,6 +47,36 @@ const plans = [
   },
 ];
 
+// ✅ POST-UPGRADE CELEBRATION — the moment payment succeeds, show the user
+// exactly what they can do NOW (and where to find it), instead of a silent
+// redirect. Sells the value of what they just bought, immediately.
+const PLAN_UNLOCKS: Record<'pro' | 'ultra', { title: string; sub: string; items: { name: string; where: string }[] }> = {
+  pro: {
+    title: "You're Pro now! 🚀",
+    sub: 'Here\'s everything that just unlocked for you:',
+    items: [
+      { name: '100 generations per day (up from 3)', where: 'Generate away — the counter resets daily' },
+      { name: 'Brutal Reviewer — scores & fixes weak scripts', where: 'Paste any script in the workspace and ask for a review' },
+      { name: 'Content Expansion — 1 idea → a full content pack', where: 'Type an idea, ask CRÉO to expand it' },
+      { name: 'Unlimited Winning Vault', where: 'Vault button in the workspace topbar' },
+      { name: 'Nova AI Assistant + smart editing', where: 'Nova button in the workspace topbar' },
+      { name: 'Multi-platform optimization & no watermark', where: 'Automatic on every generation' },
+    ],
+  },
+  ultra: {
+    title: "You're Ultra now! 👑",
+    sub: 'The full arsenal is yours. Here\'s what just unlocked:',
+    items: [
+      { name: 'Unlimited generations', where: 'No daily counter — create as much as you want' },
+      { name: 'Creator Brain — AI that learns YOUR voice', where: 'Brain button in the workspace topbar' },
+      { name: 'Competitor Intelligence + Link Cloner', where: 'Intel button in the workspace topbar' },
+      { name: 'Everything in Pro (Reviewer, Expansion, Vault)', where: 'All still yours' },
+      { name: 'Priority AI responses', where: 'Automatic — your generations jump the queue' },
+      { name: 'Early access to new features', where: 'You\'ll see them first, before anyone else' },
+    ],
+  },
+};
+
 export default function UpgradePage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#080812]" />}>
@@ -71,6 +101,8 @@ function UpgradePageInner() {
   const [userName, setUserName] = useState('');
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [locale] = useState(getLocalePricing());
+  // ✅ Which plan's "here's what you unlocked" celebration to show (null = none)
+  const [celebrate, setCelebrate] = useState<'pro' | 'ultra' | null>(null);
 
   useEffect(() => {
     // ✅ userId/email come from the actual Supabase session, not localStorage —
@@ -166,9 +198,11 @@ function UpgradePageInner() {
               localStorage.setItem('creo_current_user', JSON.stringify({ ...u, plan: planId }));
             } catch {}
 
-            toast.success(`Welcome to ${planId === 'pro' ? 'Pro' : 'Ultra'}! 🎉`);
             setCurrentPlan(planId);
-            router.push('/main-app-chat-interface');
+            setLoadingPlan(null);
+            // ✅ Instead of silently redirecting, celebrate: show exactly what
+            // the new plan unlocked and where to find each feature.
+            setCelebrate(planId);
           } catch (err: any) {
             toast.error(err.message || 'Payment succeeded but activation failed — contact support@creo.ai');
           }
@@ -311,6 +345,45 @@ function UpgradePageInner() {
           ))}
         </div>
       </div>
+
+      {/* ✅ POST-UPGRADE CELEBRATION MODAL — payment succeeded; show what they
+          can do NOW and walk them straight into the workspace to try it. */}
+      {celebrate && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-[#0d0d1f] border border-purple-500/25 rounded-3xl p-7 sm:p-8 relative shadow-2xl shadow-purple-500/15 animate-pop-in max-h-[85vh] overflow-y-auto">
+            <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mb-4 ${celebrate === 'ultra' ? 'bg-gradient-to-br from-amber-500/25 to-pink-600/25 border-amber-500/30' : 'bg-gradient-to-br from-purple-600/30 to-pink-600/30 border-purple-500/30'}`}>
+              {celebrate === 'ultra' ? <Crown size={26} className="text-amber-400" /> : <Rocket size={26} className="text-purple-400" />}
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-1">{PLAN_UNLOCKS[celebrate].title}</h2>
+            <p className="text-white/50 text-sm mb-5">{PLAN_UNLOCKS[celebrate].sub}</p>
+
+            <div className="space-y-2.5 mb-6">
+              {PLAN_UNLOCKS[celebrate].items.map((item) => (
+                <div key={item.name} className="flex items-start gap-2.5 rounded-xl border border-white/8 bg-white/[0.03] px-3.5 py-2.5">
+                  <Check size={14} className={`mt-0.5 flex-shrink-0 ${celebrate === 'ultra' ? 'text-amber-400' : 'text-purple-400'}`} />
+                  <div>
+                    <p className="text-sm text-white/85 font-medium leading-snug">{item.name}</p>
+                    <p className="text-[11px] text-white/35 mt-0.5">{item.where}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {celebrate === 'pro' && (
+              <p className="text-[11px] text-white/35 mb-4 flex items-center gap-1.5">
+                <Crown size={11} className="text-amber-400" />
+                Going bigger? Ultra adds Creator Brain, Competitor Intelligence & unlimited generations — upgrade anytime from Settings.
+              </p>
+            )}
+
+            <button
+              onClick={() => router.push('/main-app-chat-interface')}
+              className={`w-full py-3.5 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all ${celebrate === 'ultra' ? 'bg-gradient-to-r from-amber-500 to-pink-500' : 'bg-gradient-vyro glow-button'}`}>
+              <Flame size={15} />Open my workspace & try it now<ArrowRight size={15} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
