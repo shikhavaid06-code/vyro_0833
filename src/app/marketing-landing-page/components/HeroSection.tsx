@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Zap, TrendingUp, Play, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Sparkles, ArrowRight, Zap, TrendingUp, Play, Star, Flame } from 'lucide-react';
 import DemoModal from './DemoModal';
 import CountUp from '@/components/ui/CountUp';
 
@@ -64,6 +65,17 @@ const steps = [
   },
 ];
 
+// ✅ Rotating example topics for the live hero input — shows the product's
+// range without a single fabricated claim.
+const EXAMPLE_TOPICS = [
+  'morning routine for creators',
+  '5 AI study hacks for students',
+  'how I edit videos twice as fast',
+  'fitness tips for busy people',
+  'my first month as a freelancer',
+  'street food tour of my city',
+];
+
 interface Stats { totalCreators: number | null; totalGenerated: number | null; }
 
 function formatCount(n: number): string {
@@ -73,12 +85,22 @@ function formatCount(n: number): string {
 }
 
 export default function HeroSection() {
+  const router = useRouter();
   const [showDemo, setShowDemo] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [stats, setStats] = useState<Stats>({ totalCreators: null, totalGenerated: null });
+  // ✅ Live hero input — the visitor's first generation starts right here.
+  const [heroTopic, setHeroTopic] = useState('');
+  const [exampleIdx, setExampleIdx] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setActiveStep((i) => (i + 1) % 3), 2500);
+    return () => clearInterval(t);
+  }, []);
+
+  // Rotate the example placeholder to show range
+  useEffect(() => {
+    const t = setInterval(() => setExampleIdx((i) => (i + 1) % EXAMPLE_TOPICS.length), 2600);
     return () => clearInterval(t);
   }, []);
 
@@ -92,6 +114,13 @@ export default function HeroSection() {
   }, []);
 
   const showCreatorBadge = stats.totalCreators !== null && stats.totalCreators >= 10;
+
+  // ✅ PLG entry: carry the visitor's topic straight into the /try anonymous
+  // flow — they experience a real generation before ever seeing a signup form.
+  const handleHeroGenerate = () => {
+    const t = heroTopic.trim();
+    router.push(t ? `/try?topic=${encodeURIComponent(t)}` : '/try');
+  };
 
   return (
     <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
@@ -134,18 +163,44 @@ export default function HeroSection() {
           ))}
         </div>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-slide-up" style={{ animationDelay: '440ms', animationFillMode: 'both' }}>
-          <Link href="/sign-up-login-screen" className="group flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-vyro text-white font-semibold text-base glow-button hover:scale-105 active:scale-95 transition-all duration-200">
-            <Sparkles size={18} />Start Creating Free
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
-          </Link>
-          <button onClick={() => setShowDemo(true)} className="group flex items-center gap-2 px-8 py-4 rounded-full glass text-white/70 hover:text-white font-medium text-base hover:bg-white/5 transition-all duration-200">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
-              <Play size={12} fill="currentColor" />
+        {/* ✅ LIVE TOPIC INPUT — the product starts on the landing page.
+            Typing an idea here hands it straight to the /try anonymous flow,
+            which generates real hooks before any signup is asked for. */}
+        <div className="max-w-xl mx-auto mb-5 animate-slide-up" style={{ animationDelay: '440ms', animationFillMode: 'both' }}>
+          <div className="glass-strong rounded-full border border-purple-500/25 p-1.5 pl-5 flex items-center gap-2 shadow-lg shadow-purple-500/10 focus-within:border-purple-500/50 focus-within:shadow-purple-500/20 transition-all duration-300">
+            <Sparkles size={16} className="text-purple-400 flex-shrink-0" />
+            <input
+              type="text"
+              value={heroTopic}
+              onChange={(e) => setHeroTopic(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleHeroGenerate(); }}
+              placeholder={`Try "${EXAMPLE_TOPICS[exampleIdx]}"`}
+              className="flex-1 min-w-0 bg-transparent text-white text-sm md:text-base placeholder:text-white/25 py-3 focus:outline-none"
+              aria-label="Your video topic"
+            />
+            <button
+              onClick={handleHeroGenerate}
+              className="group flex items-center gap-2 px-5 md:px-7 py-3 rounded-full bg-gradient-vyro text-white font-semibold text-sm md:text-base glow-button hover:scale-[1.03] active:scale-95 transition-all duration-200 flex-shrink-0">
+              <Flame size={16} />
+              <span className="hidden sm:inline">Generate Hooks</span>
+              <span className="sm:hidden">Go</span>
+              <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
+            </button>
+          </div>
+          <p className="text-[11px] text-white/30 mt-3">Free · No sign-up to try · Real hooks in seconds</p>
+        </div>
+
+        {/* Secondary CTAs */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-slide-up" style={{ animationDelay: '540ms', animationFillMode: 'both' }}>
+          <button onClick={() => setShowDemo(true)} className="group flex items-center gap-2 px-6 py-3 rounded-full glass text-white/70 hover:text-white font-medium text-sm hover:bg-white/5 transition-all duration-200">
+            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
+              <Play size={11} fill="currentColor" />
             </div>
             Watch Demo
           </button>
+          <Link href="/sign-up-login-screen" className="group flex items-center gap-1.5 text-sm text-white/50 hover:text-white font-medium transition-colors duration-200">
+            or create your free account <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
+          </Link>
         </div>
 
         {/* Product flow visualization */}
