@@ -20,7 +20,7 @@ const phases: Phase[] = [
       { label: 'Upgrade page with plan comparison', done: true },
       { label: 'Trust section, guarantees & FAQ', done: true },
       { label: 'Real social proof, no inflated numbers', done: true },
-      { label: 'Cancel anytime with prorated refunds', done: true },
+      { label: 'Cancel within 24 hours for a full refund', done: true },
     ],
   },
   {
