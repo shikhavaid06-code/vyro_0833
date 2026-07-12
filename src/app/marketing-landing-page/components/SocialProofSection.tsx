@@ -12,10 +12,10 @@ function formatCount(n: number): string {
 
 // ✅ Real, verifiable claims only — no fabricated names, followers, or quotes.
 // Each of these is actually true today: Razorpay is the live payment processor,
-// the 7-day guarantee is stated on the pricing page, cancel-anytime is how
+// the 24-hour refund guarantee is stated on the pricing page, cancel-anytime is how
 // subscriptions work, and "never sell your data" is a Privacy Policy commitment.
 const trustBadges = [
-  { icon: RefreshCw, text: '7-day money-back guarantee' },
+  { icon: RefreshCw, text: '24-hour full-refund guarantee' },
   { icon: CreditCard, text: 'Secure payments via Razorpay' },
   { icon: Lock, text: 'Cancel anytime, no lock-in' },
   { icon: ShieldCheck, text: 'We never sell your data' },
