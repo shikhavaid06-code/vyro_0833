@@ -37,13 +37,13 @@ const plans = [
     id: 'pro', name: 'Pro', icon: Zap, highlight: true, journey: 'Grow',
     tagline: 'Grow faster. Ship daily.',
     outcome: '33x more generations, a Brutal Reviewer that fixes weak scripts, and one idea expanded into a week of content.',
-    features: ['100 generations per day', 'Brutal Reviewer — score & fix scripts', 'Content Expansion — 1 idea → full pack', 'Unlimited Vault', 'AI Assistant unlocked', 'Smart editing (rewrite, shorten)', 'Multi-platform optimization', 'No watermark', 'Priority support'],
+    features: ['100 generations per day', 'Brutal Reviewer — score & fix scripts', 'Content Expansion — 1 idea → full pack', 'Script-to-Shot Planner — scripts → filmable shot lists', 'Content Resurrection — old content, new life', 'Unlimited Vault', 'AI Assistant unlocked', 'Smart editing (rewrite, shorten)', 'Multi-platform optimization', 'No watermark', 'Priority support'],
   },
   {
     id: 'ultra', name: 'Ultra', icon: Crown, journey: 'Build',
     tagline: 'Build your content empire',
     outcome: 'An AI that learns YOUR voice and clones any competitor framework. The longer you stay, the smarter it gets.',
-    features: ['Unlimited generations', 'Creator Brain — AI that writes in your voice', 'Competitor Intelligence — clone viral frameworks', 'Everything in Pro', 'Priority AI responses', 'Advanced tone & script control', 'Early access to new features'],
+    features: ['Unlimited generations', 'Creator Brain — AI that writes in your voice', 'Competitor Intelligence — clone viral frameworks', 'Audience Simulator — test viewer reactions before posting', 'Content Risk Detector — find retention leaks first', 'Everything in Pro', 'Priority AI responses', 'Advanced tone & script control', 'Early access to new features'],
   },
 ];
 
@@ -58,6 +58,7 @@ const PLAN_UNLOCKS: Record<'pro' | 'ultra', { title: string; sub: string; items:
       { name: '100 generations per day (up from 3)', where: 'Generate away — the counter resets daily' },
       { name: 'Brutal Reviewer — scores & fixes weak scripts', where: 'Paste any script in the workspace and ask for a review' },
       { name: 'Content Expansion — 1 idea → a full content pack', where: 'Type an idea, ask CRÉO to expand it' },
+      { name: 'Script-to-Shot Planner & Content Resurrection', where: 'Power tools row on every generated script' },
       { name: 'Unlimited Winning Vault', where: 'Vault button in the workspace topbar' },
       { name: 'Nova AI Assistant + smart editing', where: 'Nova button in the workspace topbar' },
       { name: 'Multi-platform optimization & no watermark', where: 'Automatic on every generation' },
@@ -70,6 +71,7 @@ const PLAN_UNLOCKS: Record<'pro' | 'ultra', { title: string; sub: string; items:
       { name: 'Unlimited generations', where: 'No daily counter — create as much as you want' },
       { name: 'Creator Brain — AI that learns YOUR voice', where: 'Brain button in the workspace topbar' },
       { name: 'Competitor Intelligence + Link Cloner', where: 'Intel button in the workspace topbar' },
+      { name: 'Audience Simulator & Content Risk Detector', where: 'Power tools row on every generated script' },
       { name: 'Everything in Pro (Reviewer, Expansion, Vault)', where: 'All still yours' },
       { name: 'Priority AI responses', where: 'Automatic — your generations jump the queue' },
       { name: 'Early access to new features', where: 'You\'ll see them first, before anyone else' },
@@ -372,7 +374,7 @@ function UpgradePageInner() {
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           {[
-            { icon: RefreshCw, text: '7-day money-back guarantee' },
+            { icon: RefreshCw, text: '24-hour full-refund guarantee' },
             { icon: Lock, text: 'Secure payments via Razorpay' },
             { icon: ShieldCheck, text: 'Cancel anytime' },
           ].map(({ icon: Icon, text }) => (
