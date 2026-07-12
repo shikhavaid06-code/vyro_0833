@@ -6,6 +6,46 @@ import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
 import AppLogo from '@/components/ui/AppLogo';
 
+// ✅ What each plan includes — shown when the user taps their plan badge.
+// Only lists features that are actually live in the product.
+const PLAN_FEATURES: Record<string, { title: string; items: string[] }> = {
+  free: {
+    title: 'Your Free plan includes',
+    items: [
+      '3 generations per day (+1 per friend referred, up to +10)',
+      'AI Title, Hook & Script generation',
+      'Basic tone options',
+      '10 Winning Vault slots',
+      'Daily missions & streaks',
+    ],
+  },
+  pro: {
+    title: 'Your Pro plan includes',
+    items: [
+      '100 generations per day',
+      'Brutal Reviewer — score & fix scripts',
+      'Content Expansion — 1 idea → full pack',
+      'Script-to-Shot Planner — filmable shot lists',
+      'Content Resurrection — old content, new life',
+      'Unlimited Winning Vault',
+      'Nova AI Assistant + smart editing',
+      'Multi-platform optimization · no watermark',
+    ],
+  },
+  ultra: {
+    title: 'Your Ultra plan includes',
+    items: [
+      'Unlimited generations',
+      'Creator Memory & Brain — AI that writes in YOUR voice',
+      'Competitor Intelligence + Link Cloner',
+      'Audience Simulator — test viewer reactions first',
+      'Content Risk Detector — find retention leaks first',
+      'Everything in Pro (Reviewer, Expansion, Shot Plan, Resurrection)',
+      'Priority AI responses · early access to new features',
+    ],
+  },
+};
+
 // Shape returned by GET /api/subscription — the refund preview.
 interface SubQuote {
   plan: string;
@@ -29,7 +69,7 @@ export default function SettingsPage() {
   // ✅ Referral program — code, count and earned bonus come from the API.
   const [referral, setReferral] = useState<{ code: string | null; referrals: number; bonus: number; maxBonus: number } | null>(null);
   const [streak, setStreak] = useState(0);
-  // ✅ Cancellation + prorated refund — quote fetched from /api/subscription.
+  // ✅ Cancellation + 24-hour refund — quote fetched from /api/subscription.
   const [sub, setSub] = useState<SubQuote | null>(null);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -41,6 +81,12 @@ export default function SettingsPage() {
   const [reviewSaved, setReviewSaved] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const [hoverStar, setHoverStar] = useState(0);
+  // ✅ Plan badge → features panel toggle
+  const [showPlanFeatures, setShowPlanFeatures] = useState(false);
+  // ✅ Notifications — real, working toggles (persisted in this browser).
+  const [notifRenewal, setNotifRenewal] = useState(true);
+  const [notifEmail, setNotifEmail] = useState(false);
+  const [notifEmailBusy, setNotifEmailBusy] = useState(false);
 
   useEffect(() => {
     try {
@@ -48,6 +94,8 @@ export default function SettingsPage() {
       setUser(u);
       setGenCount(parseInt(localStorage.getItem('creo_gen_count') || '0'));
       setStreak(parseInt(localStorage.getItem('creo_streak') || '0'));
+      setNotifRenewal(localStorage.getItem('creo_notif_renewal') !== 'off');
+      setNotifEmail(localStorage.getItem('creo_notif_email') === 'on');
     } catch {}
     (async () => {
       try {
@@ -133,6 +181,32 @@ export default function SettingsPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  // ✅ Notification toggles — both do something real.
+  const toggleRenewalNotif = () => {
+    const next = !notifRenewal;
+    setNotifRenewal(next);
+    try { localStorage.setItem('creo_notif_renewal', next ? 'on' : 'off'); } catch {}
+  };
+
+  const toggleEmailNotif = async () => {
+    if (notifEmailBusy) return;
+    const next = !notifEmail;
+    // Turning ON subscribes this account's email to product updates.
+    if (next && user?.email) {
+      setNotifEmailBusy(true);
+      try {
+        await fetch('/api/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email }),
+        });
+      } catch {}
+      setNotifEmailBusy(false);
+    }
+    setNotifEmail(next);
+    try { localStorage.setItem('creo_notif_email', next ? 'on' : 'off'); } catch {}
   };
 
   // ✅ The actual cancel action — refund first (server-side), then immediate
@@ -221,11 +295,36 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-white/8 ${planColors[plan]}`}>
+            {/* ✅ Tap the plan badge to see exactly what this plan includes */}
+            <button onClick={() => setShowPlanFeatures((v) => !v)}
+              title="See what your plan includes"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border transition-all active:scale-95 ${showPlanFeatures ? 'border-purple-500/40 bg-purple-500/10' : 'border-white/8 hover:border-white/20'} ${planColors[plan]}`}>
               {planIcons[plan]}
               <span className="text-xs font-semibold capitalize">{plan}</span>
-            </div>
+              <ChevronRight size={11} className={`text-white/30 transition-transform duration-200 ${showPlanFeatures ? 'rotate-90' : ''}`} />
+            </button>
           </div>
+
+          {/* ✅ Plan features panel — opens from the badge */}
+          {showPlanFeatures && (
+            <div className="mt-4 pt-4 border-t border-white/5 animate-slide-up">
+              <p className="text-xs font-semibold text-white/70 mb-2.5">{(PLAN_FEATURES[plan] || PLAN_FEATURES.free).title}</p>
+              <div className="space-y-1.5">
+                {(PLAN_FEATURES[plan] || PLAN_FEATURES.free).items.map((item) => (
+                  <div key={item} className="flex items-start gap-2">
+                    <Check size={12} className={`mt-0.5 flex-shrink-0 ${plan === 'ultra' ? 'text-amber-400' : plan === 'pro' ? 'text-purple-400' : 'text-white/40'}`} />
+                    <span className="text-xs text-white/55 leading-relaxed">{item}</span>
+                  </div>
+                ))}
+              </div>
+              {plan !== 'ultra' && (
+                <button onClick={() => router.push(plan === 'pro' ? '/upgrade?plan=ultra' : '/upgrade')}
+                  className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors">
+                  <Crown size={12} /> See what {plan === 'pro' ? 'Ultra' : 'Pro & Ultra'} add{plan === 'pro' ? 's' : ''} <ChevronRight size={11} />
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Usage bar */}
           {plan === 'free' && (
@@ -279,7 +378,9 @@ export default function SettingsPage() {
               </button>
             )}
 
-            {!confirmingCancel ? (
+            {sub.refundAmount <= 0 ? (
+              <p className="mt-3 pt-3 border-t border-white/5 text-[11px] text-white/40 leading-relaxed">{sub.reason}</p>
+            ) : !confirmingCancel ? (
               <button onClick={() => setConfirmingCancel(true)}
                 className="w-full mt-3 py-2.5 rounded-xl border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all text-xs font-medium flex items-center justify-center gap-1.5">
                 <XCircle size={13} /> Cancel plan
@@ -287,13 +388,7 @@ export default function SettingsPage() {
             ) : (
               <div className="mt-3 pt-3 border-t border-white/5">
                 <p className="text-xs text-white/60 leading-relaxed mb-1">
-                  {sub.refundAmount > 0 ? (
-                    sub.fullRefund
-                      ? <>You're within the 7-day money-back window. Cancelling refunds the full <b className="text-emerald-400">{formatRefund(sub)}</b> to your original payment method.</>
-                      : <>You've used {sub.usedDays} of {sub.totalDays} days. Cancelling now refunds <b className="text-emerald-400">{formatRefund(sub)}</b> for the {sub.unusedDays} unused day{sub.unusedDays !== 1 ? 's' : ''}, to your original payment method in 5–7 business days.</>
-                  ) : (
-                    <>{sub.reason} Cancelling will switch you to the Free plan immediately.</>
-                  )}
+                  <>You're within the <b className="text-white/80">24-hour refund window</b>. Cancelling refunds the full <b className="text-emerald-400">{formatRefund(sub)}</b> to your original payment method in 5–7 business days.</>
                 </p>
                 <p className="text-[11px] text-white/30 mb-3">Your plan ends immediately — this can't be undone.</p>
                 <div className="flex gap-2">
@@ -384,6 +479,31 @@ export default function SettingsPage() {
           </button>
         </div>
 
+        {/* ✅ Notifications — working toggles, no more "coming soon" */}
+        <div className="glass rounded-2xl border border-white/8 p-5 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+              <Bell size={14} className="text-sky-400" />
+            </div>
+            <p className="text-sm text-white/80 font-semibold">Notifications</p>
+          </div>
+          {[
+            { label: 'Plan renewal reminders', sub: 'A banner in your workspace during the last 5 days of a paid plan', on: notifRenewal, toggle: toggleRenewalNotif, busy: false },
+            { label: 'Product updates by email', sub: `New features & creator tips to ${user?.email || 'your email'} — no spam, ever`, on: notifEmail, toggle: toggleEmailNotif, busy: notifEmailBusy },
+          ].map((row) => (
+            <div key={row.label} className="flex items-center justify-between gap-3 py-2.5 border-t border-white/5 first:border-t-0">
+              <div className="min-w-0">
+                <p className="text-xs text-white/75 font-medium">{row.label}</p>
+                <p className="text-[11px] text-white/35 truncate">{row.sub}</p>
+              </div>
+              <button onClick={row.toggle} disabled={row.busy} aria-label={`Toggle ${row.label}`}
+                className={`relative w-10 h-5.5 h-6 rounded-full transition-colors flex-shrink-0 ${row.on ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-white/10'} disabled:opacity-60`}>
+                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${row.on ? 'left-[18px]' : 'left-0.5'}`} />
+              </button>
+            </div>
+          ))}
+        </div>
+
         {/* Settings sections */}
         {[
           {
@@ -397,7 +517,6 @@ export default function SettingsPage() {
             title: 'Preferences',
             items: [
               { icon: Palette, label: 'Appearance', sub: 'Dark mode — always on, the CRÉO way', action: null },
-              { icon: Bell, label: 'Notifications', sub: 'Coming soon', action: null },
             ]
           },
           {
