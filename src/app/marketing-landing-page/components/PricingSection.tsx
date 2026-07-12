@@ -27,7 +27,7 @@ export default function PricingSection() {
       audience: 'For creators serious about growth.',
       price: { monthly: locale.proRaw, yearly: Math.round(locale.proRaw * 0.75) }, priceLabel: '/ per month',
       cta: 'Get Pro', ctaStyle: 'primary', icon: Zap, highlight: true, border: 'border-purple-500/30',
-      features: ['100 generations per day', 'Brutal Reviewer — script scoring & fixes', 'Content Expansion Engine — 1 idea → full pack', 'All durations including custom', 'AI Assistant unlocked', 'Smart editing (rewrite, shorten)', 'Multi-platform optimization', 'No watermark', 'Priority support'],
+      features: ['100 generations per day', 'Brutal Reviewer — script scoring & fixes', 'Content Expansion Engine — 1 idea → full pack', 'Script-to-Shot Planner — filmable shot lists', 'Content Resurrection — old content, new life', 'All durations including custom', 'AI Assistant unlocked', 'Smart editing (rewrite, shorten)', 'Multi-platform optimization', 'No watermark', 'Priority support'],
       locked: [],
       roadmap: [],
     },
@@ -36,7 +36,7 @@ export default function PricingSection() {
       audience: 'For creators building something bigger than themselves.',
       price: { monthly: locale.ultraRaw, yearly: Math.round(locale.ultraRaw * 0.75) }, priceLabel: '/ per month',
       cta: 'Go Ultra', ctaStyle: 'gold', icon: Crown, highlight: false, border: 'border-pink-500/20',
-      features: ['Unlimited generations', 'Creator Memory & Brain — AI that writes in YOUR voice', 'Competitor Intelligence — clone any viral framework', 'Brutal Reviewer — script scoring & fixes', 'Content Expansion Engine — 1 idea → full pack', 'Priority AI responses', 'Advanced tone & script control', 'Smart AI editing (live rewrites)', 'Early access to new features'],
+      features: ['Unlimited generations', 'Creator Memory & Brain — AI that writes in YOUR voice', 'Competitor Intelligence — clone any viral framework', 'Audience Simulator — test viewer reactions first', 'Content Risk Detector — find retention leaks first', 'Brutal Reviewer — script scoring & fixes', 'Content Expansion Engine — 1 idea → full pack', 'Priority AI responses', 'Advanced tone & script control', 'Early access to new features'],
       locked: [],
       roadmap: [],
     },
@@ -154,7 +154,7 @@ export default function PricingSection() {
 
         <p className="text-center text-white/30 text-xs mt-8">
           <Sparkles size={11} className="inline mr-1 text-purple-400" />
-          All paid plans include a 7-day money-back guarantee. No questions asked.
+          All paid plans include a 24-hour full-refund guarantee. No questions asked.
         </p>
       </div>
     </section>
