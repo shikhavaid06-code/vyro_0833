@@ -171,7 +171,7 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
             🎁 Or invite a friend — earn +1 free generation every day, forever
           </button>
 
-          <p className="text-center text-[10px] text-white/25 mt-3">7-day money-back guarantee · Cancel anytime</p>
+          <p className="text-center text-[10px] text-white/25 mt-3">24-hour refund guarantee · No auto-renewal</p>
         </div>
       </div>
     </div>
