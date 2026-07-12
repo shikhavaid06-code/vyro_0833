@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
-// ✅ CANCELLATION + PRORATED REFUND SYSTEM
+// ✅ CANCELLATION + 24-HOUR REFUND SYSTEM
 // GET  → preview: current plan, period end date, and the exact refund the
 //        user would get if they cancelled right now (no side effects).
-// POST → actually cancel: issues the prorated refund via Razorpay's Refunds
+// POST → actually cancel: issues the full refund via Razorpay's Refunds
 //        API, then immediately downgrades the profile to 'free'.
 //
-// Policy (matches /terms section 5):
-// - Within the first 7 days of a paid period → FULL refund (money-back guarantee).
-// - After that → prorated refund for unused FULL days. Pay for 30 days,
-//   cancel on day 26 → 4 unused days refunded. The day you cancel on counts
-//   as used.
-// - Downgrade to Free is immediate on cancellation.
-// - Refund is issued to the original payment method (5–7 business days).
+// Policy (matches /terms section 5 and /refunds):
+// - Within 24 HOURS of purchase → FULL refund + immediate downgrade to Free.
+// - After 24 hours → payments are non-refundable. Since plans never
+//   auto-renew, nothing needs cancelling: the plan simply stays active
+//   until its end date and then returns to Free (daily cron handles it).
+// - Refunds go to the original payment method (5–7 business days).
 //
 // Order of operations on POST is deliberate: refund FIRST, downgrade SECOND.
 // If the refund API fails, we do NOT downgrade — the user keeps what they
@@ -52,7 +51,7 @@ interface RefundQuote {
   unusedDays: number;
   totalDays: number;
   usedDays: number;
-  fullRefund: boolean;         // true when inside the 7-day money-back window
+  fullRefund: boolean;         // true when inside the 24-hour refund window
   paymentId: string | null;
   reason: string;              // human-readable explanation of the quote
 }
@@ -117,19 +116,19 @@ async function computeRefundQuote(userId: string): Promise<{ quote?: RefundQuote
   const usedDays = Math.min(totalDays, Math.max(1, Math.ceil((now - periodStart) / DAY_MS)));
   const unusedDays = Math.max(0, totalDays - usedDays);
 
-  const fullRefund = usedDays <= 7 && refundable > 0; // 7-day money-back guarantee
-  let refundSmallest = fullRefund
-    ? refundable
-    : Math.min(refundable, Math.floor((amount * unusedDays) / totalDays));
+  // ✅ 24-HOUR REFUND WINDOW — full refund within 24h of purchase, nothing after.
+  const REFUND_WINDOW_MS = 24 * 60 * 60 * 1000;
+  const withinWindow = now - periodStart <= REFUND_WINDOW_MS;
+  const fullRefund = withinWindow && refundable > 0;
+  let refundSmallest = fullRefund ? refundable : 0;
   if (payment.status !== 'captured') refundSmallest = 0; // nothing capturable to refund
 
+  const endDateLabel = new Date(periodEnd).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   const reason = fullRefund
-    ? `You're within the 7-day money-back window — full refund of ${toMajorUnit(refundable, currency)} ${currency}.`
-    : refundSmallest > 0
-      ? `${unusedDays} of ${totalDays} days unused — prorated refund.`
-      : now >= periodEnd
-        ? 'Your paid period has already ended — nothing left to refund.'
-        : 'No refundable amount remains on this payment.';
+    ? `You're within the 24-hour refund window — full refund of ${toMajorUnit(refundable, currency)} ${currency}.`
+    : now >= periodEnd
+      ? 'Your paid period has already ended.'
+      : `The 24-hour refund window has passed — no refund is available. Your plan stays active until ${endDateLabel} and won't renew or charge you again.`;
 
   return {
     quote: {
@@ -176,6 +175,16 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error }, { status: status || 500 });
     const q = quote!;
 
+    // ✅ Past the 24-hour window there is nothing to cancel: no refund is due
+    // and the plan doesn't auto-renew, so it simply runs to its end date.
+    // Refusing here protects users from pointlessly losing paid days.
+    if (q.paymentId && q.refundAmountSmallest <= 0) {
+      return NextResponse.json(
+        { error: q.reason || 'The 24-hour refund window has passed — your plan stays active until its end date and will not renew.' },
+        { status: 400 },
+      );
+    }
+
     // 1. Refund first (only if there is something to refund).
     //
     // ✅ FIX for Razorpay "invalid request sent" (BAD_REQUEST_ERROR): keep the
@@ -202,13 +211,13 @@ export async function POST(req: NextRequest) {
       };
 
       // Full refund → omit amount (refunds the full remaining automatically).
-      // Partial (prorated) refund → amount in the currency's smallest unit.
+      // (kept for safety — with the 24h policy this is always a full refund)
       const baseBody: Record<string, unknown> = q.fullRefund ? {} : { amount: q.refundAmountSmallest };
 
       let { res: refundRes, data: refund } = await doRefund({
         ...baseBody,
         notes: {
-          reason: q.fullRefund ? 'money_back_guarantee' : 'prorated_cancellation',
+          reason: 'within_24h_refund_window',
           userId,
           unusedDays: String(q.unusedDays),
           totalDays: String(q.totalDays),
