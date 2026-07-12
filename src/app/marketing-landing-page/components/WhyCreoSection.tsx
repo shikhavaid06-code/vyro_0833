@@ -37,7 +37,7 @@ const faqs = [
   },
   {
     q: 'Can I cancel anytime?',
-    a: 'Yes. Cancel whenever you want, and every paid plan includes a 7-day money-back guarantee — no questions asked.',
+    a: 'Plans never auto-renew — when your paid period ends you simply return to Free unless you choose to renew. Changed your mind right after buying? Every paid plan includes a 24-hour full-refund window: cancel within 24 hours of purchase for your money back, no questions asked.',
   },
   {
     q: 'Which platforms does CRÉO write for?',
