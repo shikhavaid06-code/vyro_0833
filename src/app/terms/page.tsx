@@ -47,9 +47,9 @@ export default function TermsPage() {
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Prices are displayed in your local currency where supported and may vary by region.</li>
               <li>Paid plans do <b className="text-white/80">not</b> auto-renew and we never charge your payment method automatically. When your paid period ends, your account simply returns to the Free plan unless you choose to renew from the Upgrade page.</li>
-              <li>You may cancel at any time from Settings. Cancellation takes effect immediately: your account switches to the Free plan and we automatically refund you the prorated value of the unused full days remaining in your paid period, back to your original payment method (typically within 5–7 business days).</li>
-              <li>7-day money-back guarantee: if you cancel within 7 days of purchasing a paid plan, you receive a full refund of that payment instead of a prorated one.</li>
-              <li>Refund amounts are calculated automatically per day: for example, cancelling a 30-day plan on day 26 refunds the value of the 4 unused days. The day on which you cancel counts as a used day.</li>
+              <li>24-hour refund window: you may cancel from Settings within <b className="text-white/80">24 hours</b> of purchasing a paid plan for a full, automatic refund of that payment to your original payment method (typically within 5–7 business days). Cancellation within this window takes effect immediately.</li>
+              <li>After the 24-hour window, payments are non-refundable. Because plans never auto-renew, no cancellation is needed: your plan simply remains active until the end of its paid period and your account then returns to the Free plan automatically.</li>
+              <li>Upgrading from Pro to Ultra mid-period automatically credits the unused days of your Pro payment back to you when the Ultra payment completes.</li>
               <li>We reserve the right to change pricing with reasonable advance notice; changes will not apply retroactively to an already-paid period.</li>
             </ul>
           </section>
