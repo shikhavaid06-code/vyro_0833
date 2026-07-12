@@ -45,6 +45,8 @@ export default function ChatAppLayout() {
   useEffect(() => {
     (async () => {
       try {
+        // Turned off in Settings → Notifications? Respect it.
+        if (localStorage.getItem('creo_notif_renewal') === 'off') return;
         // Dismissed today already? Stay quiet until tomorrow.
         if (localStorage.getItem(RENEW_DISMISS_KEY) === new Date().toISOString().slice(0, 10)) return;
         const { data: { session } } = await supabase.auth.getSession();
