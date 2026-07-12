@@ -7,8 +7,8 @@ import AppLogo from '@/components/ui/AppLogo';
 // ✅ STANDALONE REFUND & CANCELLATION POLICY — payment-gateway reviewers
 // (Razorpay) require this as its own page, not buried inside the Terms.
 // It describes EXACTLY what the code does (see /api/subscription): no
-// auto-renewal, instant cancellation, automatic prorated refunds, 7-day
-// full money-back. Nothing promised here that isn't implemented.
+// auto-renewal, and a 24-hour full-refund window after purchase. Nothing
+// promised here that isn't implemented.
 export default function RefundsPage() {
   const router = useRouter();
   return (
@@ -31,18 +31,18 @@ export default function RefundsPage() {
           </section>
 
           <section>
-            <h2 className="text-white font-semibold text-base mb-3">2. Cancelling your plan</h2>
-            <p>You can cancel at any time from <a href="/settings" className="text-purple-400 hover:text-purple-300">Settings</a> in the app — no emails, no forms, no waiting. Cancellation takes effect immediately: your account switches to the Free plan and your refund (if applicable) is initiated automatically in the same step.</p>
+            <h2 className="text-white font-semibold text-base mb-3">2. The 24-hour refund window</h2>
+            <p>If you change your mind within <b className="text-white/80">24 hours</b> of purchasing a paid plan, cancel from <a href="/settings" className="text-purple-400 hover:text-purple-300">Settings</a> in the app — no emails, no forms, no waiting. Cancellation takes effect immediately: your account switches to the Free plan and the <b className="text-white/80">full payment</b> is refunded automatically in the same step.</p>
           </section>
 
           <section>
-            <h2 className="text-white font-semibold text-base mb-3">3. 7-day money-back guarantee</h2>
-            <p>If you cancel within 7 days of purchasing a paid plan, you receive a <b className="text-white/80">full refund</b> of that payment — no questions asked.</p>
+            <h2 className="text-white font-semibold text-base mb-3">3. After 24 hours</h2>
+            <p>Once the 24-hour window has passed, payments are <b className="text-white/80">non-refundable</b>. There is nothing you need to cancel: plans never auto-renew, so your plan simply stays active until the end of the period you paid for, and your account then returns to the Free plan automatically. You are never charged again without making a new payment yourself.</p>
           </section>
 
           <section>
-            <h2 className="text-white font-semibold text-base mb-3">4. Prorated refunds after 7 days</h2>
-            <p>After the 7-day window, cancelling refunds the <b className="text-white/80">prorated value of the unused full days</b> remaining in your paid period, calculated automatically per day. Example: cancel a 30-day plan on day 26 and the value of the 4 unused days is refunded. The day you cancel on counts as a used day.</p>
+            <h2 className="text-white font-semibold text-base mb-3">4. Why this policy</h2>
+            <p>CRÉO is usable at full power from minute one — generations, reviews, and exports all happen instantly. The 24-hour window gives you a genuine, risk-free chance to confirm the plan is right for you, while keeping the policy simple: <b className="text-white/80">one day to decide, full money back, zero questions</b>.</p>
           </section>
 
           <section>
