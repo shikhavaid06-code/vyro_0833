@@ -10,8 +10,8 @@ const InstagramIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fil
 
 // ✅ Real CRÉO accounts — wired 2026-07 (were placeholder platform homepages).
 const socialLinks = [
-  { SocialIcon: TwitterIcon, label: 'Twitter', href: 'https://x.com/YOUR_CREO_AI' },
-  { SocialIcon: YoutubeIcon, label: 'YouTube', href: 'https://www.youtube.com/@shikhavaid438' },
+  { SocialIcon: TwitterIcon, label: 'Twitter', href: 'https://x.com/getcreo' },
+  { SocialIcon: YoutubeIcon, label: 'YouTube', href: 'https://www.youtube.com/@getcreo' },
   { SocialIcon: InstagramIcon, label: 'Instagram', href: 'https://www.instagram.com/creo_.2026/' },
 ];
 
