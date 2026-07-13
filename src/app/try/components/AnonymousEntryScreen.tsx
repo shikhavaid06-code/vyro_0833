@@ -12,6 +12,15 @@ const LOADING_LINES = [
   'Extracting proven hook frameworks for your topic',
 ];
 
+// ✅ Same friendly-error guard as the sign-in page — raw "{}" never shown.
+function friendlyAuthError(message?: string | null): string {
+  const m = (message || '').trim();
+  if (!m || m === '{}' || m.startsWith('{')) {
+    return "We couldn't send the email right now — please try again in a minute.";
+  }
+  return m;
+}
+
 const LOADING_MS = 2000;
 const HANDOFF_KEY = 'creo_pending_handoff';
 
@@ -155,7 +164,7 @@ export default function AnonymousEntryScreen() {
       });
 
       if (authErr) {
-        setAuthError(authErr.message || 'Something went wrong. Please try again.');
+        setAuthError(friendlyAuthError(authErr.message));
         setAuthLoading(false);
         return;
       }
