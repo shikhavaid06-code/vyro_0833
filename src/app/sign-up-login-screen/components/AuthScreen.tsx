@@ -14,6 +14,16 @@ function formatCount(n: number): string {
   return `${n}`;
 }
 
+// ✅ Raw auth-server failures (e.g. a misconfigured SMTP provider) can come
+// back as useless strings like "{}" — never show those to a person.
+function friendlyAuthError(message?: string | null): string {
+  const m = (message || '').trim();
+  if (!m || m === '{}' || m.startsWith('{')) {
+    return "We couldn't send the email right now — please try again in a minute.";
+  }
+  return m;
+}
+
 export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -88,7 +98,7 @@ export default function AuthScreen() {
     try {
       const authError = await sendLink();
       if (authError) {
-        setError(authError.message || 'Something went wrong. Please try again.');
+        setError(friendlyAuthError(authError.message));
         setIsLoading(false);
         return;
       }
@@ -108,7 +118,7 @@ export default function AuthScreen() {
     setCodeError('');
     try {
       const authError = await sendLink();
-      if (authError) { setCodeError(authError.message); return; }
+      if (authError) { setCodeError(friendlyAuthError(authError.message)); return; }
       setResendCooldown(30);
     } catch {
       setCodeError('Could not resend — try again in a moment.');
