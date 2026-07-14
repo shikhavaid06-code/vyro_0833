@@ -31,28 +31,49 @@ export async function POST(req: NextRequest) {
 
     if (event === 'payment.captured') {
       const payment = payload.payload?.payment?.entity;
-      const notes = payment?.notes || {};
-      const { userId, plan, billing } = notes;
 
-      if (userId && plan && billing) {
-        const admin = getSupabaseAdmin();
+      // ✅ LIVE-MODE HARDENING: plan/billing/userId are read from the ORDER's
+      // notes, which only our create-order route ever writes — NOT from
+      // payment.notes, which Razorpay Checkout lets the client attach (a
+      // tampered browser could inject plan:"ultra" there). The order is the
+      // source of truth for what was actually bought.
+      if (payment?.id && payment.order_id) {
+        const keyId = process.env.RAZORPAY_KEY_ID;
+        const keySecret = process.env.RAZORPAY_KEY_SECRET;
+        let notes: Record<string, string> = {};
+        if (keyId && keySecret) {
+          const authHeader = `Basic ${Buffer.from(`${keyId}:${keySecret}`).toString('base64')}`;
+          const orderRes = await fetch(`https://api.razorpay.com/v1/orders/${payment.order_id}`, {
+            headers: { Authorization: authHeader },
+          });
+          const order = await orderRes.json().catch(() => null);
+          if (orderRes.ok && order?.id) notes = order.notes || {};
+          else console.error('webhook: order lookup failed:', JSON.stringify(order));
+        }
 
-        // ✅ PRO → ULTRA FAIR UPGRADE (webhook path — the safety net when the
-        // browser died before /verify ran). Same call as verify; the guards
-        // inside (old-payment-already-refunded, last_payment_id already
-        // updated) make it a no-op if verify handled it first.
-        await grantUpgradeCredit(admin, userId, plan, payment.id);
+        const { userId, plan, billing } = notes;
+        if (userId && ['pro', 'ultra'].includes(plan) && ['monthly', 'yearly'].includes(billing)) {
+          const admin = getSupabaseAdmin();
 
-        const { error } = await admin
-          .from('profiles')
-          .update({
-            plan,
-            subscription_end_date: addPeriod(billing as 'monthly' | 'yearly'),
-            last_payment_id: payment.id,
-          })
-          .eq('user_id', userId);
+          // ✅ PRO → ULTRA FAIR UPGRADE (webhook path — the safety net when the
+          // browser died before /verify ran). Same call as verify; the guards
+          // inside (old-payment-already-refunded, last_payment_id already
+          // updated) make it a no-op if verify handled it first.
+          await grantUpgradeCredit(admin, userId, plan, payment.id);
 
-        if (error) console.error('Webhook profile update error:', error.message);
+          const { error } = await admin
+            .from('profiles')
+            .update({
+              plan,
+              subscription_end_date: addPeriod(billing as 'monthly' | 'yearly'),
+              last_payment_id: payment.id,
+            })
+            .eq('user_id', userId);
+
+          if (error) console.error('Webhook profile update error:', error.message);
+        } else {
+          console.error('webhook: order notes missing/invalid for payment', payment.id, JSON.stringify(notes));
+        }
       }
     }
 
