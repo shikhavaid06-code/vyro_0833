@@ -16,20 +16,18 @@ export async function POST(req: NextRequest) {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      userId,
-      plan,
-      billing,
     } = await req.json();
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !userId || !plan || !billing) {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return NextResponse.json({ error: 'Missing payment details' }, { status: 400 });
     }
 
+    const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    if (!keySecret) return NextResponse.json({ error: 'Payments are not configured yet' }, { status: 500 });
+    if (!keyId || !keySecret) return NextResponse.json({ error: 'Payments are not configured yet' }, { status: 500 });
 
-    // ✅ This is the actual security check — confirms the payment really came
-    // from Razorpay and wasn't forged by someone calling this endpoint directly.
+    // ✅ Security check 1 — the signature proves this order/payment pair
+    // really came from Razorpay and wasn't forged by calling this endpoint.
     const expectedSignature = crypto
       .createHmac('sha256', keySecret)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -37,6 +35,50 @@ export async function POST(req: NextRequest) {
 
     if (expectedSignature !== razorpay_signature) {
       return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 });
+    }
+
+    // ✅ Security check 2 — LIVE-MODE HARDENING. The signature only proves the
+    // payment exists; it says nothing about WHICH plan was paid for. The old
+    // version trusted plan/billing/userId from the request body, which meant
+    // a paying Pro user could replay their valid signature with plan:"ultra"
+    // and self-upgrade for free. Now we fetch the payment from Razorpay and
+    // read plan/billing/userId from the ORDER NOTES we ourselves attached in
+    // create-order — the client's word is never the source of truth for money.
+    const authHeader = `Basic ${Buffer.from(`${keyId}:${keySecret}`).toString('base64')}`;
+    const payRes = await fetch(`https://api.razorpay.com/v1/payments/${razorpay_payment_id}`, {
+      headers: { Authorization: authHeader },
+    });
+    const payment = await payRes.json();
+    if (!payRes.ok || !payment?.id) {
+      console.error('verify: payment lookup failed:', JSON.stringify(payment));
+      return NextResponse.json({ error: 'Could not confirm your payment with the provider — please contact support' }, { status: 502 });
+    }
+    if (payment.order_id !== razorpay_order_id) {
+      return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 });
+    }
+    if (payment.status !== 'captured' && payment.status !== 'authorized') {
+      return NextResponse.json({ error: 'Payment is not complete yet — if you were charged, contact support' }, { status: 400 });
+    }
+
+    // The ORDER's notes were written by our own create-order route and can't
+    // be touched from the browser (payment.notes CAN be — Checkout lets the
+    // client attach notes to the payment). Orders are the source of truth.
+    const orderRes = await fetch(`https://api.razorpay.com/v1/orders/${razorpay_order_id}`, {
+      headers: { Authorization: authHeader },
+    });
+    const order = await orderRes.json();
+    if (!orderRes.ok || !order?.id) {
+      console.error('verify: order lookup failed:', JSON.stringify(order));
+      return NextResponse.json({ error: 'Could not confirm your order with the provider — please contact support' }, { status: 502 });
+    }
+
+    const notes = order.notes || {};
+    const userId: string | undefined = notes.userId;
+    const plan: string | undefined = notes.plan;
+    const billing: string | undefined = notes.billing;
+    if (!userId || !plan || !['pro', 'ultra'].includes(plan) || !['monthly', 'yearly'].includes(billing || '')) {
+      console.error('verify: order notes missing/invalid:', JSON.stringify(notes));
+      return NextResponse.json({ error: 'Payment succeeded but activating your plan failed — contact support' }, { status: 500 });
     }
 
     const admin = getSupabaseAdmin();
@@ -51,7 +93,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .update({
         plan,
-        subscription_end_date: addPeriod(billing),
+        subscription_end_date: addPeriod(billing as 'monthly' | 'yearly'),
         last_payment_id: razorpay_payment_id,
       })
       .eq('user_id', userId);
