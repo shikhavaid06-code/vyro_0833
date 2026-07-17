@@ -7,9 +7,9 @@ import AppLogo from '@/components/ui/AppLogo';
 // ✅ CONTACT PAGE — required by payment-gateway reviewers (Razorpay checks
 // for a reachable email, phone and address before activating live mode).
 // ⚠️ FILL THESE THREE VALUES with real details BEFORE submitting Razorpay KYC:
-const CONTACT_EMAIL = 'ranuvaid2013@gmail.com';
-const CONTACT_PHONE = '+91-XXXXXXXXXX';           // ← replace with a real reachable number
-const CONTACT_ADDRESS = 'Your street, City, State, PIN, India'; // ← replace with the registered address used in KYC
+const CONTACT_EMAIL = 'creo.app.ai@gmail.com';
+const CONTACT_PHONE = '+91-9086143557';
+const CONTACT_ADDRESS = 'H. No. 155, Sector 4, Trikuta Nagar, Jammu, Jammu & Kashmir, India'; // ⚠️ PIN code not provided yet — add when available
 
 export default function ContactPage() {
   const router = useRouter();
