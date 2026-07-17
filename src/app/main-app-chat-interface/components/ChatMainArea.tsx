@@ -338,16 +338,24 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       // the user isn't stuck looking logged in on this device.
     }
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('creo_current_user');
-      localStorage.removeItem('creo_session');
-      sessionStorage.removeItem('creo_session');
-      // Belt-and-suspenders: directly remove any lingering Supabase session
-      // token too, in case signOut()'s own storage write hadn't landed yet.
+      // ✅ FIX — sign-out used to only clear the auth flags (creo_current_user,
+      // creo_session, the Supabase token), leaving every other piece of this
+      // account's data — the whole chat history sidebar (creo_chat_history),
+      // every individual chat's messages (creo_chat_data_<id>), the Winning
+      // Vault, streak, and generation count — sitting in localStorage under
+      // plain global keys with no user id attached. The next person who
+      // signed in on the same browser inherited all of it. Now we wipe every
+      // creo_-prefixed key (current and future — anything the app adds later
+      // under this prefix is covered automatically) plus any Supabase auth
+      // token, so a fresh sign-in always starts from a truly empty slate.
       try {
         Object.keys(localStorage).forEach((k) => {
-          if (k.startsWith('sb-') && k.includes('-auth-token')) localStorage.removeItem(k);
+          if (k.startsWith('creo_') || (k.startsWith('sb-') && k.includes('-auth-token'))) {
+            localStorage.removeItem(k);
+          }
         });
       } catch {}
+      sessionStorage.removeItem('creo_session');
     }
     toast.success('Signed out');
     // Hard navigation, not router.push — see comment above.
