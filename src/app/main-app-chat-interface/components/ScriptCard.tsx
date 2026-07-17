@@ -4,7 +4,13 @@ import { Copy, Check, RefreshCw, Download, Wand2, ChevronDown, ChevronUp, Edit3,
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
-interface Props { script: string; }
+interface Props {
+  script: string;
+  onRegenerate?: () => void;
+  regenerating?: boolean;
+  onQuickCommand?: (cmd: string) => void;
+  busyCommand?: string | null;
+}
 
 // ✅ POWER TOOLS — every tool that operates on the generated script. Each is
 // gated server-side (see PREMIUM_TYPES in the generate route); the client just
@@ -50,13 +56,20 @@ const TOOL_CLASSES: Record<string, { btn: string; panel: string; header: string;
   amber: { btn: 'border-amber-500/20 text-amber-400/80 hover:text-amber-400 hover:bg-amber-500/10', panel: 'border-amber-500/25', header: 'bg-amber-500/5', text: 'text-amber-400' },
 };
 
-export default function ScriptCard({ script }: Props) {
+export default function ScriptCard({ script, onRegenerate, regenerating = false, onQuickCommand, busyCommand = null }: Props) {
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editedScript, setEditedScript] = useState(script);
   const [runningTool, setRunningTool] = useState<ToolKey | null>(null);
   const [results, setResults] = useState<Partial<Record<ToolKey, string>>>({});
+
+  // ✅ Keep the editable buffer in sync when the underlying script changes —
+  // e.g. after a "Regenerate" round-trip replaces this message's data. Without
+  // this, editedScript would keep showing the stale, first-render script.
+  React.useEffect(() => {
+    setEditedScript(script);
+  }, [script]);
 
   // ✅ One handler for every power tool — same auth, gating and error pattern
   // that Brutal Reviewer proved out. The server enforces the plan gate BEFORE
@@ -166,9 +179,20 @@ export default function ScriptCard({ script }: Props) {
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${editMode ? 'bg-violet-500/20 border border-violet-500/30 text-violet-300' : 'glass border border-white/8 text-white/40 hover:text-white/60'}`}>
               <Edit3 size={12} />{editMode ? 'Editing' : 'Edit'}
             </button>
-            <button onClick={() => toast.info('AI rewriting...')}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border border-white/8 text-xs font-medium text-white/40 hover:text-white/60 transition-all">
-              <RefreshCw size={12} />Regenerate
+            <button
+              onClick={() => {
+                if (regenerating) return;
+                if (onRegenerate) {
+                  onRegenerate();
+                } else {
+                  toast.info('AI rewriting...');
+                }
+              }}
+              disabled={regenerating}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border border-white/8 text-xs font-medium text-white/40 hover:text-white/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={12} className={regenerating ? 'animate-spin' : ''} />
+              {regenerating ? 'Regenerating...' : 'Regenerate'}
             </button>
           </div>
           <div className="flex items-center gap-1.5">
@@ -252,12 +276,26 @@ export default function ScriptCard({ script }: Props) {
       })}
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {['Make intro shorter', 'Add more emotion', 'Change outro CTA', 'Make it funnier', 'Add timestamps'].map((cmd) => (
-          <button key={cmd} onClick={() => toast.info(`Applying: "${cmd}"...`)}
-            className="px-3 py-1.5 rounded-full glass border border-white/8 text-xs text-white/45 hover:text-white/65 hover:border-white/15 transition-all">
-            {cmd}
-          </button>
-        ))}
+        {['Make intro shorter', 'Add more emotion', 'Change outro CTA', 'Make it funnier', 'Add timestamps'].map((cmd) => {
+          const isBusy = busyCommand === cmd;
+          return (
+            <button
+              key={cmd}
+              onClick={() => {
+                if (busyCommand) return;
+                if (onQuickCommand) {
+                  onQuickCommand(cmd);
+                } else {
+                  toast.info(`Applying: "${cmd}"...`);
+                }
+              }}
+              disabled={!!busyCommand}
+              className="px-3 py-1.5 rounded-full glass border border-white/8 text-xs text-white/45 hover:text-white/65 hover:border-white/15 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isBusy ? `Applying "${cmd}"...` : cmd}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
