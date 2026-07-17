@@ -14,7 +14,7 @@ import CreatorBrainModal from './CreatorBrainModal';
 import CompetitorIntelModal from './CompetitorIntelModal';
 
 type ChatStep = 'idle' | 'titles' | 'hooks' | 'script' | 'done';
-interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script'; content?: string; data?: unknown; timestamp: string; }
+interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script'; content?: string; data?: unknown; timestamp: string; idea?: string; forceType?: string; }
 
 const platforms = ['YouTube', 'TikTok', 'Instagram', 'Twitter/X'];
 const tones = ['Casual', 'Professional', 'Storytelling', 'Educational', 'Hype'];
@@ -196,6 +196,11 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // ✅ Streak — served by the API on every generation; cached for display.
   const [streak, setStreak] = useState(0);
   const [loaderMode, setLoaderMode] = useState<LoaderMode | null>(null);
+  // ✅ Regenerate / quick-command state — tracks which message (by id) is
+  // currently mid-request, so the right card can show a spinner and every
+  // other card stays clickable.
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [applyingCommand, setApplyingCommand] = useState<{ id: string; cmd: string } | null>(null);
   const [userName, setUserName] = useState('');
   const [greetingFn] = useState(() => greetings[Math.floor(Math.random() * greetings.length)]);
   const [promptSet] = useState(() => promptSets[Math.floor(Math.random() * promptSets.length)]);
@@ -288,7 +293,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       const hooks: string[] = Array.isArray(parsed?.hooks) ? parsed.hooks : [];
       if (topic && hooks.length) {
         addUserMessage(topic);
-        addAiMessage({ role: 'ai', type: 'hooks', content: '🪝 Here are 3 powerful hooks! Click the one that fits:', data: hooks });
+        addAiMessage({ role: 'ai', type: 'hooks', content: '🪝 Here are 3 powerful hooks! Click the one that fits:', data: hooks, idea: topic, forceType: 'hooks' });
         setSelectedTitle(topic);
         setStep('hooks');
         bumpGenCount();
@@ -382,6 +387,75 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     return r.json();
   };
 
+  // ✅ Powers every "Regenerate" button (titles/hooks/script cards). Reuses
+  // the exact idea/forceType that produced the message in the first place —
+  // captured on the message object at creation time — so a regenerate is a
+  // true re-roll of the same request, not a guess. This was previously a
+  // dead stub (`toast.info('Regenerating...')`) that never called the API.
+  const handleRegenerate = async (id: string) => {
+    const msg = messages.find((m) => m.id === id);
+    if (!msg || !msg.idea || !msg.forceType || regeneratingId) return;
+    if (!isProUser() && getGenCount() >= FREE_LIMIT) { setShowPaywall(true); return; }
+    setRegeneratingId(id);
+    try {
+      const data = await callApi(msg.idea, msg.forceType);
+      if (data?.upgradeRequired) {
+        toast.info(data.message || 'That feature needs an upgrade!');
+        router.push('/upgrade');
+        return;
+      }
+      if (data?.limitReached) { setShowPaywall(true); return; }
+      let newData: unknown = null;
+      if (msg.forceType === 'titles' && Array.isArray(data?.titles) && data.titles.length > 0) newData = data.titles;
+      else if (msg.forceType === 'hooks' && Array.isArray(data?.hooks) && data.hooks.length > 0) newData = data.hooks;
+      else if (typeof data?.result === 'string' && data.result) newData = data.result;
+      if (!newData) {
+        toast.error(data?.message || 'Regeneration failed — try again in a moment.');
+        return;
+      }
+      syncStreak(data);
+      bumpGenCount();
+      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, data: newData } : m)));
+      toast.success('Regenerated!');
+    } catch {
+      toast.error('Regeneration failed — try again in a moment.');
+    } finally {
+      setRegeneratingId(null);
+    }
+  };
+
+  // ✅ Powers ScriptCard's quick-command chips ("Make intro shorter", etc.),
+  // previously also a dead stub. Sends the current script + the instruction
+  // back through /api/generate as a script rewrite and swaps the result in.
+  const handleQuickCommand = async (id: string, cmd: string) => {
+    const msg = messages.find((m) => m.id === id);
+    if (!msg || typeof msg.data !== 'string' || applyingCommand) return;
+    if (!isProUser() && getGenCount() >= FREE_LIMIT) { setShowPaywall(true); return; }
+    setApplyingCommand({ id, cmd });
+    try {
+      const idea = `Here is an existing video script:\n\n"""\n${msg.data}\n"""\n\nInstruction: ${cmd}. Rewrite the FULL script applying this instruction, keeping the same topic, structure and length otherwise.`;
+      const data = await callApi(idea, 'script');
+      if (data?.upgradeRequired) {
+        toast.info(data.message || 'That feature needs an upgrade!');
+        router.push('/upgrade');
+        return;
+      }
+      if (data?.limitReached) { setShowPaywall(true); return; }
+      if (typeof data?.result !== 'string' || !data.result) {
+        toast.error(data?.message || 'Failed to apply — try again in a moment.');
+        return;
+      }
+      syncStreak(data);
+      bumpGenCount();
+      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, data: data.result } : m)));
+      toast.success(`Applied: "${cmd}"`);
+    } catch {
+      toast.error('Failed to apply — try again in a moment.');
+    } finally {
+      setApplyingCommand(null);
+    }
+  };
+
   const handleSendWithText = useCallback(async (overrideText?: string) => {
     const userInput = (overrideText ?? inputValue).trim();
     if (!userInput) return;
@@ -400,7 +474,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           return;
         }
         syncStreak(data);
-        addAiMessage({ role: 'ai', type: 'titles', content: '🎯 Here are 6 viral titles! Click the one you love:', data: data.titles });
+        addAiMessage({ role: 'ai', type: 'titles', content: '🎯 Here are 6 viral titles! Click the one you love:', data: data.titles, idea: userInput, forceType: 'titles' });
         setStep('titles'); bumpGenCount();
         if (onChatSaved) onChatSaved(userInput, selectedPlatforms[0]);
         return;
@@ -415,11 +489,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           return;
         }
         syncStreak(data);
-        addAiMessage({ role: 'ai', type: 'hooks', content: '🪝 Here are 3 powerful hooks! Click the one that fits:', data: data.hooks });
+        addAiMessage({ role: 'ai', type: 'hooks', content: '🪝 Here are 3 powerful hooks! Click the one that fits:', data: data.hooks, idea: userInput, forceType: 'hooks' });
         setStep('hooks'); bumpGenCount(); return;
       }
       if (step === 'hooks') {
-        const data = await callApi(`Title: "${selectedTitle}". Hook: "${userInput}". Platform: ${selectedPlatforms.join(', ')}. Tone: ${selectedTone}. Duration: ${selectedDuration}.`, 'script');
+        const scriptIdea = `Title: "${selectedTitle}". Hook: "${userInput}". Platform: ${selectedPlatforms.join(', ')}. Tone: ${selectedTone}. Duration: ${selectedDuration}.`;
+        const data = await callApi(scriptIdea, 'script');
         setIsTyping(false);
         if (data?.limitReached) { setShowPaywall(true); return; }
         if (typeof data?.result !== 'string' || !data.result) {
@@ -427,11 +502,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           return;
         }
         syncStreak(data);
-        addAiMessage({ role: 'ai', type: 'script', content: '📝 Here is your full script!', data: data.result });
+        addAiMessage({ role: 'ai', type: 'script', content: '📝 Here is your full script!', data: data.result, idea: scriptIdea, forceType: 'script' });
         setStep('done'); bumpGenCount(); return;
       }
       if (step === 'done') {
-        const data = await callApi(`Topic: "${selectedTitle}". Request: "${userInput}". Tone: ${selectedTone}.`, 'script');
+        const refineIdea = `Topic: "${selectedTitle}". Request: "${userInput}". Tone: ${selectedTone}.`;
+        const data = await callApi(refineIdea, 'script');
         setIsTyping(false);
         if (data?.limitReached) { setShowPaywall(true); return; }
         if (typeof data?.result !== 'string' || !data.result) {
@@ -439,7 +515,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           return;
         }
         syncStreak(data);
-        addAiMessage({ role: 'ai', type: 'script', content: '✨ Refined script!', data: data.result });
+        addAiMessage({ role: 'ai', type: 'script', content: '✨ Refined script!', data: data.result, idea: refineIdea, forceType: 'script' });
         bumpGenCount(); return;
       }
     } catch { setIsTyping(false); addAiMessage({ role: 'ai', type: 'text', content: 'Something went wrong. Please try again!' }); }
@@ -468,7 +544,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         return;
       }
       syncStreak(data);
-      addAiMessage({ role: 'ai', type: 'script', content: '🧩 Your full content pack — one idea, every platform!', data: data.result });
+      addAiMessage({ role: 'ai', type: 'script', content: '🧩 Your full content pack — one idea, every platform!', data: data.result, idea: topic, forceType: 'expand' });
       bumpGenCount();
     } catch {
       setIsTyping(false);
@@ -638,19 +714,25 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               {msg.type === 'titles' && (
                 <div className="w-full">
                   <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Zap size={12} className="text-purple-400" />{msg.content}</p>
-                  <TitleCards titles={msg.data as string[]} onSelect={handleTitleSelect} topic={selectedTitle} platform={selectedPlatforms[0]} plan={currentPlan()} />
+                  <TitleCards titles={msg.data as string[]} onSelect={handleTitleSelect} topic={selectedTitle} platform={selectedPlatforms[0]} plan={currentPlan()}
+                    onRegenerate={() => handleRegenerate(msg.id)} regenerating={regeneratingId === msg.id} />
                 </div>
               )}
               {msg.type === 'hooks' && (
                 <div className="w-full">
                   <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Flame size={12} className="text-pink-400" />{msg.content}</p>
-                  <HookCards hooks={msg.data as string[]} onSelect={handleHookSelect} topic={selectedTitle} platform={selectedPlatforms[0]} plan={currentPlan()} />
+                  <HookCards hooks={msg.data as string[]} onSelect={handleHookSelect} topic={selectedTitle} platform={selectedPlatforms[0]} plan={currentPlan()}
+                    onRegenerate={() => handleRegenerate(msg.id)} regenerating={regeneratingId === msg.id} />
                 </div>
               )}
               {msg.type === 'script' && (
                 <div className="w-full">
                   <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Star size={12} className="text-violet-400" />{msg.content}</p>
-                  <ScriptCard script={msg.data as string} />
+                  <ScriptCard script={msg.data as string}
+                    onRegenerate={msg.idea && msg.forceType ? () => handleRegenerate(msg.id) : undefined}
+                    regenerating={regeneratingId === msg.id}
+                    onQuickCommand={(cmd) => handleQuickCommand(msg.id, cmd)}
+                    busyCommand={applyingCommand?.id === msg.id ? applyingCommand.cmd : null} />
                 </div>
               )}
             </div>
