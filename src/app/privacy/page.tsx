@@ -107,7 +107,7 @@ export default function PrivacyPage() {
               <li><strong className="text-white/80">Withdraw consent:</strong> Where processing is based on consent, withdraw it at any time</li>
               <li><strong className="text-white/80">Non-discrimination (CCPA):</strong> California residents will not receive discriminatory treatment for exercising privacy rights</li>
             </ul>
-            <p className="mt-2">To exercise any of these rights, email <a href="mailto:ranuvaid2013@gmail.com" className="text-purple-400 hover:text-purple-300">ranuvaid2013@gmail.com</a>. We will respond to verified requests within 30 days, or as required by applicable law. You may also delete your account directly from Settings at any time.</p>
+            <p className="mt-2">To exercise any of these rights, email <a href="mailto:creo.app.ai@gmail.com" className="text-purple-400 hover:text-purple-300">creo.app.ai@gmail.com</a>. We will respond to verified requests within 30 days, or as required by applicable law. You may also delete your account directly from Settings at any time.</p>
           </section>
 
           <section>
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-white font-semibold text-base mb-3">11. Children's Privacy</h2>
-            <p>CRÉO is not directed to children under the age of 13, and we do not knowingly collect personal information from children under 13. If we become aware that we have inadvertently collected personal data from a child under 13 without verified parental consent, we will take steps to delete that information promptly. Parents or guardians who believe their child has provided us with personal data should contact <a href="mailto:ranuvaid2013@gmail.com" className="text-purple-400 hover:text-purple-300">ranuvaid2013@gmail.com</a>.</p>
+            <p>CRÉO is not directed to children under the age of 13, and we do not knowingly collect personal information from children under 13. If we become aware that we have inadvertently collected personal data from a child under 13 without verified parental consent, we will take steps to delete that information promptly. Parents or guardians who believe their child has provided us with personal data should contact <a href="mailto:creo.app.ai@gmail.com" className="text-purple-400 hover:text-purple-300">creo.app.ai@gmail.com</a>.</p>
           </section>
 
           <section>
@@ -132,7 +132,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-white font-semibold text-base mb-3">14. Contact Us</h2>
-            <p>If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us at <a href="mailto:ranuvaid2013@gmail.com" className="text-purple-400 hover:text-purple-300">ranuvaid2013@gmail.com</a>. We aim to respond to all privacy-related inquiries within 7 business days.</p>
+            <p>If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us at <a href="mailto:creo.app.ai@gmail.com" className="text-purple-400 hover:text-purple-300">creo.app.ai@gmail.com</a>. We aim to respond to all privacy-related inquiries within 7 business days.</p>
           </section>
 
         </div>
