@@ -1,44 +1,85 @@
-// ✅ Single source of truth for regional pricing. Each region has its own
-// deliberately-chosen amount (not an FX conversion) so the price *feels*
-// right for that region's cost of living — e.g. $14 reads as normal in the
-// US, while the India price is calibrated separately, not $14 converted.
-export interface RegionPricing {
-  region: string;       // key used by the checkout API to look up the real charge amount
-  currency: string;     // ISO 4217 code — what Razorpay is actually asked to charge
-  symbol: string;
-  pro: string; ultra: string;       // display strings
-  proRaw: number; ultraRaw: number; // numeric amount in the currency's major unit (e.g. dollars, not cents)
+import { NextRequest, NextResponse } from 'next/server';
+import { REGION_PRICES } from '@/lib/pricing';
+
+// JPY has no minor unit (no "cents" equivalent) — everything else here does.
+const ZERO_DECIMAL_CURRENCIES = new Set(['JPY']);
+function toSmallestUnit(amount: number, currency: string): number {
+  return ZERO_DECIMAL_CURRENCIES.has(currency) ? amount : Math.round(amount * 100);
 }
 
-export const REGION_PRICES: Record<string, RegionPricing> = {
-  IN: { region: 'IN', currency: 'INR', symbol: '₹', pro: '100', ultra: '2,000', proRaw: 100, ultraRaw: 2000 }, // ⚠️ TEMP: Pro dropped from 1,000 to 100 for a live payment test — revert before real launch pricing.
-  JP: { region: 'JP', currency: 'JPY', symbol: '¥', pro: '1,480', ultra: '4,480', proRaw: 1480, ultraRaw: 4480 },
-  CN: { region: 'CN', currency: 'CNY', symbol: '¥', pro: '98', ultra: '298', proRaw: 98, ultraRaw: 298 },
-  EU: { region: 'EU', currency: 'EUR', symbol: '€', pro: '12', ultra: '35', proRaw: 12, ultraRaw: 35 },
-  AE: { region: 'AE', currency: 'AED', symbol: 'AED', pro: '49', ultra: '149', proRaw: 49, ultraRaw: 149 },
-  SG: { region: 'SG', currency: 'SGD', symbol: 'S$', pro: '18', ultra: '52', proRaw: 18, ultraRaw: 52 },
-  US: { region: 'US', currency: 'USD', symbol: '$', pro: '14', ultra: '39', proRaw: 14, ultraRaw: 39 },
-};
+async function createRazorpayOrder(amountSmallestUnit: number, currency: string, receipt: string, notes: Record<string, string>, keyId: string, keySecret: string) {
+  const auth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+  const res = await fetch('https://api.razorpay.com/v1/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Basic ${auth}` },
+    body: JSON.stringify({ amount: amountSmallestUnit, currency, receipt, notes }),
+  });
+  const data = await res.json();
+  return { ok: res.ok, data };
+}
 
-export function detectRegion(): string {
+export async function POST(req: NextRequest) {
   try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz.includes('Asia/Kolkata') || tz.includes('Asia/Calcutta')) return 'IN';
-    if (tz.includes('Asia/Tokyo') || tz.includes('Asia/Osaka')) return 'JP';
-    if (tz.includes('Asia/Shanghai') || tz.includes('Asia/Hong_Kong')) return 'CN';
-    if (tz.includes('Europe')) return 'EU';
-    if (tz.includes('Asia/Dubai') || tz.includes('Asia/Riyadh')) return 'AE';
-    if (tz.includes('Asia/Singapore') || tz.includes('Asia/Kuala_Lumpur')) return 'SG';
-  } catch {}
-  return 'US';
-}
+    const { plan, billing, userId, region } = await req.json();
 
-// ✅ Kept as the function every existing component already calls —
-// same return shape as before (symbol/pro/ultra/proRaw/ultraRaw), now also
-// carrying `region` and `currency` for the checkout flow to use.
-export function getLocalePricing(): RegionPricing {
-  return REGION_PRICES[detectRegion()];
-}
+    if (!['pro', 'ultra'].includes(plan) || !['monthly', 'yearly'].includes(billing) || !userId) {
+      return NextResponse.json({ error: 'Invalid plan, billing cycle, or missing user' }, { status: 400 });
+    }
 
-// Backward-compatible export — used by anything that just wants the India numbers.
-export const INR_PRICES = { pro: REGION_PRICES.IN.proRaw, ultra: REGION_PRICES.IN.ultraRaw };
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      return NextResponse.json({ error: 'Payments are not configured yet' }, { status: 500 });
+    }
+
+    // ✅ Region-calibrated pricing (PPP-style, not FX-converted) — the amount
+    // is looked up server-side from the region key only. The client never
+    // gets to send an amount directly.
+    const regionData = REGION_PRICES[region] || REGION_PRICES.US;
+    const monthlyAmount = plan === 'pro' ? regionData.proRaw : regionData.ultraRaw;
+    const amount = billing === 'yearly' ? Math.round(monthlyAmount * 12 * 0.75) : monthlyAmount;
+    const receipt = `creo_${plan}_${billing}_${Date.now()}`;
+    const notes = { userId, plan, billing, region: regionData.region };
+
+    // ✅ Try the visitor's real regional currency first.
+    let { ok, data } = await createRazorpayOrder(toSmallestUnit(amount, regionData.currency), regionData.currency, receipt, notes, keyId, keySecret);
+    let fallbackUsed = false;
+    let chargedCurrency = regionData.currency;
+    let chargedAmount = amount;
+
+    // ✅ If the account isn't approved for that currency yet (common until
+    // Razorpay's International Payments is enabled beyond basic KYC), fall
+    // back to the real INR price — never a converted number, the actual
+    // India price — and be upfront with the user about it on the frontend.
+    if (!ok && regionData.currency !== 'INR') {
+      const inr = REGION_PRICES.IN;
+      const inrAmount = plan === 'pro' ? inr.proRaw : inr.ultraRaw;
+      const fallbackAmount = billing === 'yearly' ? Math.round(inrAmount * 12 * 0.75) : inrAmount;
+      const retry = await createRazorpayOrder(toSmallestUnit(fallbackAmount, 'INR'), 'INR', receipt, { ...notes, fallback: 'true' }, keyId, keySecret);
+      ok = retry.ok;
+      data = retry.data;
+      fallbackUsed = true;
+      chargedCurrency = 'INR';
+      chargedAmount = fallbackAmount;
+    }
+
+    if (!ok) {
+      console.error('Razorpay order error:', data);
+      return NextResponse.json({ error: data.error?.description || 'Could not create order' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      orderId: data.id,
+      amount: data.amount,
+      currency: data.currency,
+      keyId,
+      fallbackUsed,
+      displayCurrency: regionData.currency,
+      chargedCurrency,
+      chargedAmount,
+    });
+  } catch (err) {
+    console.error('create-order error:', err);
+    return NextResponse.json({ error: 'Something went wrong creating your order' }, { status: 500 });
+  }
+}
