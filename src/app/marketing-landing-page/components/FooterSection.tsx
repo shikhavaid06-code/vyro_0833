@@ -20,7 +20,7 @@ const socialLinks = [
   { SocialIcon: DiscordIcon, label: 'Discord community', href: DISCORD_INVITE },
 ];
 
-const CONTACT_EMAIL = 'ranuvaid2013@gmail.com';
+const CONTACT_EMAIL = 'creo.app.ai@gmail.com';
 
 // ✅ FIXED: these were mailto: links, which silently fail (or open a broken
 // handler page) on any computer without a configured mail app — most of them.
