@@ -33,7 +33,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-white font-semibold text-base mb-3">3. Your Account</h2>
-            <p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You agree to notify us promptly at <a href="mailto:ranuvaid2013@gmail.com" className="text-purple-400 hover:text-purple-300">ranuvaid2013@gmail.com</a> if you suspect unauthorised use of your account. We are not liable for any loss arising from unauthorised access resulting from your failure to safeguard your credentials.</p>
+            <p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You agree to notify us promptly at <a href="mailto:creo.app.ai@gmail.com" className="text-purple-400 hover:text-purple-300">creo.app.ai@gmail.com</a> if you suspect unauthorised use of your account. We are not liable for any loss arising from unauthorised access resulting from your failure to safeguard your credentials.</p>
           </section>
 
           <section>
@@ -104,7 +104,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-white font-semibold text-base mb-3">14. Contact Us</h2>
-            <p>If you have questions about these Terms, please contact us at <a href="mailto:ranuvaid2013@gmail.com" className="text-purple-400 hover:text-purple-300">ranuvaid2013@gmail.com</a>.</p>
+            <p>If you have questions about these Terms, please contact us at <a href="mailto:creo.app.ai@gmail.com" className="text-purple-400 hover:text-purple-300">creo.app.ai@gmail.com</a>.</p>
           </section>
 
         </div>
