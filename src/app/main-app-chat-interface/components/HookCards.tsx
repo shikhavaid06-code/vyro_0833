@@ -10,9 +10,11 @@ interface Props {
   topic?: string;
   platform?: string;
   plan?: string;
+  onRegenerate?: () => void;
+  regenerating?: boolean;
 }
 
-export default function HookCards({ hooks, onSelect, topic = '', platform = '', plan = 'free' }: Props) {
+export default function HookCards({ hooks, onSelect, topic = '', platform = '', plan = 'free', onRegenerate, regenerating = false }: Props) {
   const [selectedHook, setSelectedHook] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [savedIndex, setSavedIndex] = useState<number[]>([]);
@@ -85,8 +87,20 @@ export default function HookCards({ hooks, onSelect, topic = '', platform = '', 
           </div>
         ))}
       </div>
-      <button onClick={() => toast.info('Regenerating hooks...')} className="mt-2 flex items-center gap-1.5 text-xs text-white/35 hover:text-white/55 transition-colors">
-        <RefreshCw size={12} />Regenerate hooks
+      <button
+        onClick={() => {
+          if (regenerating) return;
+          if (onRegenerate) {
+            onRegenerate();
+          } else {
+            toast.info('Regenerating hooks...');
+          }
+        }}
+        disabled={regenerating}
+        className="mt-2 flex items-center gap-1.5 text-xs text-white/35 hover:text-white/55 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <RefreshCw size={12} className={regenerating ? 'animate-spin' : ''} />
+        {regenerating ? 'Regenerating...' : 'Regenerate hooks'}
       </button>
     </div>
   );
