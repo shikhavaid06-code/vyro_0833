@@ -9,7 +9,7 @@ import AppLogo from '@/components/ui/AppLogo';
 // ⚠️ FILL THESE THREE VALUES with real details BEFORE submitting Razorpay KYC:
 const CONTACT_EMAIL = 'creo.app.ai@gmail.com';
 const CONTACT_PHONE = '+91-9086143557';
-const CONTACT_ADDRESS = 'H. No. 155, Sector 4, Trikuta Nagar, Jammu, Jammu & Kashmir, India'; // ⚠️ PIN code not provided yet — add when available
+const CONTACT_ADDRESS = 'H. No. 155, Sector 4, Trikuta Nagar, Jammu, Jammu & Kashmir 180020, India';
 
 export default function ContactPage() {
   const router = useRouter();
