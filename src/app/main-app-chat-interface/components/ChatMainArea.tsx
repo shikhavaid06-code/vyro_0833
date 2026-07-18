@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot } from 'lucide-react';
+import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot, Check, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -204,6 +204,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [userName, setUserName] = useState('');
   const [greetingFn] = useState(() => greetings[Math.floor(Math.random() * greetings.length)]);
   const [promptSet] = useState(() => promptSets[Math.floor(Math.random() * promptSets.length)]);
+  // ✅ Referral nudge — same program that already lives in Settings
+  // (/api/referral), just surfaced at the moment it actually converts: right
+  // after someone sees a finished script, not buried in a settings page
+  // nobody opens on day one.
+  const [referral, setReferral] = useState<{ code: string; referrals: number } | null>(null);
+  const [refCopied, setRefCopied] = useState(false);
 
   // ✅ FIXED: this counter never reset — a free user was permanently paywalled
   // after 3 lifetime generations, even though the server (correctly) allows
@@ -237,6 +243,31 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); if (u.name) setUserName(u.name.split(' ')[0]); } catch {}
     try { setStreak(parseInt(localStorage.getItem('creo_streak') || '0')); } catch {}
   }, []);
+
+  // ✅ Load (and lazily create) this user's referral code once, in the
+  // background — same endpoint Settings already calls. Silently no-ops for
+  // logged-out/anonymous "try it free" visitors, since /api/referral
+  // requires a session; the nudge below just won't render for them.
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) return;
+        const res = await fetch('/api/referral', { headers: { Authorization: `Bearer ${session.access_token}` } });
+        const d = await res.json();
+        if (d?.code) setReferral({ code: d.code, referrals: d.referrals || 0 });
+      } catch {}
+    })();
+  }, []);
+
+  const referralLink = referral?.code ? `${typeof window !== 'undefined' ? window.location.origin : ''}/?ref=${referral.code}` : '';
+  const handleCopyReferral = () => {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink).catch(() => {});
+    setRefCopied(true);
+    toast.success('Referral link copied!');
+    setTimeout(() => setRefCopied(false), 2000);
+  };
 
   // ✅ CHAT HISTORY FIX — previous chats were listed in the sidebar but could
   // never be reopened (nothing stored the messages). Now every chat's full
@@ -757,11 +788,23 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       {/* ✅ Expand suggestion — appears once a script exists */}
       {step === 'done' && !isTyping && (
         <div className="flex-shrink-0 px-3 md:px-6 pb-1">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto flex flex-wrap items-center gap-2">
             <button onClick={handleExpand}
               className="flex items-center gap-2 px-3.5 py-2 rounded-full glass border border-emerald-500/25 text-xs font-medium text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all animate-slide-up">
               <Layers size={13} />Expand this idea — hooks, Shorts, thread & more<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25">PRO</span>
             </button>
+            {/* ✅ Referral nudge — same moment as the upsell above: right after
+                someone sees a finished script, i.e. right after CRÉO just
+                proved its value. Only renders for a logged-in user who has a
+                code (silently absent for anonymous "try it free" visitors). */}
+            {referral?.code && (
+              <button onClick={handleCopyReferral}
+                title={referralLink}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full glass border border-purple-500/25 text-xs font-medium text-purple-300/80 hover:text-purple-200 hover:bg-purple-500/10 transition-all animate-slide-up">
+                {refCopied ? <Check size={13} /> : <Gift size={13} />}
+                {refCopied ? 'Link copied!' : 'Know a creator who needs this? Invite them — get +1 free generation/day'}
+              </button>
+            )}
           </div>
         </div>
       )}
