@@ -11,7 +11,7 @@ export interface RegionPricing {
 }
 
 export const REGION_PRICES: Record<string, RegionPricing> = {
-  IN: { region: 'IN', currency: 'INR', symbol: '₹', pro: '100', ultra: '2,000', proRaw: 100, ultraRaw: 2000 }, // ⚠️ TEMP: Pro dropped from 1,000 to 100 for a live payment test — revert before real launch pricing.
+  IN: { region: 'IN', currency: 'INR', symbol: '₹', pro: '1,000', ultra: '2,000', proRaw: 1000, ultraRaw: 2000 },
   JP: { region: 'JP', currency: 'JPY', symbol: '¥', pro: '1,480', ultra: '4,480', proRaw: 1480, ultraRaw: 4480 },
   CN: { region: 'CN', currency: 'CNY', symbol: '¥', pro: '98', ultra: '298', proRaw: 98, ultraRaw: 298 },
   EU: { region: 'EU', currency: 'EUR', symbol: '€', pro: '12', ultra: '35', proRaw: 12, ultraRaw: 35 },
