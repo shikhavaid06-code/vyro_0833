@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import '../styles/tailwind.css';
 import { Toaster } from 'sonner';
+import { Analytics } from '@vercel/analytics/react';
 import CookieConsent from '@/components/ui/CookieConsent';
 import RefCapture from '@/components/ui/RefCapture';
 
@@ -48,6 +49,11 @@ export default function RootLayout({
         {children}
         <RefCapture />
         <CookieConsent />
+        {/* ✅ Vercel Analytics — cookieless page-view + visitor tracking so we
+            can see real traffic → signup numbers instead of guessing. Shows
+            up automatically in the Vercel dashboard's Analytics tab once
+            deployed, no extra setup needed. */}
+        <Analytics />
         <Toaster
           position="bottom-right"
           toastOptions={{
