@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/react';
 import CookieConsent from '@/components/ui/CookieConsent';
 import RefCapture from '@/components/ui/RefCapture';
+import PwaRegister from '@/components/ui/PwaRegister';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -54,6 +55,7 @@ export default function RootLayout({
             up automatically in the Vercel dashboard's Analytics tab once
             deployed, no extra setup needed. */}
         <Analytics />
+        <PwaRegister />
         <Toaster
           position="bottom-right"
           toastOptions={{
