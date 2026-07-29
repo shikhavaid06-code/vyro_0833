@@ -14,7 +14,7 @@ import CreatorBrainModal from './CreatorBrainModal';
 import CompetitorIntelModal from './CompetitorIntelModal';
 
 type ChatStep = 'idle' | 'titles' | 'hooks' | 'script' | 'done';
-interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script'; content?: string; data?: unknown; timestamp: string; idea?: string; forceType?: string; }
+interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script' | 'clarify'; content?: string; data?: unknown; timestamp: string; idea?: string; forceType?: string; }
 
 const platforms = ['YouTube', 'TikTok', 'Instagram', 'Twitter/X'];
 const tones = ['Casual', 'Professional', 'Storytelling', 'Educational', 'Hype'];
@@ -166,6 +166,13 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
             </button>
           </div>
 
+          {/* ✅ Yearly-billing nudge — prices above are monthly; most people
+              never learn the 25%-off yearly option exists until /upgrade,
+              so surface it here too, right where the price is already top of mind. */}
+          <button onClick={() => router.push('/upgrade')} className="w-full mt-2.5 flex items-center justify-center gap-1 text-[11px] text-white/35 hover:text-white/55 transition-colors">
+            🎉 Save 25% with yearly billing
+          </button>
+
           {/* Free alternative — honest, and it fuels the referral loop */}
           <button onClick={() => router.push('/settings')} className="w-full mt-3 flex items-center justify-center gap-1.5 text-[11px] text-emerald-400/80 hover:text-emerald-300 transition-colors">
             🎁 Or invite a friend — earn +1 free generation every day, forever
@@ -210,6 +217,14 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // nobody opens on day one.
   const [referral, setReferral] = useState<{ code: string; referrals: number } | null>(null);
   const [refCopied, setRefCopied] = useState(false);
+
+  // ✅ Clarifying-question flow — when the raw idea is too vague for strong
+  // titles (e.g. "fitness video"), the server asks ONE sharp question back
+  // instead of generating generic ones. This holds the original idea while
+  // we wait for the answer, so the next input can be merged into it and
+  // sent with skipClarify — CRÉO never asks twice for the same idea, and
+  // asking never costs a generation (only the merged, real attempt does).
+  const [pendingClarify, setPendingClarify] = useState<{ idea: string } | null>(null);
 
   // ✅ FIXED: this counter never reset — a free user was permanently paywalled
   // after 3 lifetime generations, even though the server (correctly) allows
@@ -413,7 +428,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // looks up the actual plan/usage itself. This is the authoritative check;
   // the client-side pre-check below is just an optimization to avoid an
   // obviously-wasted round trip.
-  const callApi = async (idea: string, forceType: string) => {
+  const callApi = async (idea: string, forceType: string, skipClarify = false) => {
     const { data: { session } } = await supabase.auth.getSession();
     const r = await fetch('/api/generate', {
       method: 'POST',
@@ -421,7 +436,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         'Content-Type': 'application/json',
         ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
       },
-      body: JSON.stringify({ idea, forceType }),
+      body: JSON.stringify({ idea, forceType, skipClarify }),
     });
     return r.json();
   };
@@ -504,9 +519,37 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     setIsTyping(true);
     try {
       if (step === 'idle') {
+        // ✅ This input answers a clarifying question CRÉO just asked — merge
+        // it into the original idea and force real generation (skipClarify),
+        // so it can't loop into asking a second time.
+        if (pendingClarify) {
+          const mergedIdea = `${pendingClarify.idea} — ${userInput}`;
+          setPendingClarify(null);
+          const data = await callApi(mergedIdea, 'titles', true);
+          setIsTyping(false);
+          if (data?.limitReached) { setShowPaywall(true); return; }
+          if (!Array.isArray(data?.titles) || data.titles.length === 0) {
+            addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
+            return;
+          }
+          syncStreak(data);
+          addAiMessage({ role: 'ai', type: 'titles', content: '🎯 Here are 6 viral titles! Click the one you love:', data: data.titles, idea: mergedIdea, forceType: 'titles' });
+          setStep('titles'); bumpGenCount();
+          if (onChatSaved) onChatSaved(mergedIdea, selectedPlatforms[0]);
+          return;
+        }
+
         const data = await callApi(userInput, 'titles');
         setIsTyping(false);
         if (data?.limitReached) { setShowPaywall(true); return; }
+        // ✅ The idea is too vague for strong titles — CRÉO asks ONE sharp
+        // question back instead of generating generic ones. Free (doesn't
+        // touch gen count/streak) until the real, merged attempt below.
+        if (data?.type === 'clarify' && data?.question) {
+          addAiMessage({ role: 'ai', type: 'clarify', content: data.question, data: Array.isArray(data.options) ? data.options : [], idea: userInput, forceType: 'titles' });
+          setPendingClarify({ idea: userInput });
+          return;
+        }
         // ✅ Graceful failure — previously a failed generation rendered broken empty cards.
         if (!Array.isArray(data?.titles) || data.titles.length === 0) {
           addAiMessage({ role: 'ai', type: 'text', content: data?.message || '⚠️ CRÉO is at capacity right now — give it a minute and try again.' });
@@ -596,6 +639,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const handleHookSelect = useCallback((h: string) => handleSendWithText(h), [handleSendWithText]);
 
   const getPlaceholder = () => {
+    if (pendingClarify) return 'Type your answer, or tap an option above...';
     if (step === 'idle') return 'What is your video about? e.g. "5 AI tools for students"';
     if (step === 'titles') return 'Or type a title manually...';
     if (step === 'hooks') return 'Or type a hook manually...';
@@ -604,6 +648,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   };
 
   const getStepLabel = () => {
+    if (pendingClarify) return 'One quick question...';
     if (step === 'idle') return 'New chat';
     if (step === 'titles') return 'Pick a title';
     if (step === 'hooks') return 'Pick a hook';
@@ -762,6 +807,21 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                   <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Flame size={12} className="text-pink-400" />{msg.content}</p>
                   <HookCards hooks={msg.data as string[]} onSelect={handleHookSelect} topic={selectedTitle} platform={selectedPlatforms[0]} plan={currentPlan()}
                     onRegenerate={() => handleRegenerate(msg.id)} regenerating={regeneratingId === msg.id} />
+                </div>
+              )}
+              {msg.type === 'clarify' && (
+                <div className="w-full max-w-md glass border border-purple-500/15 rounded-2xl rounded-bl-sm px-4 py-3.5">
+                  <p className="text-white/75 text-sm mb-2.5 flex items-center gap-1.5"><Sparkles size={12} className="text-purple-400 flex-shrink-0" />{msg.content}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(msg.data as string[]).map((opt, oi) => (
+                      <button key={`${msg.id}-opt-${oi}`} onClick={() => handleSendWithText(opt)}
+                        style={{ animationDelay: `${oi * 80}ms`, animationFillMode: 'both' }}
+                        className="px-3.5 py-2 rounded-full bg-white/[0.03] border border-purple-500/20 text-xs font-medium text-white/70 hover:text-white hover:border-purple-500/40 hover:bg-purple-500/10 transition-all animate-slide-up">
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-white/25 mt-2.5">Or just type your own answer below ↓</p>
                 </div>
               )}
               {msg.type === 'script' && (
