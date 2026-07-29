@@ -257,6 +257,22 @@ function memoryBlock(memory: Record<string, string> | null): string {
 // generation type instead of leaving it to chance — closing the exact gap
 // flagged before pursuing the regional-language creator niche alongside the
 // current one.
+// ✅ CODE-MIXED LANGUAGE SUPPORT — real Hindi/Tamil/Telugu/etc. creator
+// content is almost never "pure" formal language; it's naturally code-mixed
+// with English the way people actually talk (e.g. "mere pass time nahi hai"
+// keeps "time" in English inside an otherwise Hindi sentence). The language
+// selector sends a value like "Hindi + English" for this — this helper
+// detects that "<Base> + English" shape so both the clarify prompt and the
+// main generation prompt can ask for authentic code-mixing instead of
+// (wrongly) translating every English word into the base language.
+function parseMixedLanguage(lang: string): { base: string } | null {
+  const m = /^(.+?)\s*\+\s*english$/i.exec(lang.trim());
+  if (!m) return null;
+  const base = m[1].trim();
+  if (!base || base.toLowerCase() === 'english') return null; // "English + English" isn't a real mix
+  return { base };
+}
+
 // ✅ Explicit override (from the language selector in ChatMainArea.tsx) always
 // wins when set; "auto" (or anything unrecognized/missing) falls back to
 // detect-and-match, so old clients that never send `language` keep working
@@ -264,6 +280,11 @@ function memoryBlock(memory: Record<string, string> | null): string {
 function languageInstruction(explicitLanguage?: string): string {
   const lang = typeof explicitLanguage === 'string' ? explicitLanguage.trim() : '';
   if (lang && lang.toLowerCase() !== 'auto' && lang.toLowerCase() !== 'auto-detect') {
+    const mixed = parseMixedLanguage(lang);
+    if (mixed) {
+      const { base } = mixed;
+      return `LANGUAGE: The creator has explicitly chosen "${base} + English" as the output style. Write ENTIRELY in natural, everyday ${base}-English code-mixed speech — the way real ${base}-speaking creators actually talk online, NOT pure/formal ${base} and NOT pure English. Blend common English words and phrases naturally into ${base} sentences exactly like a native speaker casually mixes them — for example, in Hindi+English this looks like "mere pass time nahi hai" (where "time" stays in English inside an otherwise Hindi sentence). Never force-translate everyday English words (like "time", "phone", "video", "content", "story", "trending") into ${base} if a real creator would naturally just say them in English — that's the whole point of this style. Write the ${base} portions in ${base}'s native script, not transliterated/Roman script. This applies regardless of what language the creator's input below happens to be written in. Titles, hooks, scripts — everything should sound like an authentic ${base}+English creator, not a textbook.\n\n`;
+    }
     return `LANGUAGE: The creator has explicitly chosen "${lang}" as the output language. Respond ENTIRELY in ${lang}, in its native script — not transliterated, not English, not a mix — titles, hooks, scripts, everything, as fluently as a native speaker working in that industry would write it. This applies regardless of what language the creator's input below happens to be written in. Never switch languages mid-response.\n\n`;
   }
   return `LANGUAGE: First, detect the language the creator's input below is written in. If it's English, respond entirely in English as usual. If it's any other language (Hindi, Tamil, Telugu, Marathi, Bengali, Kannada, or any other), respond ENTIRELY in that same language, in its native script — not transliterated, not English, not a mix — titles, hooks, scripts, everything, as fluently as a native speaker working in that industry would write it. Never switch languages mid-response.\n\n`;
@@ -279,6 +300,7 @@ function languageInstruction(explicitLanguage?: string): string {
 function buildClarifyPrompt(idea: string, language?: string): string {
   const lang = typeof language === 'string' ? language.trim() : '';
   const hasExplicitLanguage = lang && lang.toLowerCase() !== 'auto' && lang.toLowerCase() !== 'auto-detect';
+  const mixed = hasExplicitLanguage ? parseMixedLanguage(lang) : null;
   return `You are CRÉO's pre-generation content strategist. A creator just typed this raw video idea: "${idea}"
 
 Decide: is this specific enough to write 6 strong, targeted video titles right now, or is it too vague/broad (no clear angle, audience, or specific claim)?
@@ -292,7 +314,9 @@ Rules:
 - When true, "question" is ONE short, specific, friendly question that would most sharpen this idea into something title-worthy — asking for the angle, the audience, or the single biggest takeaway. Never a generic "can you clarify?".
 - When true, "options" is exactly 3 short (2-6 word) concrete, distinct answer choices to that question, so a creator can tap one instead of typing. Never add a 4th "other" option — the app adds that automatically.
 - Language: ${hasExplicitLanguage
-    ? `the creator has explicitly chosen "${lang}" as their output language — write the "question" and "options" values ENTIRELY in ${lang}, native script, regardless of what language the idea above is written in.`
+    ? mixed
+      ? `the creator has explicitly chosen "${mixed.base} + English" as their output style — write the "question" and "options" values in natural ${mixed.base}-English code-mixed speech, the way a real ${mixed.base}-speaking creator casually talks (blend common English words naturally into ${mixed.base} sentences — e.g. "mere pass time nahi hai" keeps "time" in English — don't force-translate everyday English words into ${mixed.base}), ${mixed.base} portions in native script, regardless of what language the idea above is written in.`
+      : `the creator has explicitly chosen "${lang}" as their output language — write the "question" and "options" values ENTIRELY in ${lang}, native script, regardless of what language the idea above is written in.`
     : `detect the language the idea itself is written in. If the idea is in Hindi/Tamil/Telugu/Marathi/Bengali/any other language, write the "question" and "options" values in that SAME language, native script — not English, not transliterated. If the idea is in English, respond in English.`
   } (The JSON keys/structure stay exactly as shown above either way.)
 - NEVER use: ${BANNED_PHRASES}`;
