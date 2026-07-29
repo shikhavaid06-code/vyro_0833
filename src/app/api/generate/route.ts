@@ -45,6 +45,7 @@ const MODEL_FOR: Record<string, string> = {
   titles: "gemini-2.5-flash-lite",
   hooks: "gemini-2.5-flash-lite",
   assistant: "gemini-2.5-flash-lite",
+  clarify: "gemini-2.5-flash-lite", // tiny JSON judgment call — cheapest model, matches titles/hooks
   script: "gemini-2.5-flash",
   review: "gemini-2.5-flash",
   expand: "gemini-2.5-flash",
@@ -58,6 +59,7 @@ const MAX_TOKENS_FOR: Record<string, number> = {
   titles: 512,
   hooks: 512,
   assistant: 512,
+  clarify: 300, // just a short JSON object
   script: 4096, // generous cap so long scripts never truncate, but a runaway response can't blow the token budget
   review: 4096,
   expand: 6144, // a full multi-platform content pack is long by design
@@ -246,6 +248,49 @@ function memoryBlock(memory: Record<string, string> | null): string {
     .map(([k, v]) => `- ${k}: ${v.trim().slice(0, 500)}`);
   if (lines.length === 0) return '';
   return `CREATOR PROFILE — you are writing for this specific creator. Match their world exactly:\n${lines.join('\n')}\n\n`;
+}
+
+// ✅ PRE-GENERATION CLARITY CHECK (titles step only) — a vague idea like
+// "fitness video" or "make a video about money" produces generic, forgettable
+// titles no matter how good the prompting is. Instead of guessing, ask ONE
+// sharp question first — same instinct as a good human editor. This is a
+// tiny, cheap Flash-Lite call (JSON only, ~300 tokens) that only fires when
+// the idea genuinely lacks an angle, audience, or specific claim; anything
+// already specific skips straight to titles exactly like before.
+function buildClarifyPrompt(idea: string): string {
+  return `You are CRÉO's pre-generation content strategist. A creator just typed this raw video idea: "${idea}"
+
+Decide: is this specific enough to write 6 strong, targeted video titles right now, or is it too vague/broad (no clear angle, audience, or specific claim)?
+
+Respond with ONLY valid JSON, no markdown code fences, no extra commentary, in exactly this shape:
+{"needsClarification": boolean, "question": string, "options": [string, string, string]}
+
+Rules:
+- If the idea already has a clear angle, audience, or specific claim (e.g. "5 AI tools that saved me 10 hours a week as a college student"), set needsClarification to false and leave question as "" and options as [].
+- If the idea is generic or broad (e.g. "fitness video", "content about cooking", "make a video", "something about money"), set needsClarification to true.
+- When true, "question" is ONE short, specific, friendly question that would most sharpen this idea into something title-worthy — asking for the angle, the audience, or the single biggest takeaway. Never a generic "can you clarify?".
+- When true, "options" is exactly 3 short (2-6 word) concrete, distinct answer choices to that question, so a creator can tap one instead of typing. Never add a 4th "other" option — the app adds that automatically.
+- NEVER use: ${BANNED_PHRASES}`;
+}
+
+interface ClarifyResult { needsClarification: boolean; question: string; options: string[] }
+
+// Gemini sometimes wraps JSON in ```json fences despite instructions — strip
+// them before parsing. Any parse failure fails OPEN (no clarification) so a
+// formatting hiccup never blocks a generation the user is waiting on.
+function parseClarifyJson(text: string): ClarifyResult | null {
+  try {
+    const cleaned = text.trim().replace(/^```(json)?/i, '').replace(/```$/, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (typeof parsed?.needsClarification !== 'boolean') return null;
+    return {
+      needsClarification: parsed.needsClarification,
+      question: typeof parsed.question === 'string' ? parsed.question : '',
+      options: Array.isArray(parsed.options) ? parsed.options.filter((o: unknown) => typeof o === 'string' && o.trim().length > 0) : [],
+    };
+  } catch {
+    return null;
+  }
 }
 
 function buildPrompt(forceType: string, idea: string, memory: Record<string, string> | null): string {
@@ -502,6 +547,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const idea: string = body.idea || "make a video";
     const forceType: string = body.forceType || "script";
+    // ✅ Set true on the follow-up call once the user has already answered a
+    // clarifying question (see below) — guarantees CRÉO only ever asks once
+    // per idea instead of looping.
+    const skipClarify: boolean = body.skipClarify === true;
 
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -524,7 +573,9 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Limit check happens before any Gemini call — a blocked request
-    // shouldn't cost anything.
+    // shouldn't cost anything. NOTE: recordUsage (which actually spends the
+    // credit) is deferred past the clarify check below — asking a
+    // clarifying question must never cost the user a generation.
     let streak = 0;
     if (profile) {
       if (profile.currentCount >= profile.limit) {
@@ -533,7 +584,6 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
-      streak = await recordUsage(profile);
     } else {
       // Anonymous (no token or invalid/expired token) — IP-capped trial.
       const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -541,6 +591,31 @@ export async function POST(req: NextRequest) {
       if (!allowed) {
         return NextResponse.json({ error: 'limit_reached', limitReached: true, plan: 'anonymous' }, { status: 403 });
       }
+    }
+
+    // ✅ CLARIFYING QUESTION — only at the very first "blank page" moment
+    // (forceType 'titles'), only once per idea (skipClarify guards the
+    // follow-up call after the user answers), and only after the limit
+    // check above so a blocked user can't rack up free classifier calls.
+    // Doesn't touch recordUsage/streak — if this fires, nothing is spent.
+    if (forceType === 'titles' && !skipClarify) {
+      const clarifyGen = await callGemini(buildClarifyPrompt(idea), 'clarify');
+      if (clarifyGen.ok) {
+        const parsed = parseClarifyJson(clarifyGen.text);
+        if (parsed?.needsClarification && parsed.question) {
+          return NextResponse.json({
+            type: 'clarify',
+            question: parsed.question,
+            options: parsed.options.slice(0, 3),
+          });
+        }
+      }
+      // Parsed as "specific enough", or the classifier call itself failed —
+      // fail open and generate titles normally either way.
+    }
+
+    if (profile) {
+      streak = await recordUsage(profile);
     }
 
     const prompt = buildPrompt(forceType, idea, profile?.memory ?? null);
