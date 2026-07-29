@@ -257,7 +257,17 @@ function memoryBlock(memory: Record<string, string> | null): string {
 // generation type instead of leaving it to chance — closing the exact gap
 // flagged before pursuing the regional-language creator niche alongside the
 // current one.
-const LANGUAGE_INSTRUCTION = `LANGUAGE: First, detect the language the creator's input below is written in. If it's English, respond entirely in English as usual. If it's any other language (Hindi, Tamil, Telugu, Marathi, Bengali, Kannada, or any other), respond ENTIRELY in that same language, in its native script — not transliterated, not English, not a mix — titles, hooks, scripts, everything, as fluently as a native speaker working in that industry would write it. Never switch languages mid-response.\n\n`;
+// ✅ Explicit override (from the language selector in ChatMainArea.tsx) always
+// wins when set; "auto" (or anything unrecognized/missing) falls back to
+// detect-and-match, so old clients that never send `language` keep working
+// exactly as before.
+function languageInstruction(explicitLanguage?: string): string {
+  const lang = typeof explicitLanguage === 'string' ? explicitLanguage.trim() : '';
+  if (lang && lang.toLowerCase() !== 'auto' && lang.toLowerCase() !== 'auto-detect') {
+    return `LANGUAGE: The creator has explicitly chosen "${lang}" as the output language. Respond ENTIRELY in ${lang}, in its native script — not transliterated, not English, not a mix — titles, hooks, scripts, everything, as fluently as a native speaker working in that industry would write it. This applies regardless of what language the creator's input below happens to be written in. Never switch languages mid-response.\n\n`;
+  }
+  return `LANGUAGE: First, detect the language the creator's input below is written in. If it's English, respond entirely in English as usual. If it's any other language (Hindi, Tamil, Telugu, Marathi, Bengali, Kannada, or any other), respond ENTIRELY in that same language, in its native script — not transliterated, not English, not a mix — titles, hooks, scripts, everything, as fluently as a native speaker working in that industry would write it. Never switch languages mid-response.\n\n`;
+}
 
 // ✅ PRE-GENERATION CLARITY CHECK (titles step only) — a vague idea like
 // "fitness video" or "make a video about money" produces generic, forgettable
@@ -266,7 +276,9 @@ const LANGUAGE_INSTRUCTION = `LANGUAGE: First, detect the language the creator's
 // tiny, cheap Flash-Lite call (JSON only, ~300 tokens) that only fires when
 // the idea genuinely lacks an angle, audience, or specific claim; anything
 // already specific skips straight to titles exactly like before.
-function buildClarifyPrompt(idea: string): string {
+function buildClarifyPrompt(idea: string, language?: string): string {
+  const lang = typeof language === 'string' ? language.trim() : '';
+  const hasExplicitLanguage = lang && lang.toLowerCase() !== 'auto' && lang.toLowerCase() !== 'auto-detect';
   return `You are CRÉO's pre-generation content strategist. A creator just typed this raw video idea: "${idea}"
 
 Decide: is this specific enough to write 6 strong, targeted video titles right now, or is it too vague/broad (no clear angle, audience, or specific claim)?
@@ -279,7 +291,10 @@ Rules:
 - If the idea is generic or broad (e.g. "fitness video", "content about cooking", "make a video", "something about money"), set needsClarification to true.
 - When true, "question" is ONE short, specific, friendly question that would most sharpen this idea into something title-worthy — asking for the angle, the audience, or the single biggest takeaway. Never a generic "can you clarify?".
 - When true, "options" is exactly 3 short (2-6 word) concrete, distinct answer choices to that question, so a creator can tap one instead of typing. Never add a 4th "other" option — the app adds that automatically.
-- Language: detect the language the idea itself is written in. If the idea is in Hindi/Tamil/Telugu/Marathi/Bengali/any other language, write the "question" and "options" values in that SAME language, native script — not English, not transliterated. If the idea is in English, respond in English. (The JSON keys/structure stay exactly as shown above either way.)
+- Language: ${hasExplicitLanguage
+    ? `the creator has explicitly chosen "${lang}" as their output language — write the "question" and "options" values ENTIRELY in ${lang}, native script, regardless of what language the idea above is written in.`
+    : `detect the language the idea itself is written in. If the idea is in Hindi/Tamil/Telugu/Marathi/Bengali/any other language, write the "question" and "options" values in that SAME language, native script — not English, not transliterated. If the idea is in English, respond in English.`
+  } (The JSON keys/structure stay exactly as shown above either way.)
 - NEVER use: ${BANNED_PHRASES}`;
 }
 
@@ -303,11 +318,11 @@ function parseClarifyJson(text: string): ClarifyResult | null {
   }
 }
 
-function buildPrompt(forceType: string, idea: string, memory: Record<string, string> | null): string {
+function buildPrompt(forceType: string, idea: string, memory: Record<string, string> | null, language?: string): string {
   const mem = memoryBlock(memory);
 
   if (forceType === "titles") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are a YouTube title strategist who studies what actually gets clicked. Generate exactly 6 viral YouTube titles for this topic: "${idea}".
+    return `${languageInstruction(language)}${mem}You are a YouTube title strategist who studies what actually gets clicked. Generate exactly 6 viral YouTube titles for this topic: "${idea}".
 Rules:
 - Each title on a new line
 - No numbering, no bullet points, no extra text
@@ -318,7 +333,7 @@ Rules:
   }
 
   if (forceType === "hooks") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are a YouTube hook writer who studies audience retention. Generate exactly 3 opening hooks for a YouTube video titled: "${idea}".
+    return `${languageInstruction(language)}${mem}You are a YouTube hook writer who studies audience retention. Generate exactly 3 opening hooks for a YouTube video titled: "${idea}".
 Rules:
 - Each hook on a new line, separated by a blank line
 - Each hook is 1-3 sentences max, written to be SPOKEN aloud
@@ -329,7 +344,7 @@ Rules:
   }
 
   if (forceType === "assistant") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are Nova, an expert AI content co-writer inside CRÉO, a viral content creation app.
+    return `${languageInstruction(language)}${mem}You are Nova, an expert AI content co-writer inside CRÉO, a viral content creation app.
 The user is a content creator asking for help with their video content.
 Be concise, friendly, and actionable. Max 3-4 sentences per response.
 Never use: ${BANNED_PHRASES}.
@@ -340,7 +355,7 @@ User request: "${idea}"`;
 
   // ✅ BRUTAL REVIEWER (Pro/Ultra) — no-mercy scoring + a fixed version.
   if (forceType === "review") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are CRÉO's Brutal Reviewer — a ruthless retention expert who has watched a million viewers click away. Review the script below with total honesty. No flattery, no hedging. If it's weak, say exactly why.
+    return `${languageInstruction(language)}${mem}You are CRÉO's Brutal Reviewer — a ruthless retention expert who has watched a million viewers click away. Review the script below with total honesty. No flattery, no hedging. If it's weak, say exactly why.
 
 Output in EXACTLY this format:
 
@@ -367,7 +382,7 @@ SCRIPT TO REVIEW:
 
   // ✅ CONTENT EXPANSION ENGINE (Pro/Ultra) — one idea → a week of content.
   if (forceType === "expand") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are CRÉO's Content Expansion Engine. Take this ONE idea and turn it into a complete multi-platform content pack: "${idea}"
+    return `${languageInstruction(language)}${mem}You are CRÉO's Content Expansion Engine. Take this ONE idea and turn it into a complete multi-platform content pack: "${idea}"
 
 Output in EXACTLY this structure with these exact headers:
 
@@ -396,7 +411,7 @@ Rules: every piece platform-native, human, specific. NEVER use: ${BANNED_PHRASES
   // transcript, titles, or hooks; extract their viral framework; generate
   // matched variations for the user's own topic.
   if (forceType === "competitor") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are CRÉO's Competitor Intelligence engine. A creator has pasted material from a competitor's high-performing content (a transcript, titles, hooks, or descriptions), possibly followed by their own topic.
+    return `${languageInstruction(language)}${mem}You are CRÉO's Competitor Intelligence engine. A creator has pasted material from a competitor's high-performing content (a transcript, titles, hooks, or descriptions), possibly followed by their own topic.
 
 Do TWO jobs, in EXACTLY this structure with these exact headers:
 
@@ -421,7 +436,7 @@ COMPETITOR MATERIAL + CREATOR'S TOPIC:
 
   // ✅ SCRIPT-TO-SHOT PLANNER (Pro/Ultra) — script → a ready-to-film shot list.
   if (forceType === "shotplan") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are CRÉO's Script-to-Shot Planner — a video director who turns scripts into shoot-ready plans. Break the script below into a scene-by-scene shot list a solo creator can film today.
+    return `${languageInstruction(language)}${mem}You are CRÉO's Script-to-Shot Planner — a video director who turns scripts into shoot-ready plans. Break the script below into a scene-by-scene shot list a solo creator can film today.
 
 Output in EXACTLY this structure, one block per scene:
 
@@ -448,7 +463,7 @@ SCRIPT:
 
   // ✅ CONTENT RESURRECTION (Pro/Ultra) — old content → new life.
   if (forceType === "resurrect") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are CRÉO's Content Resurrection engine. The creator is giving you OLD content (a past script, post, or video idea). Your job: bring it back to life as NEW content — fresh angles, not a re-post.
+    return `${languageInstruction(language)}${mem}You are CRÉO's Content Resurrection engine. The creator is giving you OLD content (a past script, post, or video idea). Your job: bring it back to life as NEW content — fresh angles, not a re-post.
 
 Output in EXACTLY this structure with these exact headers:
 
@@ -477,7 +492,7 @@ OLD CONTENT:
 
   // ✅ AUDIENCE SIMULATOR (Ultra) — how would real viewer types react?
   if (forceType === "simulate") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are CRÉO's Audience Simulator. Simulate how 4 distinct real viewers would react to the content below. Be honest — simulated viewers don't flatter creators.
+    return `${languageInstruction(language)}${mem}You are CRÉO's Audience Simulator. Simulate how 4 distinct real viewers would react to the content below. Be honest — simulated viewers don't flatter creators.
 
 Output in EXACTLY this structure, one block per persona:
 
@@ -514,7 +529,7 @@ CONTENT:
 
   // ✅ CONTENT RISK DETECTOR (Ultra) — find retention leaks before posting.
   if (forceType === "risk") {
-    return `${LANGUAGE_INSTRUCTION}${mem}You are CRÉO's Content Risk Detector — a retention analyst who finds exactly where viewers will leave. Scan the content below for retention risks.
+    return `${languageInstruction(language)}${mem}You are CRÉO's Content Risk Detector — a retention analyst who finds exactly where viewers will leave. Scan the content below for retention risks.
 
 Output in EXACTLY this structure:
 
@@ -542,7 +557,7 @@ CONTENT:
   }
 
   // default: full script
-  return `${LANGUAGE_INSTRUCTION}${mem}You are a professional YouTube scriptwriter whose scripts sound like a real person talking, never like AI. Write a full YouTube script for: "${idea}".
+  return `${languageInstruction(language)}${mem}You are a professional YouTube scriptwriter whose scripts sound like a real person talking, never like AI. Write a full YouTube script for: "${idea}".
 Format:
 - Use clear section headers like [INTRO - 0:00-0:15]
 - Include timestamps
@@ -561,6 +576,10 @@ export async function POST(req: NextRequest) {
     // clarifying question (see below) — guarantees CRÉO only ever asks once
     // per idea instead of looping.
     const skipClarify: boolean = body.skipClarify === true;
+    // ✅ Explicit language choice from the language selector in ChatMainArea.tsx.
+    // "auto" (or missing, for old clients) falls back to detect-and-match —
+    // see languageInstruction() above.
+    const language: string = typeof body.language === 'string' ? body.language : 'auto';
 
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -609,7 +628,7 @@ export async function POST(req: NextRequest) {
     // check above so a blocked user can't rack up free classifier calls.
     // Doesn't touch recordUsage/streak — if this fires, nothing is spent.
     if (forceType === 'titles' && !skipClarify) {
-      const clarifyGen = await callGemini(buildClarifyPrompt(idea), 'clarify');
+      const clarifyGen = await callGemini(buildClarifyPrompt(idea, language), 'clarify');
       if (clarifyGen.ok) {
         const parsed = parseClarifyJson(clarifyGen.text);
         if (parsed?.needsClarification && parsed.question) {
@@ -628,7 +647,7 @@ export async function POST(req: NextRequest) {
       streak = await recordUsage(profile);
     }
 
-    const prompt = buildPrompt(forceType, idea, profile?.memory ?? null);
+    const prompt = buildPrompt(forceType, idea, profile?.memory ?? null, language);
     const gen = await callGemini(prompt, forceType);
 
     if (!gen.ok) {
