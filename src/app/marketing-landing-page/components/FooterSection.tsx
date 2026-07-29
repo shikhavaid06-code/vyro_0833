@@ -111,7 +111,7 @@ export default function FooterSection() {
           </div>
         </div>
         <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/25">© 2026 CRÉO. All rights reserved.</p>
+          <p className="text-xs text-white/25">© {new Date().getFullYear()} CRÉO. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <a href="/privacy" className="text-xs text-white/30 hover:text-white/60 transition-colors duration-200">Privacy Policy</a>
             <a href="/terms" className="text-xs text-white/30 hover:text-white/60 transition-colors duration-200">Terms of Service</a>
