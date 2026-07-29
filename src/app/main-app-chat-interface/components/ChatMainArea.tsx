@@ -19,6 +19,13 @@ interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | '
 const platforms = ['YouTube', 'TikTok', 'Instagram', 'Twitter/X'];
 const tones = ['Casual', 'Professional', 'Storytelling', 'Educational', 'Hype'];
 const durations = ['Shorts (< 60s)', 'Medium (3-8 min)', 'Long (8-20 min)', '20-40 min', '40-60 min', '1-2 hours', 'Custom'];
+// ✅ Explicit language selector — before this, CRÉO only auto-detected the
+// output language from the idea's own text. That works fine when a creator
+// types in Hindi/Tamil/etc., but gives them no way to, say, type an idea in
+// English and still get titles/hooks/scripts written in Hindi (or vice
+// versa). 'Auto-detect' preserves the old detect-and-match behavior exactly;
+// picking any other language always wins, regardless of the input's language.
+const languages = ['Auto-detect', 'English', 'Hindi', 'Tamil', 'Telugu', 'Marathi', 'Bengali', 'Kannada'];
 const FREE_LIMIT = 3;
 
 const greetings = [
@@ -195,6 +202,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['YouTube']);
   const [selectedTone, setSelectedTone] = useState('Casual');
   const [selectedDuration, setSelectedDuration] = useState('Medium (3-8 min)');
+  // ✅ 'Auto-detect' is sent to the server as 'auto', which means "detect the
+  // idea's own language and match it" (unchanged old behavior). Any other
+  // value is an explicit override that always wins server-side.
+  const [selectedLanguage, setSelectedLanguage] = useState('Auto-detect');
   const [showControls, setShowControls] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showVault, setShowVault] = useState(false);
@@ -430,13 +441,16 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // obviously-wasted round trip.
   const callApi = async (idea: string, forceType: string, skipClarify = false) => {
     const { data: { session } } = await supabase.auth.getSession();
+    // ✅ 'Auto-detect' → 'auto' (the server's detect-and-match default);
+    // any other selection is sent verbatim as the explicit override.
+    const language = selectedLanguage === 'Auto-detect' ? 'auto' : selectedLanguage;
     const r = await fetch('/api/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
       },
-      body: JSON.stringify({ idea, forceType, skipClarify }),
+      body: JSON.stringify({ idea, forceType, skipClarify, language }),
     });
     return r.json();
   };
@@ -670,7 +684,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           <button onClick={onToggleSidebar} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white transition-all lg:hidden"><Menu size={15} /></button>
           <div>
             <h1 className="text-xs sm:text-sm font-semibold text-white truncate max-w-[160px] sm:max-w-xs">{getStepLabel()}</h1>
-            <p className="text-[10px] text-white/30 hidden sm:block">{selectedPlatforms.join(', ')} · {selectedTone}</p>
+            <p className="text-[10px] text-white/30 hidden sm:block">{selectedPlatforms.join(', ')} · {selectedTone}{selectedLanguage !== 'Auto-detect' ? ` · ${selectedLanguage}` : ''}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -725,6 +739,11 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Platform</p><div className="flex flex-wrap gap-1">{platforms.map((p) => <button key={p} onClick={() => togglePlatform(p)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedPlatforms.includes(p) ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' : 'glass border border-white/8 text-white/40'}`}>{p}</button>)}</div></div>
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Tone</p><div className="flex flex-wrap gap-1">{tones.map((t) => <button key={t} onClick={() => setSelectedTone(t)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedTone === t ? 'bg-pink-500/20 border border-pink-500/30 text-pink-300' : 'glass border border-white/8 text-white/40'}`}>{t}</button>)}</div></div>
             <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Duration</p><div className="flex flex-wrap gap-1">{durations.map((d) => <button key={d} onClick={() => setSelectedDuration(d)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedDuration === d ? 'bg-violet-500/20 border border-violet-500/30 text-violet-300' : 'glass border border-white/8 text-white/40'}`}>{d}</button>)}</div></div>
+            {/* ✅ Language selector — 'Auto-detect' matches the idea's own
+                language (old behavior); any other pick always wins, so a
+                creator can, say, type in English and get Hindi titles/hooks/
+                scripts back, or the reverse. */}
+            <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Language</p><div className="flex flex-wrap gap-1">{languages.map((l) => <button key={l} onClick={() => setSelectedLanguage(l)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedLanguage === l ? 'bg-sky-500/20 border border-sky-500/30 text-sky-300' : 'glass border border-white/8 text-white/40'}`}>{l}</button>)}</div></div>
           </div>
         </div>
       )}
