@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot, Check, Gift } from 'lucide-react';
+import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot, Check, Gift, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -26,7 +26,19 @@ const durations = ['Shorts (< 60s)', 'Medium (3-8 min)', 'Long (8-20 min)', '20-
 // versa). 'Auto-detect' preserves the old detect-and-match behavior exactly;
 // picking any other language always wins, regardless of the input's language.
 const languages = ['Auto-detect', 'English', 'Hindi', 'Tamil', 'Telugu', 'Marathi', 'Bengali', 'Kannada'];
+// ✅ A regional language can optionally be code-mixed with English — the way
+// real creators actually talk (e.g. "mere pass time nahi hai" keeps "time" in
+// English inside an otherwise Hindi sentence), not pure/formal language. This
+// is a toggle rather than doubling the chip list (Hindi, Hindi + English,
+// Tamil, Tamil + English, ...) — same choice, more presentable.
+const isRegionalLanguage = (l: string) => l !== 'Auto-detect' && l !== 'English';
 const FREE_LIMIT = 3;
+// ✅ "What's New" announcement version — shown once per browser until the
+// user dismisses/confirms it, then never again UNLESS this string changes
+// (bump it whenever there's a new feature worth announcing this same way).
+// Bumped to lang-v2 so users who already saw the pure-language announcement
+// get told about the new English-mix option too.
+const WHATS_NEW_VERSION = 'lang-v2';
 
 const greetings = [
   (name: string) => `Hey ${name}! What's the idea today? 🚀`,
@@ -192,6 +204,91 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
   );
 }
 
+// ✅ "WHAT'S NEW" ANNOUNCEMENT — the language selector used to be a plain
+// chip buried inside the collapsed Controls drawer: nothing told a creator it
+// existed, and clicking a chip just silently changed a setting with no
+// confirmation it had actually taken effect. This surfaces the feature the
+// moment someone opens the app after it ships, explains it in one line, and
+// makes picking a language an explicit, confirmed choice — not a
+// hidden toggle. Shown once per browser (see WHATS_NEW_VERSION above);
+// "Skip for now" leaves the existing Auto-detect behavior untouched and the
+// same picker stays available in Controls afterward either way.
+function WhatsNewModal({
+  onDismiss,
+  initialLanguage,
+  initialMix,
+}: {
+  onDismiss: (chosenLanguage?: string, mixWithEnglish?: boolean) => void;
+  initialLanguage: string;
+  initialMix: boolean;
+}) {
+  const [picked, setPicked] = useState(initialLanguage);
+  const [mixed, setMixed] = useState(initialMix);
+  const regional = isRegionalLanguage(picked);
+  const displayLabel = regional && mixed ? `${picked} + English` : picked;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
+      <div className="w-full max-w-sm rounded-2xl relative animate-modal-in overflow-hidden border border-sky-500/30 bg-[#0d0d1f]">
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[280px] h-[160px] bg-sky-600/25 rounded-full blur-[70px] pointer-events-none" />
+        <button onClick={() => onDismiss()} className="absolute top-4 right-4 text-white/30 hover:text-white/60 z-10"><X size={16} /></button>
+
+        <div className="relative p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/25">What's New</span>
+          </div>
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-600 to-purple-600 flex items-center justify-center mb-4 shadow-lg shadow-sky-500/30 animate-pop-in">
+            <Globe size={26} className="text-white" />
+          </div>
+
+          <h2 className="text-xl font-bold text-white mb-1.5">Choose your language</h2>
+          <p className="text-white/45 text-sm mb-4 leading-relaxed">
+            CRÉO can now write your titles, hooks, and scripts in Hindi, Tamil, Telugu, Marathi, Bengali, or Kannada — not just English. Pick what you want your content written in:
+          </p>
+
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {languages.map((l) => (
+              <button
+                key={l}
+                onClick={() => { setPicked(l); if (!isRegionalLanguage(l)) setMixed(false); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${picked === l ? 'bg-sky-500/20 border border-sky-500/40 text-sky-300' : 'glass border border-white/8 text-white/50 hover:text-white/80'}`}
+              >
+                {picked === l && <Check size={11} className="inline mr-1 -mt-0.5" />}
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* ✅ Code-mix toggle — real regional-language creator content is
+              almost always mixed with English ("mere pass time nahi hai"),
+              not pure/formal language. Only shown once a regional language is
+              picked, so it never clutters Auto-detect/English. */}
+          {regional && (
+            <button
+              onClick={() => setMixed((m) => !m)}
+              title='Blend natural English words in, like "mere pass time nahi hai"'
+              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all mb-5 ${mixed ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300' : 'glass border border-white/8 text-white/45 hover:text-white/70'}`}
+            >
+              <span className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${mixed ? 'bg-emerald-500 border-emerald-500' : 'border-white/20'}`}>
+                {mixed && <Check size={10} className="text-white" />}
+              </span>
+              <span className="flex-1 text-left">{picked} + English mix — how creators actually talk</span>
+            </button>
+          )}
+          {!regional && <div className="mb-5" />}
+
+          <button onClick={() => onDismiss(picked, regional && mixed)} className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-purple-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all">
+            Continue in {displayLabel}
+          </button>
+          <button onClick={() => onDismiss()} className="w-full mt-2.5 text-center text-[11px] text-white/35 hover:text-white/55 transition-colors">
+            Skip for now — I'll pick later in Controls
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatId, onChatSaved, onNewChat, chats = [], onOpenNova }: Props) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -206,6 +303,15 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // idea's own language and match it" (unchanged old behavior). Any other
   // value is an explicit override that always wins server-side.
   const [selectedLanguage, setSelectedLanguage] = useState('Auto-detect');
+  // ✅ Code-mixed style — only meaningful alongside a regional selectedLanguage
+  // (see isRegionalLanguage above). When true, the server is asked for
+  // natural "<language> + English" creator speech instead of pure/formal
+  // language — e.g. "mere pass time nahi hai", not a textbook translation.
+  const [mixWithEnglish, setMixWithEnglish] = useState(false);
+  // ✅ "What's New" popup — shown once per browser (see WHATS_NEW_VERSION) to
+  // announce the language feature and let the user explicitly pick it, rather
+  // than the pick being a silent chip nobody knows to look for.
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showVault, setShowVault] = useState(false);
@@ -269,6 +375,29 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
     try { const u = JSON.parse(localStorage.getItem('creo_current_user') || '{}'); if (u.name) setUserName(u.name.split(' ')[0]); } catch {}
     try { setStreak(parseInt(localStorage.getItem('creo_streak') || '0')); } catch {}
   }, []);
+
+  // ✅ Show the "What's New" language announcement once per browser, until
+  // dismissed/confirmed — see WHATS_NEW_VERSION.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('creo_whatsnew_seen') !== WHATS_NEW_VERSION) setShowWhatsNew(true);
+    } catch {}
+  }, []);
+
+  const handleDismissWhatsNew = (chosenLanguage?: string, mix?: boolean) => {
+    if (chosenLanguage) {
+      setSelectedLanguage(chosenLanguage);
+      setMixWithEnglish(!!mix);
+      const label = mix ? `${chosenLanguage} + English` : chosenLanguage;
+      toast.success(
+        chosenLanguage === 'Auto-detect'
+          ? "Language set to auto-detect — you can change this anytime in Controls"
+          : `Language set to ${label} — you can change this anytime in Controls`
+      );
+    }
+    try { localStorage.setItem('creo_whatsnew_seen', WHATS_NEW_VERSION); } catch {}
+    setShowWhatsNew(false);
+  };
 
   // ✅ Load (and lazily create) this user's referral code once, in the
   // background — same endpoint Settings already calls. Silently no-ops for
@@ -441,9 +570,13 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // obviously-wasted round trip.
   const callApi = async (idea: string, forceType: string, skipClarify = false) => {
     const { data: { session } } = await supabase.auth.getSession();
-    // ✅ 'Auto-detect' → 'auto' (the server's detect-and-match default);
-    // any other selection is sent verbatim as the explicit override.
-    const language = selectedLanguage === 'Auto-detect' ? 'auto' : selectedLanguage;
+    // ✅ 'Auto-detect' → 'auto' (the server's detect-and-match default); any
+    // other selection is sent as the explicit override, appending "+ English"
+    // when the code-mix toggle is on for a regional language (the server's
+    // parseMixedLanguage() picks that shape apart — see api/generate/route.ts).
+    const language = selectedLanguage === 'Auto-detect'
+      ? 'auto'
+      : (isRegionalLanguage(selectedLanguage) && mixWithEnglish ? `${selectedLanguage} + English` : selectedLanguage);
     const r = await fetch('/api/generate', {
       method: 'POST',
       headers: {
@@ -673,6 +806,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
 
   return (
     <div className="flex flex-col" style={{ height: '100dvh' }}>
+      {showWhatsNew && <WhatsNewModal onDismiss={handleDismissWhatsNew} initialLanguage={selectedLanguage} initialMix={mixWithEnglish} />}
       {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} streak={streak} />}
       {showVault && <WinningVault isOpen={showVault} onClose={() => setShowVault(false)} plan={currentPlan()} />}
       {showBrain && <CreatorBrainModal onClose={() => setShowBrain(false)} plan={currentPlan()} />}
@@ -684,7 +818,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           <button onClick={onToggleSidebar} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white transition-all lg:hidden"><Menu size={15} /></button>
           <div>
             <h1 className="text-xs sm:text-sm font-semibold text-white truncate max-w-[160px] sm:max-w-xs">{getStepLabel()}</h1>
-            <p className="text-[10px] text-white/30 hidden sm:block">{selectedPlatforms.join(', ')} · {selectedTone}{selectedLanguage !== 'Auto-detect' ? ` · ${selectedLanguage}` : ''}</p>
+            <p className="text-[10px] text-white/30 hidden sm:block">{selectedPlatforms.join(', ')} · {selectedTone}{selectedLanguage !== 'Auto-detect' ? ` · ${selectedLanguage}${isRegionalLanguage(selectedLanguage) && mixWithEnglish ? ' + English' : ''}` : ''}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -743,7 +877,46 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                 language (old behavior); any other pick always wins, so a
                 creator can, say, type in English and get Hindi titles/hooks/
                 scripts back, or the reverse. */}
-            <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Language</p><div className="flex flex-wrap gap-1">{languages.map((l) => <button key={l} onClick={() => setSelectedLanguage(l)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedLanguage === l ? 'bg-sky-500/20 border border-sky-500/30 text-sky-300' : 'glass border border-white/8 text-white/40'}`}>{l}</button>)}</div></div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Language</p>
+              <div className="flex flex-wrap gap-1">
+                {languages.map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => {
+                      if (l === selectedLanguage) return;
+                      setSelectedLanguage(l);
+                      if (!isRegionalLanguage(l)) setMixWithEnglish(false);
+                      toast.success(`Language set to ${l}`);
+                    }}
+                    className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedLanguage === l ? 'bg-sky-500/20 border border-sky-500/30 text-sky-300' : 'glass border border-white/8 text-white/40'}`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* ✅ Code-mix toggle — real regional-language content is almost
+                always mixed with English ("mere pass time nahi hai"), not
+                pure/formal language. Only appears once a regional language is
+                selected above. */}
+            {isRegionalLanguage(selectedLanguage) && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Style</p>
+                <button
+                  onClick={() => {
+                    const next = !mixWithEnglish;
+                    setMixWithEnglish(next);
+                    toast.success(next ? `Language set to ${selectedLanguage} + English` : `Language set to pure ${selectedLanguage}`);
+                  }}
+                  title='Blend natural English words in, like "mere pass time nahi hai"'
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${mixWithEnglish ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300' : 'glass border border-white/8 text-white/40'}`}
+                >
+                  {mixWithEnglish && <Check size={11} />}
+                  {selectedLanguage} + English mix
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
