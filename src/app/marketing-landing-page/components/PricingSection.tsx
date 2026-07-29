@@ -18,7 +18,7 @@ export default function PricingSection() {
       audience: 'For creators finding their voice.',
       price: { monthly: 0, yearly: 0 }, priceLabel: '/ forever',
       cta: 'Start Free', ctaStyle: 'secondary', icon: null, highlight: false, border: 'border-white/8',
-      features: ['3 generations per day', 'AI Title Generator', 'Hook Generator', 'Short + medium scripts', 'Community updates', 'Basic tone options'],
+      features: ['3 generations per day', 'AI Title Generator', 'Hook Generator', 'Short + medium scripts', 'Community updates', 'Basic tone options', 'Invite a friend → +1 free generation/day (up to +10)'],
       locked: ['AI Assistant', 'Smart editing', 'Multi-platform optimization'],
       roadmap: [],
     },
