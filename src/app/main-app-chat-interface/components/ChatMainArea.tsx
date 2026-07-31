@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot, Check, Gift, Globe } from 'lucide-react';
+import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot, Check, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -237,18 +237,23 @@ function WhatsNewModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
-      <div className="w-full max-w-sm rounded-2xl relative animate-modal-in overflow-hidden border border-sky-500/30 bg-[#0d0d1f]">
-        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[280px] h-[160px] bg-sky-600/25 rounded-full blur-[70px] pointer-events-none" />
-        <button onClick={() => onDismiss()} className="absolute top-4 right-4 text-white/30 hover:text-white/60 z-10"><X size={16} /></button>
+      <div className="w-full max-w-sm rounded-2xl relative animate-modal-in overflow-hidden border border-sky-500/30 bg-[#0d0d1f] max-h-[90vh] overflow-y-auto">
+        <button onClick={() => onDismiss()} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 bg-black/30 rounded-full p-1"><X size={16} /></button>
 
-        <div className="relative p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/25">What's New</span>
-          </div>
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-600 to-purple-600 flex items-center justify-center mb-4 shadow-lg shadow-sky-500/30 animate-pop-in">
-            <Globe size={26} className="text-white" />
-          </div>
+        {/* ✅ Poster — the same branded announcement graphic used in the
+            social-media push for this launch (public/whats-new/lang-v2-poster.png),
+            so a brand-new signup's very first login gets the identical visual
+            pitch instead of a bare icon + heading. Falls back gracefully:
+            if the asset is ever missing, onError just hides the <img> and the
+            picker below still works standalone. */}
+        <img
+          src="/whats-new/lang-v2-poster.png"
+          alt="What's New — CRÉO now speaks your language"
+          className="w-full aspect-square object-cover animate-pop-in"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+        />
 
+        <div className="relative p-6 pt-5">
           <h2 className="text-xl font-bold text-white mb-1.5">Choose your language</h2>
           <p className="text-white/45 text-sm mb-4 leading-relaxed">
             CRÉO can now write your titles, hooks, and scripts in Hindi, Tamil, Telugu, Marathi, Bengali, or Kannada — not just English. Pick what you want your content written in:
