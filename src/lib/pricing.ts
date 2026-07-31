@@ -42,3 +42,12 @@ export function getLocalePricing(): RegionPricing {
 
 // Backward-compatible export — used by anything that just wants the India numbers.
 export const INR_PRICES = { pro: REGION_PRICES.IN.proRaw, ultra: REGION_PRICES.IN.ultraRaw };
+
+// ✅ Reframes the monthly price as a per-day amount — surfaced right on the
+// paywall CTA buttons, the moment a user is most likely to convert, so
+// "₹1,000/mo" also reads as the much smaller "≈ ₹33/day".
+const NO_DECIMAL_CURRENCIES = ['INR', 'JPY', 'CNY', 'AED', 'SGD'];
+export function formatPerDay(monthlyRaw: number, currency: string): string {
+  const perDay = monthlyRaw / 30;
+  return NO_DECIMAL_CURRENCIES.includes(currency) ? String(Math.round(perDay)) : perDay.toFixed(2);
+}
