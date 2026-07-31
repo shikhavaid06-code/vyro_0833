@@ -5,7 +5,7 @@ import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crow
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { getLocalePricing } from '@/lib/pricing';
+import { getLocalePricing, formatPerDay } from '@/lib/pricing';
 import TitleCards from './TitleCards';
 import HookCards from './HookCards';
 import ScriptCard from './ScriptCard';
@@ -177,12 +177,20 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
           </div>
 
           <div className="space-y-2">
-            <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all glow-button">
-              🚀 Grow with Pro — {prices.symbol}{prices.pro}/mo
-            </button>
-            <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-pink-500/15 border border-amber-500/30 text-amber-300 font-semibold text-sm hover:bg-amber-500/15 active:scale-[0.98] transition-all">
-              👑 Build with Ultra — {prices.symbol}{prices.ultra}/mo
-            </button>
+            <div>
+              <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all glow-button">
+                🚀 Grow with Pro — {prices.symbol}{prices.pro}/mo
+              </button>
+              {/* ✅ Per-day anchor — reframes the monthly price at the exact
+                  moment (hitting the daily cap) someone is most likely to convert. */}
+              <p className="text-center text-[10px] text-white/30 mt-1">≈ {prices.symbol}{formatPerDay(prices.proRaw, prices.currency)}/day</p>
+            </div>
+            <div>
+              <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-pink-500/15 border border-amber-500/30 text-amber-300 font-semibold text-sm hover:bg-amber-500/15 active:scale-[0.98] transition-all">
+                👑 Build with Ultra — {prices.symbol}{prices.ultra}/mo
+              </button>
+              <p className="text-center text-[10px] text-white/30 mt-1">≈ {prices.symbol}{formatPerDay(prices.ultraRaw, prices.currency)}/day</p>
+            </div>
           </div>
 
           {/* ✅ Yearly-billing nudge — prices above are monthly; most people
