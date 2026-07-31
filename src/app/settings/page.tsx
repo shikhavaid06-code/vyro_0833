@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, ChevronRight, Copy, Check, Gift, Flame, XCircle, Loader2, Star } from 'lucide-react';
+import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, ChevronRight, Copy, Check, Gift, Flame, XCircle, Loader2, Star, MessageCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
 import AppLogo from '@/components/ui/AppLogo';
@@ -425,6 +425,11 @@ export default function SettingsPage() {
             </div>
             <div className="flex gap-2 mt-3">
               <div className="flex-1 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white/50 font-mono truncate">{referralLink}</div>
+              <a href={`https://wa.me/?text=${encodeURIComponent(`Been using CRÉO to script my shorts — one idea → titles, hooks, full scripts. Try it, we both get +1 free generation/day: ${referralLink}`)}`}
+                target="_blank" rel="noopener noreferrer"
+                className="px-4 py-2.5 rounded-xl bg-[#25D366]/15 border border-[#25D366]/30 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 hover:bg-[#25D366]/25 active:scale-95 transition-all">
+                <MessageCircle size={12} /> Share
+              </a>
               <button onClick={handleCopyReferral}
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all">
                 {refCopied ? <Check size={12} className="animate-pop-in" /> : <Copy size={12} />}{refCopied ? 'Copied!' : 'Copy'}
