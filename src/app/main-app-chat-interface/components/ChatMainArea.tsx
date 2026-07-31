@@ -756,7 +756,11 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         bumpGenCount(); return;
       }
     } catch { setIsTyping(false); addAiMessage({ role: 'ai', type: 'text', content: 'Something went wrong. Please try again!' }); }
-  }, [inputValue, step, selectedTitle, selectedPlatforms, selectedTone, selectedDuration, onChatSaved]);
+    // ✅ pendingClarify MUST be a dependency here — without it this callback
+    // closes over a stale (null) value and never takes the merge-and-force
+    // branch above, so every clarify answer gets treated as a brand new,
+    // still-vague idea and CRÉO asks again instead of ever generating.
+  }, [inputValue, step, pendingClarify, selectedTitle, selectedPlatforms, selectedTone, selectedDuration, onChatSaved]);
 
   // ✅ CONTENT EXPANSION ENGINE (Pro/Ultra) — one idea → hooks, titles,
   // Shorts, a Reel, a thread and a LinkedIn post in one pass. Server enforces
