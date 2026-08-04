@@ -187,7 +187,7 @@ export default function HeroSection() {
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
             </button>
           </div>
-          <p className="text-[11px] text-white/30 mt-3">Free · No sign-up to try · Real hooks in seconds</p>
+          <p className="text-[11px] text-white/30 mt-3">Free · No card required · Real hooks in seconds</p>
         </div>
 
         {/* Secondary CTAs */}
