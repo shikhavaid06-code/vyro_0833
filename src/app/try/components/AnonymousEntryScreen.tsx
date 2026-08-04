@@ -191,7 +191,7 @@ export default function AnonymousEntryScreen() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8 border border-purple-500/20">
               <Sparkles size={12} className="text-purple-400" />
-              <span className="text-xs font-medium text-white/60">No sign-up needed to try it</span>
+              <span className="text-xs font-medium text-white/60">No card required to try it</span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
               What's your <span className="text-gradient">video about?</span>
