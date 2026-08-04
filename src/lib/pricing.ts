@@ -6,18 +6,18 @@ export interface RegionPricing {
   region: string;       // key used by the checkout API to look up the real charge amount
   currency: string;     // ISO 4217 code — what Razorpay is actually asked to charge
   symbol: string;
-  pro: string; ultra: string;       // display strings
-  proRaw: number; ultraRaw: number; // numeric amount in the currency's major unit (e.g. dollars, not cents)
+  pro: string; ultra: string; team: string;       // display strings
+  proRaw: number; ultraRaw: number; teamRaw: number; // numeric amount in the currency's major unit (e.g. dollars, not cents)
 }
 
 export const REGION_PRICES: Record<string, RegionPricing> = {
-  IN: { region: 'IN', currency: 'INR', symbol: '₹', pro: '1,000', ultra: '2,000', proRaw: 1000, ultraRaw: 2000 },
-  JP: { region: 'JP', currency: 'JPY', symbol: '¥', pro: '1,480', ultra: '4,480', proRaw: 1480, ultraRaw: 4480 },
-  CN: { region: 'CN', currency: 'CNY', symbol: '¥', pro: '98', ultra: '298', proRaw: 98, ultraRaw: 298 },
-  EU: { region: 'EU', currency: 'EUR', symbol: '€', pro: '12', ultra: '35', proRaw: 12, ultraRaw: 35 },
-  AE: { region: 'AE', currency: 'AED', symbol: 'AED', pro: '49', ultra: '149', proRaw: 49, ultraRaw: 149 },
-  SG: { region: 'SG', currency: 'SGD', symbol: 'S$', pro: '18', ultra: '52', proRaw: 18, ultraRaw: 52 },
-  US: { region: 'US', currency: 'USD', symbol: '$', pro: '14', ultra: '39', proRaw: 14, ultraRaw: 39 },
+  IN: { region: 'IN', currency: 'INR', symbol: '₹', pro: '1,000', ultra: '2,000', team: '800', proRaw: 1000, ultraRaw: 2000, teamRaw: 800 },
+  JP: { region: 'JP', currency: 'JPY', symbol: '¥', pro: '1,480', ultra: '4,480', team: '1,180', proRaw: 1480, ultraRaw: 4480, teamRaw: 1180 },
+  CN: { region: 'CN', currency: 'CNY', symbol: '¥', pro: '98', ultra: '298', team: '78', proRaw: 98, ultraRaw: 298, teamRaw: 78 },
+  EU: { region: 'EU', currency: 'EUR', symbol: '€', pro: '12', ultra: '35', team: '10', proRaw: 12, ultraRaw: 35, teamRaw: 10 },
+  AE: { region: 'AE', currency: 'AED', symbol: 'AED', pro: '49', ultra: '149', team: '39', proRaw: 49, ultraRaw: 149, teamRaw: 39 },
+  SG: { region: 'SG', currency: 'SGD', symbol: 'S$', pro: '18', ultra: '52', team: '14', proRaw: 18, ultraRaw: 52, teamRaw: 14 },
+  US: { region: 'US', currency: 'USD', symbol: '$', pro: '14', ultra: '39', team: '11', proRaw: 14, ultraRaw: 39, teamRaw: 11 },
 };
 
 export function detectRegion(): string {
