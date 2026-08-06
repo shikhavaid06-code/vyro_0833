@@ -96,7 +96,7 @@ function UpgradePageInner() {
   // with their choice pre-highlighted to finish paying for real.
   const requestedPlan = searchParams.get('plan');
   const isWelcome = searchParams.get('welcome') === '1';
-  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
+  const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [currentPlan, setCurrentPlan] = useState('free');
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState('');
