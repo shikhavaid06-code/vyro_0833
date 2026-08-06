@@ -178,7 +178,7 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
 
           <div className="space-y-2">
             <div>
-              <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all glow-button">
+              <button onClick={() => router.push('/upgrade?plan=pro')} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all glow-button">
                 🚀 Grow with Pro — {prices.symbol}{prices.pro}/mo
               </button>
               {/* ✅ Per-day anchor — reframes the monthly price at the exact
@@ -186,7 +186,7 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
               <p className="text-center text-[10px] text-white/30 mt-1">≈ {prices.symbol}{formatPerDay(prices.proRaw, prices.currency)}/day</p>
             </div>
             <div>
-              <button onClick={() => router.push('/upgrade')} className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-pink-500/15 border border-amber-500/30 text-amber-300 font-semibold text-sm hover:bg-amber-500/15 active:scale-[0.98] transition-all">
+              <button onClick={() => router.push('/upgrade?plan=ultra')} className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-pink-500/15 border border-amber-500/30 text-amber-300 font-semibold text-sm hover:bg-amber-500/15 active:scale-[0.98] transition-all">
                 👑 Build with Ultra — {prices.symbol}{prices.ultra}/mo
               </button>
               <p className="text-center text-[10px] text-white/30 mt-1">≈ {prices.symbol}{formatPerDay(prices.ultraRaw, prices.currency)}/day</p>
@@ -202,7 +202,7 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
 
           {/* Free alternative — honest, and it fuels the referral loop */}
           <button onClick={() => router.push('/settings')} className="w-full mt-3 flex items-center justify-center gap-1.5 text-[11px] text-emerald-400/80 hover:text-emerald-300 transition-colors">
-            🎁 Or invite a friend — earn +1 free generation every day, forever
+            🎁 Or invite friends — up to +10 free generations/day, forever
           </button>
 
           <p className="text-center text-[10px] text-white/25 mt-3">24-hour refund guarantee · No auto-renewal</p>
