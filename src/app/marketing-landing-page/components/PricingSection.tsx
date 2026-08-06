@@ -1,10 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Check, Crown, Zap, Sparkles, ArrowRight, Lock } from 'lucide-react';
-import { getLocalePricing } from '@/lib/pricing';
+import { Check, Crown, Zap, Sparkles, ArrowRight, Lock, Users } from 'lucide-react';
+import { getLocalePricing } from '@/lib/pricing'; import { toast } from 'sonner';
 
-export default function PricingSection() {
+const CONTACT_EMAIL = 'creo.app.ai@gmail.com'; function copyTeamsContact() { navigator.clipboard.writeText(CONTACT_EMAIL).catch(() => {}); toast.success(`Email copied: ${CONTACT_EMAIL}`, { description: "Send us a mail with the subject \"Teams plan inquiry\" and we'll get back to you." }); } export default function PricingSection() {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [locale, setLocale] = useState(getLocalePricing());
 
@@ -40,7 +40,7 @@ export default function PricingSection() {
       locked: [],
       roadmap: [],
     },
-  ];
+{ id: 'teams', name: 'Teams', journey: 'Teams', tagline: 'Scale content across your whole team.', audience: 'For agencies, media teams, and creator groups.', price: { monthly: locale.teamRaw, yearly: Math.round(locale.teamRaw * 0.75) }, priceLabel: '/ seat / month · 3 seat min', cta: 'Contact Us', ctaStyle: 'contact', icon: Users, highlight: false, border: 'border-cyan-500/25', features: ['Everything in Pro, for every teammate', 'Centralized billing — one invoice, one admin', 'Shared brand voice — Creator Memory synced across the team', 'Shared content library & calendar', 'Team usage dashboard for admins', 'Priority onboarding & support'], locked: [], roadmap: [] },  ];
 
   return (
     <section id="pricing" className="relative py-32 overflow-hidden">
@@ -78,7 +78,7 @@ export default function PricingSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {plans.map((plan) => {
             const PlanIcon = plan.icon;
             const price = plan.price[billing];
@@ -92,14 +92,14 @@ export default function PricingSection() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-white text-xl font-bold">{plan.name}</h3>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${plan.id === 'ultra' ? 'bg-amber-500/10 text-amber-400' : plan.id === 'pro' ? 'bg-purple-500/10 text-purple-400' : 'bg-white/5 text-white/40'}`}>{plan.journey}</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${plan.id === 'ultra' ? 'bg-amber-500/10 text-amber-400' : plan.id === 'pro' ? 'bg-purple-500/10 text-purple-400' : plan.id === 'teams' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-white/5 text-white/40'}`}>{plan.journey}</span>
                     </div>
                     <p className="text-white/40 text-sm mt-1">{plan.tagline}</p>
                     <p className="text-white/25 text-xs mt-0.5">{plan.audience}</p>
                   </div>
                   {PlanIcon && (
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${plan.id === 'ultra' ? 'bg-amber-500/10' : 'bg-purple-500/10'}`}>
-                      <PlanIcon size={18} className={plan.id === 'ultra' ? 'text-amber-400' : 'text-purple-400'} />
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${plan.id === 'ultra' ? 'bg-amber-500/10' : plan.id === 'teams' ? 'bg-cyan-500/10' : 'bg-purple-500/10'}`}>
+                      <PlanIcon size={18} className={plan.id === 'ultra' ? 'text-amber-400' : plan.id === 'teams' ? 'text-cyan-400' : 'text-purple-400'} />
                     </div>
                   )}
                 </div>
@@ -109,11 +109,11 @@ export default function PricingSection() {
                   <span className="text-white/40 text-sm">{plan.priceLabel}</span>
                 </div>
 
-                <Link href="/sign-up-login-screen"
+                <Link href={plan.id === 'teams' ? '#' : '/sign-up-login-screen'} onClick={(e) => { if (plan.id === 'teams') { e.preventDefault(); copyTeamsContact(); } }}
                   className={`w-full py-3 rounded-xl text-sm font-semibold text-center mb-7 flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 ${
                     plan.ctaStyle === 'primary' ? 'bg-gradient-vyro text-white glow-button hover:scale-[1.02]'
                       : plan.ctaStyle === 'gold' ? 'bg-gradient-to-r from-amber-500 to-pink-500 text-white hover:scale-[1.02] shadow-lg shadow-amber-500/20'
-                      : 'glass border border-white/10 text-white/70 hover:text-white hover:bg-white/5'
+                      : plan.ctaStyle === 'contact' ? 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 hover:scale-[1.02]' : 'glass border border-white/10 text-white/70 hover:text-white hover:bg-white/5'
                   }`}>
                   {plan.cta}<ArrowRight size={14} />
                 </Link>
@@ -121,7 +121,7 @@ export default function PricingSection() {
                 <div className="space-y-2.5 flex-1">
                   {plan.features.map((feat) => (
                     <div key={feat} className="flex items-start gap-2.5">
-                      <Check size={14} className={`mt-0.5 flex-shrink-0 ${plan.id === 'ultra' ? 'text-amber-400' : 'text-purple-400'}`} />
+                      <Check size={14} className={`mt-0.5 flex-shrink-0 ${plan.id === 'ultra' ? 'text-amber-400' : plan.id === 'teams' ? 'text-cyan-400' : 'text-purple-400'}`} />
                       <span className="text-white/70 text-sm">{feat}</span>
                     </div>
                   ))}
