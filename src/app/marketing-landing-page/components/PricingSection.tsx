@@ -109,7 +109,7 @@ const CONTACT_EMAIL = 'creo.app.ai@gmail.com'; function copyTeamsContact() { nav
                   <span className="text-white/40 text-sm">{plan.priceLabel}</span>
                 </div>
 
-                <Link href={plan.id === 'teams' ? '#' : '/sign-up-login-screen'} onClick={(e) => { if (plan.id === 'teams') { e.preventDefault(); copyTeamsContact(); } }}
+                <Link href={plan.id === 'teams' ? '#' : `/sign-up-login-screen?plan=${plan.id}`} onClick={(e) => { if (plan.id === 'teams') { e.preventDefault(); copyTeamsContact(); } }}
                   className={`w-full py-3 rounded-xl text-sm font-semibold text-center mb-7 flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 ${
                     plan.ctaStyle === 'primary' ? 'bg-gradient-vyro text-white glow-button hover:scale-[1.02]'
                       : plan.ctaStyle === 'gold' ? 'bg-gradient-to-r from-amber-500 to-pink-500 text-white hover:scale-[1.02] shadow-lg shadow-amber-500/20'
