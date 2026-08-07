@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppLogo from '@/components/ui/AppLogo';
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
@@ -27,7 +27,7 @@ function friendlyAuthError(message?: string | null): string {
 export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-  const [plan, setPlan] = useState('free');
+  const searchParams = useSearchParams(); const requestedPlan = searchParams.get('plan'); const [plan, setPlan] = useState(requestedPlan === 'pro' || requestedPlan === 'ultra' ? requestedPlan : 'free');
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -65,7 +65,7 @@ export default function AuthScreen() {
     // no longer any timing window where the two pages can disagree.
     const hasSession = localStorage.getItem('creo_session') || sessionStorage.getItem('creo_session');
     const user = localStorage.getItem('creo_current_user');
-    if (hasSession && user) router.replace('/main-app-chat-interface');
+    if (hasSession && user) { router.replace(requestedPlan === 'pro' || requestedPlan === 'ultra' ? `/upgrade?plan=${requestedPlan}` : '/main-app-chat-interface'); }
 
     // ✅ Real stats only — no fabricated testimonials or follower counts.
     fetch('/api/stats').then((r) => r.json()).then((d) => setStats(d)).catch(() => {});
