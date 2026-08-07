@@ -425,7 +425,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex gap-2 mt-3">
               <div className="flex-1 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white/50 font-mono truncate">{referralLink}</div>
-              <a href={`https://wa.me/?text=${encodeURIComponent(`Been using CRÉO to script my shorts — one idea → titles, hooks, full scripts. Try it, we both get +1 free generation/day: ${referralLink}`)}`}
+              <a href={`https://wa.me/?text=${encodeURIComponent(`Been using CRÉO to script my shorts — one idea → titles, hooks, full scripts. Try it, I get a bonus generation when you do: ${referralLink}`)}`}
                 target="_blank" rel="noopener noreferrer"
                 className="px-4 py-2.5 rounded-xl bg-[#25D366]/15 border border-[#25D366]/30 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 hover:bg-[#25D366]/25 active:scale-95 transition-all">
                 <MessageCircle size={12} /> Share
