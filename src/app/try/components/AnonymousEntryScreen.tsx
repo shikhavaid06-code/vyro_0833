@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, ArrowRight, Mail, Lock, Flame, CheckCircle, KeyRound, Smartphone, Zap, Target, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import posthog from 'posthog-js';
 
 type Stage = 'entry' | 'loading' | 'gate' | 'sent';
 
@@ -82,6 +83,7 @@ export default function AnonymousEntryScreen() {
     const trimmed = (topicOverride ?? topic).trim();
     if (!trimmed) { setError('Enter a topic or keyword first'); return; }
     setError('');
+    posthog.capture('anonymous_hook_generation_requested');
     setStage('loading');
 
     try {
@@ -114,6 +116,9 @@ export default function AnonymousEntryScreen() {
       }
 
       setHooks(generatedHooks);
+      posthog.capture('anonymous_hook_generation_completed', {
+        hook_count: generatedHooks.length,
+      });
 
       // ✅ Save the result now, before auth — so it survives the redirect
       // to the user's email inbox and back through /auth/callback.

@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import posthog from 'posthog-js';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -17,6 +18,13 @@ export default function AuthCallbackPage() {
         }
 
         const user = session.user;
+        const identifyUser = (name: string, plan: string) => {
+          posthog.identify(user.id, {
+            ...(user.email ? { email: user.email } : {}),
+            name,
+            plan,
+          });
+        };
         const pendingName = localStorage.getItem('creo_pending_name') || 
           user.email?.split('@')[0] || 'Creator';
         const pendingPlan = localStorage.getItem('creo_pending_plan') || 'free';
@@ -73,6 +81,7 @@ export default function AuthCallbackPage() {
             id: user.id, name: pendingName, email: user.email, plan: 'free',
           }));
           localStorage.setItem('creo_session', 'true');
+          identifyUser(pendingName, 'free');
 
           localStorage.removeItem('creo_pending_name');
           localStorage.removeItem('creo_pending_plan');
@@ -100,6 +109,7 @@ export default function AuthCallbackPage() {
             id: user.id, name: existing.name || pendingName, email: existing.email || user.email, plan: effectivePlan,
           }));
           localStorage.setItem('creo_session', 'true');
+          identifyUser(existing.name || pendingName, effectivePlan);
 
           router.replace('/main-app-chat-interface');
         }

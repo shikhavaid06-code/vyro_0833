@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import posthog from 'posthog-js';
 
 const HEAR_OPTIONS = [
   { id: 'youtube', label: 'YouTube', emoji: '▶️' },
@@ -59,6 +60,10 @@ export default function OnboardingFlowPage() {
       }
       // Mark done locally so the workspace never re-prompts this browser.
       localStorage.setItem('creo_onboarded', 'true');
+      posthog.capture('onboarding_completed', {
+        acquisition_source: selectedHear,
+        creator_level: selectedSkill,
+      });
     } catch (err) {
       console.error('Onboarding save error:', err);
     }

@@ -4,6 +4,7 @@ import { Brain, X, Crown, Save, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import posthog from 'posthog-js';
 
 // ✅ CREATOR BRAIN (Ultra) — the signature feature's setup UI. The creator
 // teaches CRÉO their niche, audience, voice, and goals once; every Ultra
@@ -51,6 +52,10 @@ export default function CreatorBrainModal({ onClose, plan }: Props) {
       });
       const d = await r.json();
       if (d?.success) {
+        posthog.capture('creator_brain_saved', {
+          plan: isUltra ? 'ultra' : plan,
+          completed_fields: Object.values(memory).filter(Boolean).length,
+        });
         toast.success(isUltra ? 'Creator Brain updated — every generation now writes in your voice 🧠' : 'Profile saved — it activates when you go Ultra!');
         onClose();
       } else if (r.status === 401) {

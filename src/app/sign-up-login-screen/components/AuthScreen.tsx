@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AppLogo from '@/components/ui/AppLogo';
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
+import posthog from 'posthog-js';
 import { Sparkles, Mail, ArrowRight, Zap, Crown, Star, Check, Rocket, KeyRound, Smartphone, RefreshCw } from 'lucide-react';
 
 interface Stats { totalCreators: number | null; totalGenerated: number | null; }
@@ -104,6 +105,10 @@ export default function AuthScreen() {
       }
       if (name) localStorage.setItem('creo_pending_name', name);
       localStorage.setItem('creo_pending_plan', plan);
+      posthog.capture('auth_magic_link_requested', {
+        selected_plan: plan,
+        has_display_name: Boolean(name.trim()),
+      });
       setSent(true);
       setResendCooldown(30);
       setTimeout(() => codeInputRef.current?.focus(), 400);

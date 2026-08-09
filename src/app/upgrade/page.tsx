@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import AppLogo from '@/components/ui/AppLogo';
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
+import posthog from 'posthog-js';
 
 declare global {
   interface Window { Razorpay: any; }
@@ -157,6 +158,11 @@ function UpgradePageInner() {
       return;
     }
 
+    posthog.capture('checkout_started', {
+      plan: planId,
+      billing_period: billing,
+      region: locale.region,
+    });
     setLoadingPlan(planId);
     try {
       const scriptOk = await loadRazorpayScript();
@@ -215,6 +221,11 @@ function UpgradePageInner() {
 
             setCurrentPlan(planId);
             setLoadingPlan(null);
+            posthog.capture('subscription_upgraded', {
+              plan: planId,
+              billing_period: billing,
+              currency: order.currency,
+            });
             // ✅ Fair-upgrade credit: if the server refunded unused Pro days
             // as part of a Pro → Ultra upgrade, tell the user immediately.
             if (verifyData.upgradeCredit?.amount) {

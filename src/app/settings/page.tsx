@@ -5,6 +5,7 @@ import { User, Crown, Zap, LogOut, ArrowLeft, Sparkles, Shield, Bell, Palette, C
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing } from '@/lib/pricing';
 import AppLogo from '@/components/ui/AppLogo';
+import posthog from 'posthog-js';
 
 // ✅ What each plan includes — shown when the user taps their plan badge.
 // Only lists features that are actually live in the product.
@@ -168,7 +169,9 @@ export default function SettingsPage() {
     setTimeout(() => setRefCopied(false), 2000);
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    posthog.reset();
     localStorage.removeItem('creo_current_user');
     localStorage.removeItem('creo_session');
     sessionStorage.removeItem('creo_session');

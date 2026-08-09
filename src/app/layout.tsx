@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 import CookieConsent from '@/components/ui/CookieConsent';
 import RefCapture from '@/components/ui/RefCapture';
 import PwaRegister from '@/components/ui/PwaRegister';
+import PostHogInit from '@/components/PostHogInit';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -47,6 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <PostHogInit />
         {children}
         <RefCapture />
         <CookieConsent />

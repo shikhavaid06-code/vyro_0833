@@ -4,6 +4,7 @@ import { Radar, X, Crown, Copy, Check, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import posthog from 'posthog-js';
 
 // ✅ COMPETITOR INTELLIGENCE + LINK CLONER (Ultra) — paste a competitor's
 // transcript, titles, or hooks; CRÉO extracts their viral framework
@@ -32,6 +33,10 @@ export default function CompetitorIntelModal({ onClose, plan }: Props) {
       toast.error('Paste more competitor material — a transcript, several titles, or hooks (at least a few lines).');
       return;
     }
+    posthog.capture('competitor_analysis_requested', {
+      has_custom_topic: Boolean(topic.trim()),
+      material_length_bucket: material.length >= 1000 ? '1000_plus' : material.length >= 250 ? '250_to_999' : '40_to_249',
+    });
     setAnalyzing(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
