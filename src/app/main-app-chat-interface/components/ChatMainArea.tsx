@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getLocalePricing, formatPerDay } from '@/lib/pricing';
+import posthog from 'posthog-js';
 import TitleCards from './TitleCards';
 import HookCards from './HookCards';
 import ScriptCard from './ScriptCard';
@@ -556,6 +557,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       } catch {}
       sessionStorage.removeItem('creo_session');
     }
+    posthog.reset();
     toast.success('Signed out');
     // Hard navigation, not router.push — see comment above.
     if (typeof window !== 'undefined') window.location.href = '/sign-up-login-screen';
@@ -582,6 +584,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   // the client-side pre-check below is just an optimization to avoid an
   // obviously-wasted round trip.
   const callApi = async (idea: string, forceType: string, skipClarify = false) => {
+    posthog.capture('content_generation_requested', {
+      generation_type: forceType,
+      platform_count: selectedPlatforms.length,
+      selected_language: selectedLanguage === 'Auto-detect' ? 'auto' : selectedLanguage,
+      is_regeneration: forceType === 'titles' || forceType === 'hooks' || forceType === 'script' || forceType === 'expand',
+    });
     const { data: { session } } = await supabase.auth.getSession();
     // ✅ 'Auto-detect' → 'auto' (the server's detect-and-match default); any
     // other selection is sent as the explicit override, appending "+ English"
