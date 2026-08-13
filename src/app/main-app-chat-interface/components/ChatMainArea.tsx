@@ -838,72 +838,71 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       {showIntel && <CompetitorIntelModal onClose={() => setShowIntel(false)} plan={currentPlan()} />}
 
       {/* TOPBAR */}
-      <div className="flex-shrink-0 h-14 flex items-center justify-between px-3 md:px-6 border-b border-white/5 bg-[#080812]/90 backdrop-blur-xl">
+      <div className="flex-shrink-0 h-14 flex items-center justify-between px-3 md:px-6 border-b border-creo-border bg-creo-bg/95 backdrop-blur-md">
         <div className="flex items-center gap-2">
-          <button onClick={onToggleSidebar} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white transition-all lg:hidden"><Menu size={15} /></button>
+          <button onClick={onToggleSidebar} className="w-8 h-8 rounded-lg creo-surface flex items-center justify-center text-creo-text-muted hover:text-creo-text-primary transition-all lg:hidden"><Menu size={15} /></button>
           <div>
-            <h1 className="text-xs sm:text-sm font-semibold text-white truncate max-w-[160px] sm:max-w-xs">{getStepLabel()}</h1>
-            <p className="text-[10px] text-white/30 hidden sm:block">{selectedPlatforms.join(', ')} · {selectedTone}{selectedLanguage !== 'Auto-detect' ? ` · ${selectedLanguage}${isRegionalLanguage(selectedLanguage) && mixWithEnglish ? ' + English' : ''}` : ''}</p>
+            <h1 className="text-xs sm:text-sm font-semibold text-creo-text-primary truncate max-w-[160px] sm:max-w-xs">{getStepLabel()}</h1>
+            <p className="creo-caption text-creo-text-muted hidden sm:block">{selectedPlatforms.join(', ')} · {selectedTone}{selectedLanguage !== 'Auto-detect' ? ` · ${selectedLanguage}${isRegionalLanguage(selectedLanguage) && mixWithEnglish ? ' + English' : ''}` : ''}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {/* ✅ Streak flame — the daily habit loop */}
           {streak > 0 && (
-            <div className="hidden sm:flex items-center gap-0.5 h-7 px-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[11px] font-semibold text-orange-400 whitespace-nowrap" title={`${streak}-day creation streak — generate tomorrow to keep it alive!`}>
-              <Flame size={11} className="fill-orange-400/40 flex-shrink-0" />{streak}d
+            <div className="hidden sm:flex items-center gap-0.5 h-7 px-2 rounded-lg bg-creo-warning/10 border border-creo-warning/20 creo-caption font-semibold text-creo-warning whitespace-nowrap" title={`${streak}-day creation streak — generate tomorrow to keep it alive!`}>
+              <Flame size={11} className="fill-creo-warning/40 flex-shrink-0" />{streak}d
             </div>
           )}
           {!isProUser() && (
-            <button onClick={() => setShowPaywall(true)} className="hidden sm:flex items-center gap-1 h-7 px-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[11px] font-semibold text-purple-400 hover:bg-purple-500/20 transition-all whitespace-nowrap">
+            <button onClick={() => setShowPaywall(true)} className="hidden sm:flex items-center gap-1 h-7 px-2 rounded-lg bg-creo-primary/10 border border-creo-primary/20 creo-caption font-semibold text-creo-primary hover:bg-creo-primary/20 transition-all whitespace-nowrap">
               <Crown size={11} className="flex-shrink-0" />{genLeft} left
             </button>
           )}
-          <button onClick={handleNewChat} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all"><Plus size={12} /><span className="hidden xl:inline">New</span></button>
-          <div className="w-px h-5 bg-white/8 hidden md:block" />
-          {/* ✅ Vault button */}
-          <button onClick={() => setShowVault(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all">
-            <Star size={12} className="text-yellow-400/70" /><span className="hidden xl:inline">Vault</span>
+          <button onClick={handleNewChat} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all"><Plus size={12} /><span className="hidden xl:inline">New</span></button>
+          <div className="w-px h-5 bg-creo-border hidden md:block" />
+          {/* ✅ Vault button — same local-state trigger as before (setShowVault),
+              only the visual treatment changed. Kept in the topbar rather than
+              moved into the sidebar this pass — see redesign notes below. */}
+          <button onClick={() => setShowVault(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all">
+            <Star size={12} className="text-creo-warning/70" /><span className="hidden xl:inline">Vault</span>
           </button>
           {/* ✅ Creator Brain button */}
-          <button onClick={() => setShowBrain(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all" title="Creator Brain — teach CRÉO your style">
-            <Brain size={12} className="text-fuchsia-400/70" /><span className="hidden xl:inline">Brain</span>
+          <button onClick={() => setShowBrain(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all" title="Creator Brain — teach CRÉO your style">
+            <Brain size={12} className="text-creo-accent/70" /><span className="hidden xl:inline">Brain</span>
           </button>
           {/* ✅ Competitor Intelligence button */}
-          <button onClick={() => setShowIntel(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all" title="Competitor Intelligence — clone any viral framework (Ultra)">
+          <button onClick={() => setShowIntel(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all" title="Competitor Intelligence — clone any viral framework (Ultra)">
             <Radar size={12} className="text-sky-400/70" /><span className="hidden xl:inline">Intel</span>
           </button>
-          {/* ✅ Nova — moved here from a corner-floating launcher so she has one
-              predictable, always-visible spot instead of a circle that could
-              end up crowding other controls depending on screen size. */}
           {onOpenNova && (
-            <button onClick={onOpenNova} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all" title="Nova — your AI co-writer">
-              <Bot size={12} className="text-pink-400/70" /><span className="hidden xl:inline">Nova</span>
+            <button onClick={onOpenNova} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all" title="Nova — your AI co-writer">
+              <Bot size={12} className="text-creo-accent/70" /><span className="hidden xl:inline">Nova</span>
             </button>
           )}
-          <div className="w-px h-5 bg-white/8 hidden md:block" />
-          <button onClick={() => setShowControls(!showControls)} className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all ${showControls ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400' : 'glass border border-white/8 text-white/55 hover:text-white hover:border-white/15'}`}>
+          <div className="w-px h-5 bg-creo-border hidden md:block" />
+          <button onClick={() => setShowControls(!showControls)} className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all ${showControls ? 'bg-creo-primary/15 border border-creo-primary/30 text-creo-primary' : 'creo-surface text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong'}`}>
             <Sparkles size={12} /><span className="hidden xl:inline">Controls</span><ChevronDown size={11} className={`transition-transform ${showControls ? 'rotate-180' : ''}`} />
           </button>
-          <button onClick={handleExport} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg glass border border-white/8 text-xs font-medium text-white/55 hover:text-white hover:border-white/15 transition-all"><Download size={12} /><span className="hidden xl:inline">Export</span></button>
-          <button onClick={handleShare} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/50 hover:text-white hover:border-white/15 transition-all"><Share2 size={13} /></button>
-          <button onClick={() => router.push('/settings')} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/50 hover:text-white hover:border-white/15 transition-all" title="Settings"><Settings size={13} /></button>
-          <button onClick={handleSignOut} className="w-8 h-8 rounded-lg glass border border-white/8 flex items-center justify-center text-white/50 hover:text-red-400 hover:border-red-500/20 transition-all" title="Sign out"><LogOut size={13} /></button>
+          <button onClick={handleExport} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all"><Download size={12} /><span className="hidden xl:inline">Export</span></button>
+          <button onClick={handleShare} className="w-8 h-8 rounded-lg creo-surface flex items-center justify-center text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all"><Share2 size={13} /></button>
+          <button onClick={() => router.push('/settings')} className="w-8 h-8 rounded-lg creo-surface flex items-center justify-center text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all" title="Settings"><Settings size={13} /></button>
+          <button onClick={handleSignOut} className="w-8 h-8 rounded-lg creo-surface flex items-center justify-center text-creo-text-secondary hover:text-creo-danger hover:border-creo-danger/30 transition-all" title="Sign out"><LogOut size={13} /></button>
         </div>
       </div>
 
       {/* CONTROLS */}
       {showControls && (
-        <div className="flex-shrink-0 px-3 md:px-6 py-3 border-b border-white/5 bg-[#0a0a1a]/50 backdrop-blur-sm animate-slide-down">
+        <div className="flex-shrink-0 px-3 md:px-6 py-3 border-b border-creo-border bg-creo-surface/60 backdrop-blur-sm animate-slide-down">
           <div className="flex flex-wrap gap-3">
-            <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Platform</p><div className="flex flex-wrap gap-1">{platforms.map((p) => <button key={p} onClick={() => togglePlatform(p)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedPlatforms.includes(p) ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' : 'glass border border-white/8 text-white/40'}`}>{p}</button>)}</div></div>
-            <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Tone</p><div className="flex flex-wrap gap-1">{tones.map((t) => <button key={t} onClick={() => setSelectedTone(t)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedTone === t ? 'bg-pink-500/20 border border-pink-500/30 text-pink-300' : 'glass border border-white/8 text-white/40'}`}>{t}</button>)}</div></div>
-            <div><p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Duration</p><div className="flex flex-wrap gap-1">{durations.map((d) => <button key={d} onClick={() => setSelectedDuration(d)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedDuration === d ? 'bg-violet-500/20 border border-violet-500/30 text-violet-300' : 'glass border border-white/8 text-white/40'}`}>{d}</button>)}</div></div>
+            <div><p className="creo-caption uppercase tracking-widest text-creo-text-muted mb-1.5">Platform</p><div className="flex flex-wrap gap-1">{platforms.map((p) => <button key={p} onClick={() => togglePlatform(p)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedPlatforms.includes(p) ? 'bg-creo-primary/20 border border-creo-primary/30 text-creo-primary' : 'creo-surface text-creo-text-muted'}`}>{p}</button>)}</div></div>
+            <div><p className="creo-caption uppercase tracking-widest text-creo-text-muted mb-1.5">Tone</p><div className="flex flex-wrap gap-1">{tones.map((t) => <button key={t} onClick={() => setSelectedTone(t)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedTone === t ? 'bg-creo-accent/20 border border-creo-accent/30 text-creo-accent' : 'creo-surface text-creo-text-muted'}`}>{t}</button>)}</div></div>
+            <div><p className="creo-caption uppercase tracking-widest text-creo-text-muted mb-1.5">Duration</p><div className="flex flex-wrap gap-1">{durations.map((d) => <button key={d} onClick={() => setSelectedDuration(d)} className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedDuration === d ? 'bg-creo-primary/20 border border-creo-primary/30 text-creo-primary' : 'creo-surface text-creo-text-muted'}`}>{d}</button>)}</div></div>
             {/* ✅ Language selector — 'Auto-detect' matches the idea's own
                 language (old behavior); any other pick always wins, so a
                 creator can, say, type in English and get Hindi titles/hooks/
                 scripts back, or the reverse. */}
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Language</p>
+              <p className="creo-caption uppercase tracking-widest text-creo-text-muted mb-1.5">Language</p>
               <div className="flex flex-wrap gap-1">
                 {languages.map((l) => (
                   <button
@@ -914,7 +913,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                       if (!isRegionalLanguage(l)) setMixWithEnglish(false);
                       toast.success(`Language set to ${l}`);
                     }}
-                    className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedLanguage === l ? 'bg-sky-500/20 border border-sky-500/30 text-sky-300' : 'glass border border-white/8 text-white/40'}`}
+                    className={`px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${selectedLanguage === l ? 'bg-sky-500/20 border border-sky-500/30 text-sky-300' : 'creo-surface text-creo-text-muted'}`}
                   >
                     {l}
                   </button>
