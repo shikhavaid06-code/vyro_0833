@@ -19,6 +19,25 @@ module.exports = {
           bg: '#080812',
           card: '#0a0a18',
         },
+        // ✅ New redesign token set (Aug 2026 UI direction) — near-black/
+        // charcoal foundation, purple/magenta as accent only, not the whole
+        // surface. Kept separate from `vyro.*` so existing pages using the
+        // old tokens keep working untouched while new screens opt in.
+        creo: {
+          bg: '#08080b',          // page background — near-black, not pure black
+          surface: '#111114',     // resting card/panel surface
+          elevated: '#1a1a1f',    // hovered/active surface, modals, popovers
+          border: 'rgba(255,255,255,0.08)',
+          'border-strong': 'rgba(255,255,255,0.14)',
+          primary: '#8b5cf6',     // purple — primary actions, active nav state
+          accent: '#ec4899',      // magenta — sparing use only (badges, highlights)
+          success: '#12d9a7',
+          warning: '#ffa726',
+          danger: '#ef4444',
+          'text-primary': '#f5f5f7',
+          'text-secondary': 'rgba(245,245,247,0.6)',
+          'text-muted': 'rgba(245,245,247,0.38)',
+        },
       },
       backgroundImage: {
         'gradient-vyro': 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
