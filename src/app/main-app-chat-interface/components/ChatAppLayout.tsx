@@ -127,7 +127,7 @@ export default function ChatAppLayout() {
   }, [activeChatId]);
 
   return (
-    <div className="min-h-screen bg-workspace-glow flex overflow-hidden">
+    <div className="min-h-screen bg-creo-bg flex overflow-hidden">
       <ChatSidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -143,21 +143,21 @@ export default function ChatAppLayout() {
       <div className="flex-1 flex flex-col min-h-screen min-w-0 transition-all duration-300">
         {/* ✅ Renewal reminder banner — final days of a paid period */}
         {renewal && (
-          <div className="relative z-20 flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border-b border-amber-500/25 animate-slide-up">
-            <Hourglass size={14} className="text-amber-400 flex-shrink-0" />
-            <p className="flex-1 text-xs text-white/75 leading-snug">
-              Your <b className="capitalize text-amber-300">{renewal.plan}</b> plan ends in{' '}
-              <b className="text-amber-300">{renewal.daysLeft} day{renewal.daysLeft !== 1 ? 's' : ''}</b>
+          <div className="relative z-20 flex items-center gap-3 px-4 py-2.5 bg-creo-surface border-b border-creo-warning/25 animate-slide-up">
+            <Hourglass size={14} className="text-creo-warning flex-shrink-0" />
+            <p className="flex-1 creo-body text-creo-text-secondary leading-snug">
+              Your <b className="capitalize text-creo-warning">{renewal.plan}</b> plan ends in{' '}
+              <b className="text-creo-warning">{renewal.daysLeft} day{renewal.daysLeft !== 1 ? 's' : ''}</b>
               {' '}({new Date(renewal.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}). Plans don't auto-renew — renew to keep{' '}
               {renewal.plan === 'ultra' ? 'unlimited generations, Creator Brain & Competitor Intelligence' : 'your 100 generations/day, Brutal Reviewer & Expansion Engine'}.
             </p>
             <button
               onClick={() => router.push(`/upgrade?plan=${renewal.plan}`)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-semibold hover:opacity-90 active:scale-95 transition-all flex-shrink-0">
+              className="creo-btn-primary flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-white creo-caption hover:opacity-90 active:scale-95 transition-all flex-shrink-0">
               {renewal.plan === 'ultra' ? <Crown size={11} /> : <Zap size={11} />}Renew now
             </button>
             <button onClick={dismissRenewal} aria-label="Dismiss renewal reminder"
-              className="text-white/30 hover:text-white/70 transition-colors flex-shrink-0 p-1">
+              className="text-creo-text-muted hover:text-creo-text-primary transition-colors flex-shrink-0 p-1">
               <X size={13} />
             </button>
           </div>
