@@ -253,47 +253,47 @@ export default function SettingsPage() {
     `${q.currency === 'INR' ? '₹' : ''}${q.refundAmount.toLocaleString()}${q.currency === 'INR' ? '' : ` ${q.currency}`}`;
 
   const planColors: Record<string, string> = {
-    free: 'text-white/60',
-    pro: 'text-purple-400',
+    free: 'text-creo-text-secondary',
+    pro: 'text-creo-primary',
     ultra: 'text-amber-400',
   };
 
   const planIcons: Record<string, React.ReactNode> = {
-    free: <Sparkles size={14} className="text-white/40" />,
-    pro: <Zap size={14} className="text-purple-400" />,
+    free: <Sparkles size={14} className="text-creo-text-muted" />,
+    pro: <Zap size={14} className="text-creo-primary" />,
     ultra: <Crown size={14} className="text-amber-400" />,
   };
 
   const plan = user?.plan || 'free';
 
   return (
-    <div className="min-h-screen bg-[#080812] px-4 py-8">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none" />
+    <div className="min-h-screen bg-creo-bg px-4 py-8">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-creo-primary/4 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative z-10 max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <button onClick={() => router.push('/main-app-chat-interface')}
-            className="w-9 h-9 rounded-xl glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white transition-all">
+            className="w-9 h-9 rounded-xl creo-surface border-creo-border flex items-center justify-center text-creo-text-muted hover:text-creo-text-primary transition-all">
             <ArrowLeft size={16} />
           </button>
           <div className="flex items-center gap-2">
             <AppLogo size={22} />
-            <span className="font-display text-sm font-semibold text-white">Settings</span>
+            <span className="font-display text-sm font-semibold text-creo-text-primary">Settings</span>
           </div>
         </div>
 
         {/* Profile card */}
-        <div className="glass rounded-2xl border border-white/8 p-5 mb-4">
+        <div className="creo-surface rounded-2xl border border-white/8 p-5 mb-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center flex-shrink-0">
               <span className="text-xl font-bold text-white">{user?.name?.[0]?.toUpperCase() || 'U'}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-base">{user?.name || 'User'}</p>
+              <p className="text-creo-text-primary font-semibold text-base">{user?.name || 'User'}</p>
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-white/40 text-sm truncate">{user?.email || 'No email'}</p>
-                <button onClick={handleCopyEmail} className="text-white/30 hover:text-white/60 transition-all flex-shrink-0">
+                <p className="text-creo-text-muted text-sm truncate">{user?.email || 'No email'}</p>
+                <button onClick={handleCopyEmail} className="text-creo-text-muted hover:text-creo-text-secondary transition-all flex-shrink-0">
                   {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
                 </button>
               </div>
@@ -301,22 +301,22 @@ export default function SettingsPage() {
             {/* ✅ Tap the plan badge to see exactly what this plan includes */}
             <button onClick={() => setShowPlanFeatures((v) => !v)}
               title="See what your plan includes"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border transition-all active:scale-95 ${showPlanFeatures ? 'border-purple-500/40 bg-purple-500/10' : 'border-white/8 hover:border-white/20'} ${planColors[plan]}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full creo-surface border transition-all active:scale-95 ${showPlanFeatures ? 'border-creo-primary/40 bg-creo-primary/10' : 'border-white/8 hover:border-white/20'} ${planColors[plan]}`}>
               {planIcons[plan]}
               <span className="text-xs font-semibold capitalize">{plan}</span>
-              <ChevronRight size={11} className={`text-white/30 transition-transform duration-200 ${showPlanFeatures ? 'rotate-90' : ''}`} />
+              <ChevronRight size={11} className={`text-creo-text-muted transition-transform duration-200 ${showPlanFeatures ? 'rotate-90' : ''}`} />
             </button>
           </div>
 
           {/* ✅ Plan features panel — opens from the badge */}
           {showPlanFeatures && (
             <div className="mt-4 pt-4 border-t border-white/5 animate-slide-up">
-              <p className="text-xs font-semibold text-white/70 mb-2.5">{(PLAN_FEATURES[plan] || PLAN_FEATURES.free).title}</p>
+              <p className="text-xs font-semibold text-creo-text-secondary mb-2.5">{(PLAN_FEATURES[plan] || PLAN_FEATURES.free).title}</p>
               <div className="space-y-1.5">
                 {(PLAN_FEATURES[plan] || PLAN_FEATURES.free).items.map((item) => (
                   <div key={item} className="flex items-start gap-2">
-                    <Check size={12} className={`mt-0.5 flex-shrink-0 ${plan === 'ultra' ? 'text-amber-400' : plan === 'pro' ? 'text-purple-400' : 'text-white/40'}`} />
-                    <span className="text-xs text-white/55 leading-relaxed">{item}</span>
+                    <Check size={12} className={`mt-0.5 flex-shrink-0 ${plan === 'ultra' ? 'text-amber-400' : plan === 'pro' ? 'text-creo-primary' : 'text-creo-text-muted'}`} />
+                    <span className="text-xs text-creo-text-secondary leading-relaxed">{item}</span>
                   </div>
                 ))}
               </div>
@@ -333,8 +333,8 @@ export default function SettingsPage() {
           {plan === 'free' && (
             <div className="mt-4 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-white/40">Free generations used today</span>
-                <span className="text-xs text-purple-400">{genCount} / 3</span>
+                <span className="text-xs text-creo-text-muted">Free generations used today</span>
+                <span className="text-xs text-creo-primary">{genCount} / 3</span>
               </div>
               <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-purple-600 to-pink-600 rounded-full transition-all" style={{ width: `${Math.min((genCount / 3) * 100, 100)}%` }} />
@@ -349,22 +349,22 @@ export default function SettingsPage() {
 
         {/* ✅ Cancellation result banner — shown after a cancel attempt */}
         {cancelResult && (
-          <div className={`glass rounded-2xl p-4 mb-4 border ${cancelResult.ok ? 'border-emerald-500/25' : 'border-red-500/25'}`}>
+          <div className={`creo-surface rounded-2xl p-4 mb-4 border ${cancelResult.ok ? 'border-emerald-500/25' : 'border-red-500/25'}`}>
             <p className={`text-sm ${cancelResult.ok ? 'text-emerald-300' : 'text-red-300'}`}>{cancelResult.message}</p>
           </div>
         )}
 
         {/* ✅ Subscription management card — paid plans only */}
         {sub && plan !== 'free' && (
-          <div className="glass rounded-2xl border border-white/8 p-5 mb-4">
+          <div className="creo-surface rounded-2xl border border-white/8 p-5 mb-4">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${plan === 'ultra' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-purple-500/10 border border-purple-500/20'}`}>
-                  {plan === 'ultra' ? <Crown size={14} className="text-amber-400" /> : <Zap size={14} className="text-purple-400" />}
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${plan === 'ultra' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-creo-primary/10 border border-creo-primary/20'}`}>
+                  {plan === 'ultra' ? <Crown size={14} className="text-amber-400" /> : <Zap size={14} className="text-creo-primary" />}
                 </div>
                 <div>
-                  <p className="text-sm text-white/80 font-semibold capitalize">{sub.plan} plan — active</p>
-                  <p className="text-[11px] text-white/35">
+                  <p className="text-sm text-creo-text-secondary font-semibold capitalize">{sub.plan} plan — active</p>
+                  <p className="text-[11px] text-creo-text-muted">
                     {sub.endDate ? `Access until ${new Date(sub.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Active period'}
                     {' · '}does not auto-renew
                   </p>
@@ -382,7 +382,7 @@ export default function SettingsPage() {
             )}
 
             {sub.refundAmount <= 0 ? (
-              <p className="mt-3 pt-3 border-t border-white/5 text-[11px] text-white/40 leading-relaxed">{sub.reason}</p>
+              <p className="mt-3 pt-3 border-t border-white/5 text-[11px] text-creo-text-muted leading-relaxed">{sub.reason}</p>
             ) : !confirmingCancel ? (
               <button onClick={() => setConfirmingCancel(true)}
                 className="w-full mt-3 py-2.5 rounded-xl border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all text-xs font-medium flex items-center justify-center gap-1.5">
@@ -390,13 +390,13 @@ export default function SettingsPage() {
               </button>
             ) : (
               <div className="mt-3 pt-3 border-t border-white/5">
-                <p className="text-xs text-white/60 leading-relaxed mb-1">
-                  <>You're within the <b className="text-white/80">24-hour refund window</b>. Cancelling refunds the full <b className="text-emerald-400">{formatRefund(sub)}</b> to your original payment method in 5–7 business days.</>
+                <p className="text-xs text-creo-text-secondary leading-relaxed mb-1">
+                  <>You're within the <b className="text-creo-text-secondary">24-hour refund window</b>. Cancelling refunds the full <b className="text-emerald-400">{formatRefund(sub)}</b> to your original payment method in 5–7 business days.</>
                 </p>
-                <p className="text-[11px] text-white/30 mb-3">Your plan ends immediately — this can't be undone.</p>
+                <p className="text-[11px] text-creo-text-muted mb-3">Your plan ends immediately — this can't be undone.</p>
                 <div className="flex gap-2">
                   <button onClick={() => setConfirmingCancel(false)} disabled={cancelling}
-                    className="flex-1 py-2.5 rounded-xl glass border border-white/10 text-white/60 hover:text-white text-xs font-medium transition-all">
+                    className="flex-1 py-2.5 rounded-xl creo-surface text-creo-text-secondary hover:text-creo-text-primary text-xs font-medium transition-all">
                     Keep my plan
                   </button>
                   <button onClick={handleConfirmCancel} disabled={cancelling}
@@ -411,15 +411,15 @@ export default function SettingsPage() {
 
         {/* ✅ Refer & Earn card */}
         {referral?.code && (
-          <div className="glass rounded-2xl border border-emerald-500/20 p-5 mb-4">
+          <div className="creo-surface rounded-2xl border border-emerald-500/20 p-5 mb-4">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                   <Gift size={14} className="text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-white/80 font-semibold">Refer & Earn</p>
-                  <p className="text-[11px] text-white/35">+1 permanent daily generation per friend (max +{referral.maxBonus})</p>
+                  <p className="text-sm text-creo-text-secondary font-semibold">Refer & Earn</p>
+                  <p className="text-[11px] text-creo-text-muted">+1 permanent daily generation per friend (max +{referral.maxBonus})</p>
                 </div>
               </div>
               {streak > 0 && (
@@ -427,7 +427,7 @@ export default function SettingsPage() {
               )}
             </div>
             <div className="flex gap-2 mt-3">
-              <div className="flex-1 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white/50 font-mono truncate">{referralLink}</div>
+              <div className="flex-1 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-creo-text-secondary font-mono truncate">{referralLink}</div>
               <a href={`https://wa.me/?text=${encodeURIComponent(`Been using CRÉO to script my shorts — one idea → titles, hooks, full scripts. Try it, I get a bonus generation when you do: ${referralLink}`)}`}
                 target="_blank" rel="noopener noreferrer"
                 className="px-4 py-2.5 rounded-xl bg-[#25D366]/15 border border-[#25D366]/30 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 hover:bg-[#25D366]/25 active:scale-95 transition-all">
@@ -438,7 +438,7 @@ export default function SettingsPage() {
                 {refCopied ? <Check size={12} className="animate-pop-in" /> : <Copy size={12} />}{refCopied ? 'Copied!' : 'Copy'}
               </button>
             </div>
-            <div className="flex items-center gap-4 mt-3 text-[11px] text-white/40">
+            <div className="flex items-center gap-4 mt-3 text-[11px] text-creo-text-muted">
               <span><b className="text-emerald-400">{referral.referrals}</b> friend{referral.referrals !== 1 ? 's' : ''} joined</span>
               <span><b className="text-emerald-400">+{referral.bonus}</b> bonus generations/day earned</span>
             </div>
@@ -447,14 +447,14 @@ export default function SettingsPage() {
 
         {/* ✅ Rate CRÉO — the review collector. Reviews land in Supabase
             (reviews table) for the founder to read; nothing is auto-published. */}
-        <div className="glass rounded-2xl border border-white/8 p-5 mb-4">
+        <div className="creo-surface rounded-2xl border border-white/8 p-5 mb-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
               <Star size={14} className="text-yellow-400" />
             </div>
             <div>
-              <p className="text-sm text-white/80 font-semibold">Rate CRÉO</p>
-              <p className="text-[11px] text-white/35">Your feedback goes straight to the founder — it shapes what gets built next.</p>
+              <p className="text-sm text-creo-text-secondary font-semibold">Rate CRÉO</p>
+              <p className="text-[11px] text-creo-text-muted">Your feedback goes straight to the founder — it shapes what gets built next.</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 mt-3 mb-3">
@@ -465,10 +465,10 @@ export default function SettingsPage() {
                 onMouseLeave={() => setHoverStar(0)}
                 aria-label={`${n} star${n !== 1 ? 's' : ''}`}
                 className="p-0.5 transition-transform hover:scale-110 active:scale-95">
-                <Star size={22} className={`transition-colors ${(hoverStar || reviewRating) >= n ? 'text-yellow-400 fill-yellow-400' : 'text-white/20'}`} />
+                <Star size={22} className={`transition-colors ${(hoverStar || reviewRating) >= n ? 'text-yellow-400 fill-yellow-400' : 'text-creo-text-muted'}`} />
               </button>
             ))}
-            {reviewRating > 0 && <span className="text-xs text-white/40 ml-1">{['', 'Ouch — tell us why', 'Needs work', 'Decent', 'Great', 'Love it!'][reviewRating]}</span>}
+            {reviewRating > 0 && <span className="text-xs text-creo-text-muted ml-1">{['', 'Ouch — tell us why', 'Needs work', 'Decent', 'Great', 'Love it!'][reviewRating]}</span>}
           </div>
           <textarea
             value={reviewText}
@@ -476,7 +476,7 @@ export default function SettingsPage() {
             placeholder="What's working? What's missing? Brutal honesty welcome — that's kind of our thing."
             rows={3}
             maxLength={2000}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs leading-relaxed placeholder:text-white/20 focus:outline-none focus:border-yellow-500/40 transition-all resize-none"
+            className="w-full px-3.5 py-2.5 rounded-xl creo-surface text-creo-text-primary text-xs leading-relaxed placeholder:text-creo-text-muted focus:outline-none focus:border-yellow-500/40 transition-all resize-none"
           />
           {reviewError && <p className="text-red-400 text-xs mt-1.5">{reviewError}</p>}
           <button onClick={handleSubmitReview} disabled={reviewSaving}
@@ -488,12 +488,12 @@ export default function SettingsPage() {
         </div>
 
         {/* ✅ Notifications — working toggles, no more "coming soon" */}
-        <div className="glass rounded-2xl border border-white/8 p-5 mb-4">
+        <div className="creo-surface rounded-2xl border border-white/8 p-5 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
               <Bell size={14} className="text-sky-400" />
             </div>
-            <p className="text-sm text-white/80 font-semibold">Notifications</p>
+            <p className="text-sm text-creo-text-secondary font-semibold">Notifications</p>
           </div>
           {[
             { label: 'Plan renewal reminders', sub: 'A banner in your workspace during the last 5 days of a paid plan', on: notifRenewal, toggle: toggleRenewalNotif, busy: false },
@@ -501,8 +501,8 @@ export default function SettingsPage() {
           ].map((row) => (
             <div key={row.label} className="flex items-center justify-between gap-3 py-2.5 border-t border-white/5 first:border-t-0">
               <div className="min-w-0">
-                <p className="text-xs text-white/75 font-medium">{row.label}</p>
-                <p className="text-[11px] text-white/35 truncate">{row.sub}</p>
+                <p className="text-xs text-creo-text-secondary font-medium">{row.label}</p>
+                <p className="text-[11px] text-creo-text-muted truncate">{row.sub}</p>
               </div>
               <button onClick={row.toggle} disabled={row.busy} aria-label={`Toggle ${row.label}`}
                 className={`relative w-10 h-5.5 h-6 rounded-full transition-colors flex-shrink-0 ${row.on ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-white/10'} disabled:opacity-60`}>
@@ -535,19 +535,19 @@ export default function SettingsPage() {
             ]
           }
         ].map((section) => (
-          <div key={section.title} className="glass rounded-2xl border border-white/8 mb-4 overflow-hidden">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25 px-5 pt-4 pb-2">{section.title}</p>
+          <div key={section.title} className="creo-surface rounded-2xl border border-white/8 mb-4 overflow-hidden">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-creo-text-muted px-5 pt-4 pb-2">{section.title}</p>
             {section.items.map((item, i) => {
               const rowInner = (
                 <>
                   <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-                    <item.icon size={14} className="text-white/40" />
+                    <item.icon size={14} className="text-creo-text-muted" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-white/80 font-medium">{item.label}</p>
-                    <p className="text-xs text-white/30">{item.sub}</p>
+                    <p className="text-sm text-creo-text-secondary font-medium">{item.label}</p>
+                    <p className="text-xs text-creo-text-muted">{item.sub}</p>
                   </div>
-                  {item.action && <ChevronRight size={14} className="text-white/20" />}
+                  {item.action && <ChevronRight size={14} className="text-creo-text-muted" />}
                 </>
               );
               const rowClass = `w-full flex items-center gap-3 px-5 py-3.5 text-left ${i < section.items.length - 1 ? 'border-b border-white/5' : ''}`;
@@ -562,12 +562,12 @@ export default function SettingsPage() {
 
         {/* Sign out */}
         <button onClick={handleSignOut}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl glass border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium">
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl creo-surface border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium">
           <LogOut size={15} />
           Sign out
         </button>
 
-        <p className="text-center text-[10px] text-white/15 mt-6">CRÉO v1.0 · Made with ❤️</p>
+        <p className="text-center text-[10px] text-creo-text-muted mt-6">CRÉO v1.0 · Made with ❤️</p>
       </div>
     </div>
   );
