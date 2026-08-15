@@ -275,8 +275,8 @@ export default function AnonymousEntryScreen() {
 
       {/* THE GATE — slides up over the (blurred) background */}
       {(stage === 'gate' || stage === 'sent') && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-[#0d0d1f] border border-purple-500/20 rounded-3xl p-7 sm:p-8 relative animate-in slide-in-from-bottom-8 duration-400 shadow-2xl shadow-purple-500/10">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0 bg-black/60 backdrop-blur-sm animate-backdrop-in">
+          <div className="w-full max-w-md bg-[#0d0d1f] border border-purple-500/20 rounded-3xl p-7 sm:p-8 relative animate-modal-in shadow-2xl shadow-purple-500/10">
             {stage === 'gate' ? (
               <>
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30 flex items-center justify-center mb-5">
