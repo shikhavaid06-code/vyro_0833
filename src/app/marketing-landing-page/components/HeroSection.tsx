@@ -39,29 +39,29 @@ const LinkedInLogo = () => (
 );
 
 const platforms = [
-  { name: 'YouTube', Logo: YouTubeLogo, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' },
-  { name: 'TikTok', Logo: TikTokLogo, color: 'text-white', bg: 'bg-white/5 border-white/10' },
-  { name: 'Instagram', Logo: InstagramLogo, color: 'text-pink-400', bg: 'bg-pink-500/10 border-pink-500/20' },
-  { name: 'Twitter/X', Logo: TwitterLogo, color: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-500/20' },
-  { name: 'Substack', Logo: SubstackLogo, color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
-  { name: 'LinkedIn', Logo: LinkedInLogo, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+  { name: 'YouTube', Logo: YouTubeLogo, color: 'text-red-400', bg: 'bg-red-500/8 border-red-500/15' },
+  { name: 'TikTok', Logo: TikTokLogo, color: 'text-creo-text-primary', bg: 'bg-white/[0.03] border-creo-border' },
+  { name: 'Instagram', Logo: InstagramLogo, color: 'text-pink-400', bg: 'bg-pink-500/8 border-pink-500/15' },
+  { name: 'Twitter/X', Logo: TwitterLogo, color: 'text-sky-400', bg: 'bg-sky-500/8 border-sky-500/15' },
+  { name: 'Substack', Logo: SubstackLogo, color: 'text-orange-400', bg: 'bg-orange-500/8 border-orange-500/15' },
+  { name: 'LinkedIn', Logo: LinkedInLogo, color: 'text-blue-400', bg: 'bg-blue-500/8 border-blue-500/15' },
 ];
 
 const steps = [
   {
     num: '01', emoji: '💡', title: 'Enter your idea',
     desc: 'Type any topic — "5 AI study hacks" or "morning routine for creators"',
-    tag: 'Any niche, any platform', color: 'from-purple-600/20 to-violet-600/20', border: 'border-purple-500/20',
+    tag: 'Any niche, any platform',
   },
   {
     num: '02', emoji: '🎯', title: 'Choose your platform',
     desc: 'YouTube, TikTok, Instagram, Twitter — CRÉO adapts tone, length and format automatically',
-    tag: '6 platforms supported', color: 'from-pink-600/20 to-rose-600/20', border: 'border-pink-500/20',
+    tag: '6 platforms supported',
   },
   {
     num: '03', emoji: '🚀', title: 'Get hooks, titles & scripts',
     desc: 'Publish-ready content in under 60 seconds. Edit inline, save to vault, or refine with AI',
-    tag: 'Ready to film or post', color: 'from-amber-600/20 to-orange-600/20', border: 'border-amber-500/20',
+    tag: 'Ready to film or post',
   },
 ];
 
@@ -84,12 +84,15 @@ function formatCount(n: number): string {
   return `${n}`;
 }
 
+// ✅ REDESIGN PASS (Aug 2026) — same content, same logic, same CTAs and stats
+// fetching. Visual language only: near-black foundation, one restrained
+// purple accent instead of purple+pink+violet everywhere, flat creo-surface
+// cards instead of blurred glass, toned-down ambient glow.
 export default function HeroSection() {
   const router = useRouter();
   const [showDemo, setShowDemo] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [stats, setStats] = useState<Stats>({ totalCreators: null, totalGenerated: null });
-  // ✅ Live hero input — the visitor's first generation starts right here.
   const [heroTopic, setHeroTopic] = useState('');
   const [exampleIdx, setExampleIdx] = useState(0);
 
@@ -98,14 +101,11 @@ export default function HeroSection() {
     return () => clearInterval(t);
   }, []);
 
-  // Rotate the example placeholder to show range
   useEffect(() => {
     const t = setInterval(() => setExampleIdx((i) => (i + 1) % EXAMPLE_TOPICS.length), 2600);
     return () => clearInterval(t);
   }, []);
 
-  // ✅ Real numbers only — fetched from Supabase via /api/stats.
-  // No fallback fabrication: if the call fails, we just don't show a count.
   useEffect(() => {
     fetch('/api/stats')
       .then((r) => r.json())
@@ -115,50 +115,47 @@ export default function HeroSection() {
 
   const showCreatorBadge = stats.totalCreators !== null && stats.totalCreators >= 10;
 
-  // ✅ PLG entry: carry the visitor's topic straight into the /try anonymous
-  // flow — they experience a real generation before ever seeing a signup form.
   const handleHeroGenerate = () => {
     const t = heroTopic.trim();
     router.push(t ? `/try?topic=${encodeURIComponent(t)}` : '/try');
   };
 
   return (
-    <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
+    <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16 bg-creo-bg">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-600/10 rounded-full blur-[120px]" />
-        <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-pink-600/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-violet-600/10 rounded-full blur-[90px]" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `linear-gradient(rgba(168,85,247,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.5) 1px, transparent 1px)`, backgroundSize: '60px 60px' }} />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-creo-primary/6 rounded-full blur-[130px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-creo-accent/5 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: `linear-gradient(rgba(139,92,246,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.5) 1px, transparent 1px)`, backgroundSize: '60px 60px' }} />
       </div>
 
       <div className="relative z-10 max-w-screen-2xl mx-auto px-6 lg:px-10 text-center w-full">
         {/* Badge — real count if we have one, honest "new" framing if we don't */}
-        <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8 border border-purple-500/20 animate-slide-up" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+        <div className="inline-flex items-center gap-2 creo-surface rounded-full px-4 py-2 mb-8 animate-slide-up" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+          <span className="w-2 h-2 rounded-full bg-creo-success animate-pulse" />
           {showCreatorBadge ? (
-            <span className="text-xs font-medium text-white/70"><CountUp value={stats.totalCreators as number} format={formatCount} /> creators already using CRÉO</span>
+            <span className="creo-body text-creo-text-secondary"><CountUp value={stats.totalCreators as number} format={formatCount} /> creators already using CRÉO</span>
           ) : (
-            <span className="text-xs font-medium text-white/70">Just launched — be one of our first creators</span>
+            <span className="creo-body text-creo-text-secondary">Just launched — be one of our first creators</span>
           )}
-          <TrendingUp size={12} className="text-purple-400" />
+          <TrendingUp size={12} className="text-creo-primary" />
         </div>
 
         {/* Headline */}
         <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 animate-slide-up" style={{ animationDelay: '120ms', animationFillMode: 'both' }}>
-          <span className="text-white">Stop Guessing What To Post.</span><br />
+          <span className="text-creo-text-primary">Stop Guessing What To Post.</span><br />
           <span className="text-gradient">Build A Content System</span><br />
-          <span className="text-white text-4xl md:text-5xl lg:text-6xl">That Never Runs Dry.</span>
+          <span className="text-creo-text-primary text-4xl md:text-5xl lg:text-6xl">That Never Runs Dry.</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-4 leading-relaxed font-light animate-slide-up" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
+        <p className="text-lg md:text-xl text-creo-text-secondary max-w-2xl mx-auto mb-4 leading-relaxed font-light animate-slide-up" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
           CRÉO writes hooks, titles and full scripts that keep people watching — in under 60 seconds.
         </p>
 
         {/* Result pills */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-10 animate-slide-up" style={{ animationDelay: '340ms', animationFillMode: 'both' }}>
           {['Get viewers to stop scrolling', 'Publish-ready scripts instantly', 'Creator Memory that grows with you'].map((t) => (
-            <span key={t} className="flex items-center gap-1.5 glass border border-white/8 rounded-full px-3 py-1 text-xs text-white/50">
-              <Zap size={10} className="text-purple-400" />{t}
+            <span key={t} className="flex items-center gap-1.5 creo-surface rounded-full px-3 py-1 creo-caption text-creo-text-secondary">
+              <Zap size={10} className="text-creo-primary" />{t}
             </span>
           ))}
         </div>
@@ -167,109 +164,109 @@ export default function HeroSection() {
             Typing an idea here hands it straight to the /try anonymous flow,
             which generates real hooks before any signup is asked for. */}
         <div className="max-w-xl mx-auto mb-5 animate-slide-up" style={{ animationDelay: '440ms', animationFillMode: 'both' }}>
-          <div className="glass-strong rounded-full border border-purple-500/25 p-1.5 pl-5 flex items-center gap-2 shadow-lg shadow-purple-500/10 focus-within:border-purple-500/50 focus-within:shadow-purple-500/20 transition-all duration-300">
-            <Sparkles size={16} className="text-purple-400 flex-shrink-0" />
+          <div className="creo-surface-elevated rounded-full p-1.5 pl-5 flex items-center gap-2 focus-within:border-creo-primary/50 transition-all duration-300">
+            <Sparkles size={16} className="text-creo-primary flex-shrink-0" />
             <input
               type="text"
               value={heroTopic}
               onChange={(e) => setHeroTopic(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleHeroGenerate(); }}
               placeholder={`Try "${EXAMPLE_TOPICS[exampleIdx]}"`}
-              className="flex-1 min-w-0 bg-transparent text-white text-sm md:text-base placeholder:text-white/25 py-3 focus:outline-none"
+              className="flex-1 min-w-0 bg-transparent text-creo-text-primary text-sm md:text-base placeholder:text-creo-text-muted py-3 focus:outline-none"
               aria-label="Your video topic"
             />
             <button
               onClick={handleHeroGenerate}
-              className="group flex items-center gap-2 px-5 md:px-7 py-3 rounded-full bg-gradient-vyro text-white font-semibold text-sm md:text-base glow-button hover:scale-[1.03] active:scale-95 transition-all duration-200 flex-shrink-0">
+              className="creo-btn-primary group flex items-center gap-2 px-5 md:px-7 py-3 rounded-full text-white font-semibold text-sm md:text-base hover:scale-[1.02] active:scale-95 transition-all duration-200 flex-shrink-0">
               <Flame size={16} />
               <span className="hidden sm:inline">Generate Hooks</span>
               <span className="sm:hidden">Go</span>
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
             </button>
           </div>
-          <p className="text-[11px] text-white/30 mt-3">Free · No card required · Real hooks in seconds</p>
+          <p className="creo-caption text-creo-text-muted mt-3">Free · No card required · Real hooks in seconds</p>
         </div>
 
         {/* Secondary CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-slide-up" style={{ animationDelay: '540ms', animationFillMode: 'both' }}>
-          <button onClick={() => setShowDemo(true)} className="group flex items-center gap-2 px-6 py-3 rounded-full glass text-white/70 hover:text-white font-medium text-sm hover:bg-white/5 transition-all duration-200">
-            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
+          <button onClick={() => setShowDemo(true)} className="group flex items-center gap-2 px-6 py-3 rounded-full creo-surface text-creo-text-secondary hover:text-creo-text-primary font-medium text-sm hover:border-creo-border-strong transition-all duration-200">
+            <div className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center group-hover:bg-creo-primary/15 transition-colors">
               <Play size={11} fill="currentColor" />
             </div>
             Watch Demo
           </button>
-          <Link href="/sign-up-login-screen" className="group flex items-center gap-1.5 text-sm text-white/50 hover:text-white font-medium transition-colors duration-200">
+          <Link href="/sign-up-login-screen" className="group flex items-center gap-1.5 text-sm text-creo-text-secondary hover:text-creo-text-primary font-medium transition-colors duration-200">
             or create your free account <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
           </Link>
         </div>
 
         {/* Product flow visualization */}
-        <div className="max-w-3xl mx-auto glass rounded-2xl p-6 text-left mb-20 border border-white/8">
+        <div className="max-w-3xl mx-auto creo-surface rounded-2xl p-6 text-left mb-20">
           <div className="flex items-center gap-3 mb-5">
             <div className="flex gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-red-500/70" />
-              <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
-              <span className="w-3 h-3 rounded-full bg-green-500/70" />
+              <span className="w-3 h-3 rounded-full bg-red-500/60" />
+              <span className="w-3 h-3 rounded-full bg-creo-warning/60" />
+              <span className="w-3 h-3 rounded-full bg-creo-success/60" />
             </div>
-            <span className="text-xs text-white/30 font-mono">creo.ai — content generator</span>
+            <span className="creo-caption text-creo-text-muted font-mono">creo.ai — content generator</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { step: '01', label: 'Your Idea', content: '"Fitness tips for busy students"', color: 'border-purple-500/30 bg-purple-500/5' },
-              { step: '02', label: '6 Viral Titles', content: '"The 5-Minute Student Workout Nobody Talks About"', color: 'border-pink-500/30 bg-pink-500/5' },
-              { step: '03', label: '3 Hook Options', content: '"I wasted 2 years studying wrong — here\'s what changed"', color: 'border-violet-500/30 bg-violet-500/5' },
-              { step: '04', label: 'Full Script', content: '[INTRO 0:00] Hook + problem... [MAIN] 5 tips...', color: 'border-green-500/30 bg-green-500/5' },
+              { step: '01', label: 'Your Idea', content: '"Fitness tips for busy students"' },
+              { step: '02', label: '6 Viral Titles', content: '"The 5-Minute Student Workout Nobody Talks About"' },
+              { step: '03', label: '3 Hook Options', content: '"I wasted 2 years studying wrong — here\'s what changed"' },
+              { step: '04', label: 'Full Script', content: '[INTRO 0:00] Hook + problem... [MAIN] 5 tips...' },
             ].map((item) => (
-              <div key={item.step} className={`rounded-xl border p-3 ${item.color}`}>
+              <div key={item.step} className="rounded-xl border border-creo-border bg-white/[0.02] p-3">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-[10px] font-bold text-white/30">{item.step}</span>
-                  <span className="text-[10px] font-semibold text-white/60 uppercase tracking-wide">{item.label}</span>
+                  <span className="creo-caption text-creo-text-muted font-bold">{item.step}</span>
+                  <span className="creo-caption text-creo-text-secondary uppercase tracking-wide">{item.label}</span>
                 </div>
-                <p className="text-xs text-white/60 leading-relaxed line-clamp-3">{item.content}</p>
+                <p className="creo-body text-creo-text-secondary leading-relaxed line-clamp-3">{item.content}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ✅ Improved How It Works with animated active state */}
+        {/* ✅ How It Works with animated active state */}
         <div className="max-w-4xl mx-auto mb-20">
-          <div className="inline-flex items-center gap-2 glass rounded-full px-3 py-1.5 mb-4 border border-purple-500/20">
-            <Star size={11} className="text-purple-400 fill-purple-400" />
-            <span className="text-xs text-purple-400 font-medium">How It Works</span>
+          <div className="inline-flex items-center gap-2 creo-surface rounded-full px-3 py-1.5 mb-4">
+            <Star size={11} className="text-creo-primary fill-creo-primary" />
+            <span className="creo-caption text-creo-primary">How It Works</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">Three steps to viral content</h2>
-          <p className="text-white/40 text-sm mb-10">No learning curve. No blank page. Just results.</p>
+          <h2 className="creo-h2 text-creo-text-primary mb-3">Three steps to viral content</h2>
+          <p className="creo-body text-creo-text-muted mb-10">No learning curve. No blank page. Just results.</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {steps.map((step, i) => (
               <div key={step.num}
-                className={`glass rounded-2xl border p-6 text-left relative overflow-hidden transition-all duration-500 cursor-pointer ${
-                  activeStep === i ? `bg-gradient-to-br ${step.color} ${step.border} scale-[1.02] shadow-lg` : 'border-white/8 hover:border-white/15'
+                className={`rounded-2xl border p-6 text-left relative overflow-hidden transition-all duration-500 cursor-pointer ${
+                  activeStep === i ? 'creo-surface-elevated border-creo-primary/30' : 'creo-surface hover:border-creo-border-strong'
                 }`}
                 onClick={() => setActiveStep(i)}>
-                <div className="absolute top-4 right-4 text-5xl font-black text-white/5">{step.num}</div>
+                <div className="absolute top-4 right-4 text-5xl font-black text-white/[0.03]">{step.num}</div>
                 <span className="text-3xl mb-4 block">{step.emoji}</span>
-                <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold mb-3 ${activeStep === i ? 'bg-white/10 text-white/70' : 'bg-white/5 text-white/30'}`}>
+                <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full creo-caption mb-3 ${activeStep === i ? 'bg-creo-primary/15 text-creo-primary' : 'bg-white/[0.03] text-creo-text-muted'}`}>
                   {step.tag}
                 </div>
-                <h3 className="text-white font-semibold text-base mb-2">{step.title}</h3>
-                <p className="text-white/40 text-sm leading-relaxed">{step.desc}</p>
+                <h3 className="creo-h3 text-creo-text-primary mb-2">{step.title}</h3>
+                <p className="creo-body text-creo-text-muted leading-relaxed">{step.desc}</p>
                 {activeStep === i && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-creo-primary" />
                 )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* ✅ Platform logos instead of text */}
+        {/* Platform logos */}
         <div className="flex flex-col items-center gap-6 mb-20">
-          <p className="text-xs text-white/30 uppercase tracking-widest">Works perfectly for creators on</p>
+          <p className="creo-caption text-creo-text-muted uppercase tracking-widest">Works perfectly for creators on</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {platforms.map(({ name, Logo, color, bg }) => (
-              <div key={name} className={`flex items-center gap-2 glass border ${bg} rounded-xl px-4 py-2.5 transition-all hover:scale-105`}>
+              <div key={name} className={`flex items-center gap-2 border ${bg} rounded-xl px-4 py-2.5 transition-all hover:scale-105`}>
                 <span className={color}><Logo /></span>
-                <span className="text-sm text-white/60 font-medium">{name}</span>
+                <span className="creo-body text-creo-text-secondary font-medium">{name}</span>
               </div>
             ))}
           </div>
@@ -292,10 +289,10 @@ export default function HeroSection() {
             },
             { val: '6', count: 6, label: 'Platforms', sub: 'YouTube, TikTok & more' },
           ].map(({ val, label, sub, count }: any) => (
-            <div key={label} className="glass rounded-2xl border border-white/8 p-4 text-center">
-              <p className="text-2xl font-bold text-white mb-0.5">{typeof count === 'number' ? <CountUp value={count} format={formatCount} /> : val}</p>
-              <p className="text-xs font-semibold text-white/60">{label}</p>
-              <p className="text-[10px] text-white/30">{sub}</p>
+            <div key={label} className="creo-surface rounded-2xl p-4 text-center">
+              <p className="text-2xl font-bold text-creo-text-primary mb-0.5">{typeof count === 'number' ? <CountUp value={count} format={formatCount} /> : val}</p>
+              <p className="creo-caption text-creo-text-secondary font-semibold">{label}</p>
+              <p className="creo-caption text-creo-text-muted">{sub}</p>
             </div>
           ))}
         </div>
