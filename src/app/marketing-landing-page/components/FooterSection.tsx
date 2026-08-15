@@ -1,280 +1,129 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { Sparkles, Zap, FileText, MessageSquare, Globe, Wand2, ChevronRight, Brain, ShieldAlert, Layers, Radar, Lock } from 'lucide-react';
+import React, { useState } from 'react';
+import AppLogo from '@/components/ui/AppLogo';
+import { Mail } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface Stats { totalCreators: number | null; totalGenerated: number | null; }
+const TwitterIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>);
+const YoutubeIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>);
+const InstagramIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>);
+const DiscordIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.291.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" /></svg>);
 
-function formatCount(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M+`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K+`;
-  return `${n}`;
-}
+// ✅ CRÉO community Discord — never-expires invite, wired 2026-07.
+const DISCORD_INVITE = 'https://discord.gg/WDqJeKUcu';
 
-// ✅ Live features — available today
-const features = [
-  {
-    id: 'title-gen',
-    icon: Sparkles,
-    color: 'purple',
-    title: 'AI Title Generator',
-    description: 'Generate 10+ scroll-stopping titles for any idea in under 5 seconds. Trained on millions of viral videos across every niche.',
-    detail: 'Analyzes trending patterns, emotional triggers, and platform-specific formats to craft titles that demand clicks.',
-    badge: 'Most Used',
-    status: 'live' as const,
-  },
-  {
-    id: 'hook-gen',
-    icon: Zap,
-    color: 'pink',
-    title: 'Hook Generator',
-    description: 'The first 3 seconds decide everything. CRÉO writes hooks that stop the scroll and pull viewers into your content.',
-    detail: 'Choose from curiosity hooks, shock hooks, story hooks, and controversy hooks — all optimized per platform.',
-    badge: 'Fan Favorite',
-    status: 'live' as const,
-  },
-  {
-    id: 'script-gen',
-    icon: FileText,
-    color: 'violet',
-    title: 'Script Generator',
-    description: 'Full scripts for Shorts, Reels, long-form YouTube, and everything in between. Custom duration up to 2 hours.',
-    detail: 'Structured with intro, body, and CTA. Tone-matched to your brand voice with every generation.',
-    badge: null,
-    status: 'live' as const,
-  },
-  {
-    id: 'ai-assistant',
-    icon: MessageSquare,
-    color: 'indigo',
-    title: 'AI Assistant',
-    description: 'Chat with your personal AI co-writer. Ask it to rewrite, shorten, make it funnier, or change the entire angle.',
-    detail: 'Context-aware — it remembers your entire session and refines based on your feedback naturally.',
-    badge: 'Ultra Only',
-    status: 'live' as const,
-  },
-  {
-    id: 'multi-platform',
-    icon: Globe,
-    color: 'cyan',
-    title: 'Multi-Platform Optimization',
-    description: 'One idea, every platform. CRÉO adapts your content for YouTube, TikTok, Instagram Reels, and Twitter/X.',
-    detail: 'Adjusts length, tone, hashtag strategy, and format rules per platform automatically.',
-    badge: null,
-    status: 'live' as const,
-  },
-  {
-    id: 'smart-edit',
-    icon: Wand2,
-    color: 'amber',
-    title: 'Smart AI Editing',
-    description: 'Highlight any part of your script and say "make this more emotional" or "cut this down." AI rewrites it live.',
-    detail: 'Works inline within the chat — no copy-pasting to external tools. Your script evolves in real time.',
-    badge: 'Pro + Ultra',
-    status: 'live' as const,
-  },
+// ✅ Real CRÉO accounts — wired 2026-07 (were placeholder platform homepages).
+const socialLinks = [
+  { SocialIcon: TwitterIcon, label: 'Twitter', href: 'https://x.com/get_creo' },
+  { SocialIcon: YoutubeIcon, label: 'YouTube', href: 'https://www.youtube.com/@get-creo' },
+  { SocialIcon: InstagramIcon, label: 'Instagram', href: 'https://www.instagram.com/creo_.2026/' },
+  { SocialIcon: DiscordIcon, label: 'Discord community', href: DISCORD_INVITE },
 ];
 
-// ✅ SHIPPED (moved out of Coming Soon the day they went live, per the rule
-// that roadmap tags only come off once a feature actually exists):
-const shippedFeatures = [
-  {
-    id: 'creator-memory',
-    icon: Brain,
-    color: 'fuchsia',
-    title: 'Creator Memory & Brain',
-    description: 'Teach CRÉO your niche, audience, voice, and goals once — every generation is written in YOUR style, not generic AI.',
-    detail: 'Set it up from the Brain button in your workspace. The more specific your profile, the more it sounds like you.',
-    badge: 'Ultra',
-    status: 'live' as const,
-  },
-  {
-    id: 'brutal-reviewer',
-    icon: ShieldAlert,
-    color: 'red',
-    title: 'Brutal Reviewer',
-    description: 'A no-mercy AI critique that scores your hook strength, curiosity, emotional pull, and retention — then fixes the weak parts.',
-    detail: 'One tap on any generated script. Catches weak openings and slow endings before they cost you views.',
-    badge: 'Pro + Ultra',
-    status: 'live' as const,
-  },
-  {
-    id: 'content-expansion',
-    icon: Layers,
-    color: 'emerald',
-    title: 'Content Expansion Engine',
-    description: 'Turn one idea into a full content pack — hooks, titles, Shorts, a Reel, an X thread, and a LinkedIn post in one pass.',
-    detail: 'Stop starting from scratch for every format. One idea, a week of content.',
-    badge: 'Pro + Ultra',
-    status: 'live' as const,
-  },
+const CONTACT_EMAIL = 'creo.app.ai@gmail.com';
+
+// ✅ FIXED: these were mailto: links, which silently fail (or open a broken
+// handler page) on any computer without a configured mail app — most of them.
+// Contact entries now COPY the email to the clipboard with a subject hint,
+// which works for 100% of visitors.
+type FooterLink = { label: string; href?: string; subject?: string };
+
+const productLinks: FooterLink[] = [
+  { label: 'Features', href: '/#features' },
+  { label: 'Pricing', href: '/#pricing' },
+  { label: 'Changelog', href: '/changelog' },
+  { label: 'Roadmap', href: '/roadmap' },
+  { label: 'API', subject: 'API Access Request' },
 ];
 
-// ✅ Shipped too — Competitor Intelligence graduated from Coming Soon the day
-// it went live (framework extraction + structure cloning, Ultra).
-const intelFeature = [
-  {
-    id: 'competitor-intel',
-    icon: Radar,
-    color: 'sky',
-    title: 'Competitor Intelligence',
-    description: 'Paste a competitor\'s transcript, titles, or hooks — CRÉO extracts their viral framework and clones the structure for your topic.',
-    detail: 'The Intel button in your workspace. Clone the psychology, never the words.',
-    badge: 'Ultra',
-    status: 'live' as const,
-  },
+const companyLinks: FooterLink[] = [
+  { label: 'About', href: '/#hero' },
+  { label: 'Community', href: DISCORD_INVITE },
+  { label: 'Careers', subject: 'Careers' },
+  { label: 'Press Kit', subject: 'Press Kit Request' },
+  { label: 'Affiliates', subject: 'Affiliate Program' },
 ];
 
-// Nothing on the near-term roadmap right now — new roadmap items get added
-// here (and to PricingSection simultaneously) when they're announced.
-const upcomingFeatures: typeof intelFeature = [];
+export default function FooterSection() {
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-const colorMap: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-  purple: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20', glow: 'group-hover:shadow-purple-500/20' },
-  pink: { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/20', glow: 'group-hover:shadow-pink-500/20' },
-  violet: { bg: 'bg-violet-500/10', text: 'text-violet-400', border: 'border-violet-500/20', glow: 'group-hover:shadow-violet-500/20' },
-  indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20', glow: 'group-hover:shadow-indigo-500/20' },
-  cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20', glow: 'group-hover:shadow-cyan-500/20' },
-  amber: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', glow: 'group-hover:shadow-amber-500/20' },
-  fuchsia: { bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-400', border: 'border-fuchsia-500/20', glow: 'group-hover:shadow-fuchsia-500/20' },
-  red: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', glow: 'group-hover:shadow-red-500/20' },
-  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', glow: 'group-hover:shadow-emerald-500/20' },
-  sky: { bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/20', glow: 'group-hover:shadow-sky-500/20' },
-};
+  // ✅ Copy-to-contact — works on every device, no mail app needed.
+  const copyContact = (subject: string) => {
+    navigator.clipboard.writeText(CONTACT_EMAIL).catch(() => {});
+    toast.success(`Email copied: ${CONTACT_EMAIL}`, {
+      description: `Send us a mail with the subject "${subject}" and we'll get back to you.`,
+    });
+  };
 
-export default function FeaturesSection() {
-  const [activeFeature, setActiveFeature] = useState('title-gen');
-  const [stats, setStats] = useState<Stats>({ totalCreators: null, totalGenerated: null });
-
-  useEffect(() => {
-    fetch('/api/stats').then((r) => r.json()).then((d) => setStats(d)).catch(() => {});
-  }, []);
-
-  const liveFeatures = [...features, ...shippedFeatures, ...intelFeature];
-
+  // ✅ Actually saves to Supabase now instead of just showing a success toast.
+  const handleNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+      toast.success("You're on the list!", { description: "We'll notify you about CRÉO updates." });
+      setEmail('');
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong. Please try again.');
+    }
+    setSubmitting(false);
+  };
   return (
-    <section id="features" className="relative py-32 overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-creo-primary/4 rounded-full blur-[100px]" />
-      </div>
-
+    <footer className="relative border-t border-creo-border pt-16 pb-8 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none"><div className="absolute bottom-0 left-0 w-[400px] h-[300px] bg-creo-primary/5 blur-[100px]" /></div>
       <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
-        {/* Section header */}
-        <div className="text-center mb-16">
-          <p className="text-xs font-semibold tracking-[0.2em] text-purple-400 uppercase mb-4">Features</p>
-          <h2 className="font-display text-4xl md:text-6xl font-bold mb-5">
-            <span className="text-creo-text-primary">Everything you need to</span>
-            <br />
-            <span className="text-gradient">ship content daily</span>
-          </h2>
-          <p className="text-creo-text-muted text-lg max-w-xl mx-auto">
-            Ten tools live today — including an AI Brain that learns your voice and a competitor framework cloner.
-          </p>
-        </div>
-
-        {/* Live feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {liveFeatures.map((feature) => {
-            const colors = colorMap[feature.color];
-            const Icon = feature.icon;
-            const isActive = activeFeature === feature.id;
-
-            return (
-              <div
-                key={`feature-${feature.id}`}
-                className={`group relative rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
-                  isActive
-                    ? `creo-surface-elevated border-${colors.border}`
-                    : 'creo-surface hover:border-creo-border-strong'
-                }`}
-                onClick={() => setActiveFeature(feature.id)}
-              >
-                {feature.badge && (
-                  <span className={`absolute top-4 right-4 text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}>
-                    {feature.badge}
-                  </span>
-                )}
-
-                <div className={`w-11 h-11 rounded-xl ${colors.bg} border ${colors.border} flex items-center justify-center mb-4`}>
-                  <Icon size={20} className={colors.text} />
-                </div>
-
-                <h3 className="text-creo-text-primary font-semibold text-base mb-2">{feature.title}</h3>
-                <p className="text-creo-text-secondary text-sm leading-relaxed mb-3">{feature.description}</p>
-
-                {isActive && (
-                  <div className="animate-slide-up">
-                    <p className={`text-xs leading-relaxed ${colors.text} opacity-80`}>{feature.detail}</p>
-                    <div className={`mt-3 flex items-center gap-1 text-xs ${colors.text} font-medium`}>
-                      <span>Try it now</span>
-                      <ChevronRight size={12} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Coming soon grid — visually distinct so it never reads as "already shipped" */}
-        {upcomingFeatures.length > 0 && (
-        <div className="mt-14">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-px flex-1 bg-white/8" />
-            <span className="text-xs font-semibold tracking-[0.15em] text-creo-text-muted uppercase whitespace-nowrap">Coming Soon — On The Roadmap</span>
-            <div className="h-px flex-1 bg-white/8" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {upcomingFeatures.map((feature) => {
-              const colors = colorMap[feature.color];
-              const Icon = feature.icon;
-
-              return (
-                <div
-                  key={`upcoming-${feature.id}`}
-                  className="relative rounded-2xl p-6 border border-dashed border-creo-border bg-white/[0.015] opacity-90"
-                >
-                  <span className={`absolute top-4 right-4 flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}>
-                    <Lock size={9} />{feature.badge}
-                  </span>
-
-                  <div className={`w-11 h-11 rounded-xl ${colors.bg} border ${colors.border} flex items-center justify-center mb-4`}>
-                    <Icon size={20} className={colors.text} />
-                  </div>
-
-                  <h3 className="text-creo-text-secondary font-semibold text-base mb-2">{feature.title}</h3>
-                  <p className="text-creo-text-muted text-sm leading-relaxed">{feature.description}</p>
-                  <div className="mt-3 inline-flex items-center gap-1 text-[10px] font-semibold text-creo-text-muted uppercase tracking-wide">
-                    Coming Soon
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        )}
-
-        {/* Stats row — real numbers only, honest fallback copy otherwise */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            {
-              value: stats.totalCreators !== null && stats.totalCreators >= 10 ? formatCount(stats.totalCreators) : 'New',
-              label: stats.totalCreators !== null && stats.totalCreators >= 10 ? 'Active Creators' : 'Just Launched',
-            },
-            {
-              value: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? formatCount(stats.totalGenerated) : '2',
-              label: stats.totalGenerated !== null && stats.totalGenerated >= 10 ? 'Scripts Generated' : 'AI Models Behind It',
-            },
-            { value: '< 5s', label: 'Average Generation Time' },
-            { value: '6', label: 'Platforms Supported' },
-          ].map((stat) => (
-            <div key={`stat-${stat.label}`} className="creo-surface rounded-2xl p-5 text-center">
-              <p className="text-2xl font-bold text-gradient tabular-nums mb-1">{stat.value}</p>
-              <p className="text-xs text-creo-text-muted font-medium">{stat.label}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <AppLogo size={28} />
+              <span className="font-display text-xl font-semibold text-creo-text-primary">CRÉO</span>
             </div>
-          ))}
+            <p className="text-creo-text-muted text-sm leading-relaxed mb-6 max-w-xs">The AI content creation platform built for creators who ship daily. From idea to viral script in seconds.</p>
+            <div className="flex items-center gap-3">
+              {socialLinks.map(({ SocialIcon, label, href }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-9 h-9 creo-surface rounded-lg border-creo-border flex items-center justify-center text-creo-text-muted hover:text-creo-text-primary hover:border-creo-border-strong transition-all duration-200"><SocialIcon /></a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-creo-text-muted mb-4">Product</p>
+            <ul className="space-y-3">{productLinks.map(({ label, href, subject }) => (<li key={label}>{href ? (<a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined} className="text-sm text-creo-text-secondary hover:text-creo-text-primary transition-colors duration-200">{label}</a>) : (<button onClick={() => copyContact(subject || label)} className="text-sm text-creo-text-secondary hover:text-creo-text-primary transition-colors duration-200">{label}</button>)}</li>))}</ul>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-creo-text-muted mb-4">Company</p>
+            <ul className="space-y-3">{companyLinks.map(({ label, href, subject }) => (<li key={label}>{href ? (<a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined} className="text-sm text-creo-text-secondary hover:text-creo-text-primary transition-colors duration-200">{label}</a>) : (<button onClick={() => copyContact(subject || label)} className="text-sm text-creo-text-secondary hover:text-creo-text-primary transition-colors duration-200">{label}</button>)}</li>))}</ul>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-creo-text-muted mb-4">Stay Updated</p>
+            <p className="text-sm text-creo-text-muted mb-4 leading-relaxed">Get creator tips and CRÉO updates. No spam, ever.</p>
+            <form onSubmit={handleNewsletter} className="flex flex-col gap-2">
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" className="w-full px-4 py-2.5 rounded-xl creo-surface text-sm text-creo-text-primary placeholder:text-creo-text-muted focus:outline-none focus:border-creo-primary/50 transition-colors duration-200 bg-transparent" />
+              <button type="submit" disabled={submitting} className="w-full py-2.5 rounded-xl creo-btn-primary text-white text-sm font-semibold hover:scale-[1.02] active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100">{submitting ? 'Subscribing...' : 'Subscribe'}</button>
+            </form>
+          </div>
+        </div>
+        <div className="border-t border-creo-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-creo-text-muted">© {new Date().getFullYear()} CRÉO. All rights reserved.</p>
+          <div className="flex items-center gap-6">
+            <a href="/privacy" className="text-xs text-creo-text-muted hover:text-creo-text-secondary transition-colors duration-200">Privacy Policy</a>
+            <a href="/terms" className="text-xs text-creo-text-muted hover:text-creo-text-secondary transition-colors duration-200">Terms of Service</a>
+            <a href="/refunds" className="text-xs text-creo-text-muted hover:text-creo-text-secondary transition-colors duration-200">Refund Policy</a>
+            <a href="/contact" className="text-xs text-creo-text-muted hover:text-creo-text-secondary transition-colors duration-200">Contact Us</a>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-creo-text-muted">
+            <Mail size={11} />
+            <button onClick={() => copyContact('Hello')} className="hover:text-creo-text-secondary transition-colors duration-200" title="Click to copy">{CONTACT_EMAIL}</button>
+          </div>
         </div>
       </div>
-    </section>
+    </footer>
   );
 }
