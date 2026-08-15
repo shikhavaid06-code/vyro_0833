@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { BarChart3, X, Crown, Plus, Youtube, Instagram, Music2, Twitter, Globe2, TrendingUp, Eye, Heart, MessageCircle, Share2 } from 'lucide-react';
+import { BarChart3, X, Crown, Plus, Video, Camera, Music2, AtSign, Globe2, TrendingUp, Eye, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -23,10 +23,10 @@ interface Metrics {
 }
 
 const PLATFORMS = [
-  { name: 'YouTube', icon: Youtube, color: 'text-red-400' },
-  { name: 'Instagram', icon: Instagram, color: 'text-pink-400' },
+  { name: 'YouTube', icon: Video, color: 'text-red-400' },
+  { name: 'Instagram', icon: Camera, color: 'text-pink-400' },
   { name: 'TikTok', icon: Music2, color: 'text-white' },
-  { name: 'X', icon: Twitter, color: 'text-sky-400' },
+  { name: 'X', icon: AtSign, color: 'text-sky-400' },
   { name: 'Other', icon: Globe2, color: 'text-creo-text-muted' },
 ];
 
