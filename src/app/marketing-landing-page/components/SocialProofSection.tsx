@@ -34,49 +34,49 @@ export default function SocialProofSection() {
   return (
     <section className="relative py-24 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-purple-600/5 blur-[80px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-creo-primary/4 blur-[80px]" />
       </div>
 
       <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
         <div className="text-center mb-12">
-          <p className="text-xs font-semibold tracking-[0.2em] text-pink-400 uppercase mb-4">Trust</p>
-          <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
+          <p className="text-xs font-semibold tracking-[0.2em] text-creo-accent uppercase mb-4">Trust</p>
+          <h2 className="font-display text-4xl md:text-5xl font-bold text-creo-text-primary mb-4">
             {hasCreatorCount ? 'Creators are already shipping with CRÉO' : 'Built for creators who ship daily'}
           </h2>
-          <p className="text-white/40 text-base">
+          <p className="text-creo-text-muted text-base">
             {hasCreatorCount ? 'Real numbers, updated live. No paid placements.' : 'Real numbers will show here as creators join — no inflated stats, ever.'}
           </p>
         </div>
 
         {/* Live stat counters — real data or honest non-numeric framing */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-14">
-          <div className="glass rounded-2xl p-6 text-center border border-white/5">
-            <TrendingUp size={16} className="text-purple-400 mx-auto mb-2" />
+          <div className="creo-surface rounded-2xl p-6 text-center border border-white/5">
+            <TrendingUp size={16} className="text-creo-primary mx-auto mb-2" />
             <p className="text-2xl font-bold text-gradient tabular-nums mb-1">
               {hasCreatorCount ? formatCount(stats.totalCreators as number) : 'New'}
             </p>
-            <p className="text-xs text-white/40 font-medium">{hasCreatorCount ? 'Creators onboard' : 'Just launched'}</p>
+            <p className="text-xs text-creo-text-muted font-medium">{hasCreatorCount ? 'Creators onboard' : 'Just launched'}</p>
           </div>
-          <div className="glass rounded-2xl p-6 text-center border border-white/5">
-            <TrendingUp size={16} className="text-purple-400 mx-auto mb-2" />
+          <div className="creo-surface rounded-2xl p-6 text-center border border-white/5">
+            <TrendingUp size={16} className="text-creo-primary mx-auto mb-2" />
             <p className="text-2xl font-bold text-gradient tabular-nums mb-1">
               {hasGenCount ? formatCount(stats.totalGenerated as number) : '< 60s'}
             </p>
-            <p className="text-xs text-white/40 font-medium">{hasGenCount ? 'Scripts generated' : 'Per generation'}</p>
+            <p className="text-xs text-creo-text-muted font-medium">{hasGenCount ? 'Scripts generated' : 'Per generation'}</p>
           </div>
-          <div className="glass rounded-2xl p-6 text-center border border-white/5">
-            <TrendingUp size={16} className="text-purple-400 mx-auto mb-2" />
+          <div className="creo-surface rounded-2xl p-6 text-center border border-white/5">
+            <TrendingUp size={16} className="text-creo-primary mx-auto mb-2" />
             <p className="text-2xl font-bold text-gradient tabular-nums mb-1">6</p>
-            <p className="text-xs text-white/40 font-medium">Platforms supported</p>
+            <p className="text-xs text-creo-text-muted font-medium">Platforms supported</p>
           </div>
         </div>
 
         {/* Trust badges — removes buying fear at the point of decision */}
         <div className="flex flex-wrap items-center justify-center gap-3">
           {trustBadges.map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-2 glass rounded-full px-4 py-2 border border-white/8">
-              <Icon size={13} className="text-purple-400" />
-              <span className="text-white/60 text-xs font-medium">{text}</span>
+            <div key={text} className="flex items-center gap-2 creo-surface rounded-full px-4 py-2 border border-white/8">
+              <Icon size={13} className="text-creo-primary" />
+              <span className="text-creo-text-secondary text-xs font-medium">{text}</span>
             </div>
           ))}
         </div>
