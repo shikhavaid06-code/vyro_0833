@@ -102,7 +102,7 @@ const statusChip: Record<Phase['status'], { classes: string; icon: React.ReactNo
     icon: <Circle size={7} className="fill-green-400 text-green-400" />,
   },
   planned: {
-    classes: 'bg-white/5 text-white/40 border border-white/10',
+    classes: 'bg-white/5 text-creo-text-muted border border-white/10',
     icon: <Lock size={9} />,
   },
 };
@@ -110,35 +110,35 @@ const statusChip: Record<Phase['status'], { classes: string; icon: React.ReactNo
 export default function RoadmapPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-[#080812] px-4 py-12">
+    <div className="min-h-screen bg-creo-bg px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-8 transition-colors">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-creo-text-muted hover:text-creo-text-primary text-sm mb-8 transition-colors">
           <ArrowLeft size={15} /> Back
         </button>
         <div className="flex items-center gap-2 mb-8">
           <AppLogo size={24} />
-          <span className="font-display text-lg font-semibold text-white">CRÉO</span>
+          <span className="font-display text-lg font-semibold text-creo-text-primary">CRÉO</span>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">Roadmap</h1>
-        <p className="text-white/40 text-sm mb-10">Where CRÉO is headed — and what's already live. Nothing here is a promise of dates, just direction.</p>
+        <h1 className="text-3xl font-bold text-creo-text-primary mb-2">Roadmap</h1>
+        <p className="text-creo-text-muted text-sm mb-10">Where CRÉO is headed — and what's already live. Nothing here is a promise of dates, just direction.</p>
 
         <div className="space-y-6">
           {phases.map((p) => (
-            <div key={p.phase} className="glass rounded-2xl border border-white/8 p-6">
+            <div key={p.phase} className="creo-surface rounded-2xl border border-white/8 p-6">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-purple-400">{p.phase}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-creo-primary">{p.phase}</p>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${statusChip[p.status].classes}`}>
                   {statusChip[p.status].icon}
                   {p.status}
                 </span>
               </div>
-              <h2 className="text-white font-semibold text-lg mb-3">{p.title}</h2>
+              <h2 className="text-creo-text-primary font-semibold text-lg mb-3">{p.title}</h2>
               <ul className="space-y-1.5">
                 {p.items.map((item) => (
-                  <li key={item.label} className={`text-sm flex items-start gap-2 ${item.done ? 'text-white/70' : 'text-white/45'}`}>
+                  <li key={item.label} className={`text-sm flex items-start gap-2 ${item.done ? 'text-creo-text-secondary' : 'text-creo-text-muted'}`}>
                     {item.done
                       ? <CheckCircle2 size={14} className="text-emerald-400/80 mt-0.5 flex-shrink-0" />
-                      : <span className="text-purple-400/60 mt-1 w-3.5 text-center flex-shrink-0">•</span>}
+                      : <span className="text-creo-primary/60 mt-1 w-3.5 text-center flex-shrink-0">•</span>}
                     <span>{item.label}{item.done && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-emerald-400/60 font-semibold">live</span>}</span>
                   </li>
                 ))}
@@ -148,7 +148,7 @@ export default function RoadmapPage() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/8">
-          <p className="text-white/30 text-xs">Already shipped? See the <a href="/changelog" className="text-purple-400 hover:text-purple-300">changelog</a>.</p>
+          <p className="text-creo-text-muted text-xs">Already shipped? See the <a href="/changelog" className="text-creo-primary hover:text-creo-primary">changelog</a>.</p>
         </div>
       </div>
     </div>
