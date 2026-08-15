@@ -78,7 +78,7 @@ export default function CompetitorIntelModal({ onClose, plan }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
-      <div className="w-full max-w-2xl bg-[#0d0d1f] border border-sky-500/25 rounded-2xl flex flex-col max-h-[88vh] animate-modal-in">
+      <div className="w-full max-w-2xl creo-surface-elevated border border-sky-500/25 rounded-2xl flex flex-col max-h-[88vh] animate-modal-in">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -86,11 +86,11 @@ export default function CompetitorIntelModal({ onClose, plan }: Props) {
               <Radar size={17} className="text-sky-400" />
             </div>
             <div>
-              <h2 className="text-white font-bold text-base leading-tight">Competitor Intelligence</h2>
-              <p className="text-white/35 text-[11px]">Extract their framework. Clone the structure, never the words.</p>
+              <h2 className="text-creo-text-primary font-bold text-base leading-tight">Competitor Intelligence</h2>
+              <p className="text-creo-text-muted text-[11px]">Extract their framework. Clone the structure, never the words.</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white/60"><X size={16} /></button>
+          <button onClick={onClose} className="text-creo-text-muted hover:text-creo-text-secondary"><X size={16} /></button>
         </div>
 
         {!isUltra && (
@@ -104,40 +104,40 @@ export default function CompetitorIntelModal({ onClose, plan }: Props) {
           {!result ? (
             <>
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-white/40 mb-1.5">Competitor material</label>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-creo-text-muted mb-1.5">Competitor material</label>
                 <textarea
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
                   placeholder={'Paste anything from a competitor whose content performs:\n• a video transcript\n• 5-10 of their titles\n• their hooks or descriptions'}
                   rows={7}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/20 resize-none focus:outline-none focus:border-sky-500/40 focus:bg-sky-500/5 transition-all"
+                  className="w-full creo-surface rounded-xl px-3.5 py-2.5 text-sm text-creo-text-primary placeholder:text-creo-text-muted resize-none focus:outline-none focus:border-sky-500/40 transition-all"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-white/40 mb-1.5">Your topic <span className="text-white/25 normal-case">(what should the cloned hooks & titles be about?)</span></label>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-creo-text-muted mb-1.5">Your topic <span className="text-creo-text-muted normal-case">(what should the cloned hooks & titles be about?)</span></label>
                 <input
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="e.g. study tips for college students"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-sky-500/40 focus:bg-sky-500/5 transition-all"
+                  className="w-full creo-surface rounded-xl px-3.5 py-2.5 text-sm text-creo-text-primary placeholder:text-creo-text-muted focus:outline-none focus:border-sky-500/40 transition-all"
                 />
               </div>
             </>
           ) : (
-            <div className="glass rounded-xl border border-sky-500/20 overflow-hidden animate-slide-up">
+            <div className="creo-surface rounded-xl border border-sky-500/20 overflow-hidden animate-slide-up">
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-sky-500/5">
                 <div className="flex items-center gap-2">
                   <Sparkles size={13} className="text-sky-400" />
                   <span className="text-xs font-semibold text-sky-400 uppercase tracking-[0.1em]">Framework Extracted</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={handleCopy} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
+                  <button onClick={handleCopy} className="w-7 h-7 rounded-lg flex items-center justify-center text-creo-text-muted hover:text-creo-text-secondary hover:bg-white/5 transition-all">
                     {copied ? <Check size={13} className="text-green-400 animate-pop-in" /> : <Copy size={13} />}
                   </button>
-                  <button onClick={() => setResult(null)} className="text-xs text-white/40 hover:text-white/60 transition-colors">← New analysis</button>
+                  <button onClick={() => setResult(null)} className="text-xs text-creo-text-muted hover:text-creo-text-secondary transition-colors">← New analysis</button>
                 </div>
               </div>
-              <pre className="p-4 text-sm text-white/75 leading-relaxed whitespace-pre-wrap font-sans max-h-[45vh] overflow-y-auto">{result}</pre>
+              <pre className="p-4 text-sm text-creo-text-secondary leading-relaxed whitespace-pre-wrap font-sans max-h-[45vh] overflow-y-auto">{result}</pre>
             </div>
           )}
         </div>
