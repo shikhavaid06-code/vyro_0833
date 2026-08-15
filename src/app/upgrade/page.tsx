@@ -82,7 +82,7 @@ const PLAN_UNLOCKS: Record<'pro' | 'ultra', { title: string; sub: string; items:
 
 export default function UpgradePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#080812]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-creo-bg" />}>
       <UpgradePageInner />
     </Suspense>
   );
@@ -255,31 +255,31 @@ function UpgradePageInner() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080812] px-4 py-10">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-purple-600/8 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-creo-bg px-4 py-10">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-creo-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 max-w-4xl mx-auto">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-8 transition-colors">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-creo-text-muted hover:text-creo-text-primary text-sm mb-8 transition-colors">
           <ArrowLeft size={15} /> Back
         </button>
         <div className="flex items-center gap-2 mb-8">
           <AppLogo size={24} />
-          <span className="font-display text-lg font-semibold text-white">CRÉO</span>
+          <span className="font-display text-lg font-semibold text-creo-text-primary">CRÉO</span>
         </div>
 
         {/* ✅ Signup-arrival welcome banner — replaces the old toast. Tells the
             new user their account is live and that checkout is opening for
             the plan they picked, with an honest no-pressure escape hatch. */}
         {isWelcome && (requestedPlan === 'pro' || requestedPlan === 'ultra') && currentPlan === 'free' && !celebrate && (
-          <div className="glass-strong rounded-2xl border border-purple-500/30 p-5 mb-8 flex items-start gap-3 animate-slide-up">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
-              <Rocket size={18} className="text-purple-400" />
+          <div className="creo-surface-elevated rounded-2xl border border-creo-primary/30 p-5 mb-8 flex items-start gap-3 animate-slide-up">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-creo-primary/30 flex items-center justify-center flex-shrink-0">
+              <Rocket size={18} className="text-creo-primary" />
             </div>
             <div>
-              <p className="text-sm text-white font-semibold mb-0.5">
+              <p className="text-sm text-creo-text-primary font-semibold mb-0.5">
                 Account created{userName ? `, ${userName}` : ''}! 🎉 Opening secure checkout for your {requestedPlan === 'pro' ? 'Pro' : 'Ultra'} plan…
               </p>
-              <p className="text-xs text-white/40 leading-relaxed">
+              <p className="text-xs text-creo-text-muted leading-relaxed">
                 Changed your mind? No problem — you're on the Free plan right now and nothing gets charged unless you complete the payment. You can upgrade anytime.
               </p>
             </div>
@@ -287,12 +287,12 @@ function UpgradePageInner() {
         )}
 
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 glass rounded-full px-3 py-1.5 mb-4 border border-purple-500/20">
+          <div className="inline-flex items-center gap-2 creo-surface rounded-full px-3 py-1.5 mb-4 border border-creo-primary/20">
             <TrendingUp size={12} className="text-green-400" />
-            <span className="text-xs text-white/60">Every upload is a chance to grow — stop leaving views on the table</span>
+            <span className="text-xs text-creo-text-secondary">Every upload is a chance to grow — stop leaving views on the table</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-3 leading-tight">
-            <span className="text-white">Your channel won't grow itself.</span><br />
+            <span className="text-creo-text-primary">Your channel won't grow itself.</span><br />
             <span className="inline-flex items-center gap-3">
               <span className="text-gradient">Pick your speed.</span>
               <span className="inline-flex w-10 h-10 md:w-11 md:h-11 rounded-xl bg-green-500/10 border border-green-500/25 items-center justify-center align-middle">
@@ -300,21 +300,21 @@ function UpgradePageInner() {
               </span>
             </span>
           </h1>
-          <p className="text-white/40 text-base mb-5">Cancel anytime. No hidden fees. Prices shown in {locale.currency}.</p>
+          <p className="text-creo-text-muted text-base mb-5">Cancel anytime. No hidden fees. Prices shown in {locale.currency}.</p>
 
           {/* ✅ The creator journey strip */}
           <div className="flex items-center justify-center gap-2 mb-6 text-sm">
-            {[['🌱 Start', 'text-white/50'], ['🚀 Grow', 'text-purple-400'], ['👑 Build', 'text-amber-400']].map(([label, color], i) => (
+            {[['🌱 Start', 'text-creo-text-secondary'], ['🚀 Grow', 'text-creo-primary'], ['👑 Build', 'text-amber-400']].map(([label, color], i) => (
               <React.Fragment key={label}>
-                {i > 0 && <ArrowRight size={13} className="text-white/20" />}
+                {i > 0 && <ArrowRight size={13} className="text-creo-text-muted" />}
                 <span className={`font-semibold ${color}`}>{label}</span>
               </React.Fragment>
             ))}
           </div>
-          <div className="inline-flex items-center glass rounded-full p-1 gap-1">
+          <div className="inline-flex items-center creo-surface rounded-full p-1 gap-1">
             {(['monthly', 'yearly'] as const).map((b) => (
               <button key={b} onClick={() => setBilling(b)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billing === b ? 'bg-gradient-vyro text-white shadow-lg' : 'text-white/50 hover:text-white/70'}`}>
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${billing === b ? 'creo-btn-primary text-white' : 'text-creo-text-secondary hover:text-creo-text-secondary'}`}>
                 {b === 'monthly' ? 'Monthly' : 'Yearly'}
                 {b === 'yearly' && <span className="ml-2 text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded-full">Save 25%</span>}
               </button>
@@ -331,38 +331,38 @@ function UpgradePageInner() {
             const isRequested = requestedPlan === plan.id && !isCurrent;
 
             return (
-              <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col border transition-all duration-300 ${isRequested ? 'glass-strong border-purple-500/60 shadow-lg shadow-purple-500/20 ring-2 ring-purple-500/30' : plan.highlight ? 'glass-strong border-purple-500/30 shadow-lg shadow-purple-500/10' : 'glass border-white/8'}`}>
+              <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col border transition-all duration-300 ${isRequested ? 'creo-surface-elevated border-creo-primary/60 shadow-lg shadow-purple-500/20 ring-2 ring-purple-500/30' : plan.highlight ? 'creo-surface-elevated border-creo-primary/30 shadow-lg shadow-purple-500/10' : 'creo-surface border-white/8'}`}>
                 {isRequested ? (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-vyro text-white text-xs font-semibold shadow-lg shadow-purple-500/30">Your pick at signup</div>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full creo-btn-primary text-white text-xs font-semibold">Your pick at signup</div>
                 ) : plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-vyro text-white text-xs font-semibold shadow-lg shadow-purple-500/30">Most Popular</div>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full creo-btn-primary text-white text-xs font-semibold">Most Popular</div>
                 )}
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-white text-xl font-bold">{plan.name}</h3>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${plan.id === 'ultra' ? 'bg-amber-500/10 text-amber-400' : plan.id === 'pro' ? 'bg-purple-500/10 text-purple-400' : 'bg-white/5 text-white/40'}`}>{plan.journey}</span>
+                    <h3 className="text-creo-text-primary text-xl font-bold">{plan.name}</h3>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${plan.id === 'ultra' ? 'bg-amber-500/10 text-amber-400' : plan.id === 'pro' ? 'bg-creo-primary/10 text-creo-primary' : 'bg-white/5 text-creo-text-muted'}`}>{plan.journey}</span>
                   </div>
                   {PlanIcon && (
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${plan.id === 'ultra' ? 'bg-amber-500/10' : 'bg-purple-500/10'}`}>
-                      <PlanIcon size={18} className={plan.id === 'ultra' ? 'text-amber-400' : 'text-purple-400'} />
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${plan.id === 'ultra' ? 'bg-amber-500/10' : 'bg-creo-primary/10'}`}>
+                      <PlanIcon size={18} className={plan.id === 'ultra' ? 'text-amber-400' : 'text-creo-primary'} />
                     </div>
                   )}
                 </div>
-                <p className={`text-sm font-medium mb-1 ${plan.id === 'ultra' ? 'text-amber-300/80' : plan.id === 'pro' ? 'text-purple-300/80' : 'text-white/50'}`}>{plan.tagline}</p>
-                <p className="text-white/35 text-xs leading-relaxed mb-3">{plan.outcome}</p>
+                <p className={`text-sm font-medium mb-1 ${plan.id === 'ultra' ? 'text-amber-300/80' : plan.id === 'pro' ? 'text-purple-300/80' : 'text-creo-text-secondary'}`}>{plan.tagline}</p>
+                <p className="text-creo-text-muted text-xs leading-relaxed mb-3">{plan.outcome}</p>
 
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="font-display text-4xl font-bold text-white tabular-nums">{plan.id === 'free' ? '₹0' : `${locale.symbol}${price.toLocaleString()}`}</span>
-                  <span className="text-white/40 text-sm">{plan.id === 'free' ? '/ forever' : billing === 'monthly' ? '/ mo' : '/ yr'}</span>
+                  <span className="font-display text-4xl font-bold text-creo-text-primary tabular-nums">{plan.id === 'free' ? '₹0' : `${locale.symbol}${price.toLocaleString()}`}</span>
+                  <span className="text-creo-text-muted text-sm">{plan.id === 'free' ? '/ forever' : billing === 'monthly' ? '/ mo' : '/ yr'}</span>
                 </div>
 
                 <button
                   onClick={() => plan.id !== 'free' && handleUpgrade(plan.id as 'pro' | 'ultra')}
                   disabled={isCurrent || isLoading || plan.id === 'free'}
                   className={`w-full py-3 rounded-xl text-sm font-semibold text-center mb-7 flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:cursor-not-allowed ${
-                    isCurrent ? 'bg-white/5 text-white/40 border border-white/10'
-                      : plan.id === 'free' ? 'glass border border-white/10 text-white/40'
-                      : plan.highlight ? 'bg-gradient-vyro text-white glow-button hover:scale-[1.02] disabled:opacity-60'
+                    isCurrent ? 'bg-white/5 text-creo-text-muted border border-white/10'
+                      : plan.id === 'free' ? 'creo-surface border border-white/10 text-creo-text-muted'
+                      : plan.highlight ? 'creo-btn-primary text-white hover:scale-[1.02] disabled:opacity-60'
                       : 'bg-gradient-to-r from-amber-500 to-pink-500 text-white hover:scale-[1.02] disabled:opacity-60'
                   }`}>
                   {isCurrent ? 'Current Plan' : isLoading ? (
@@ -373,8 +373,8 @@ function UpgradePageInner() {
                 <div className="space-y-2.5 flex-1">
                   {plan.features.map((feat) => (
                     <div key={feat} className="flex items-start gap-2.5">
-                      <Check size={14} className={`mt-0.5 flex-shrink-0 ${plan.id === 'ultra' ? 'text-amber-400' : 'text-purple-400'}`} />
-                      <span className="text-white/70 text-sm">{feat}</span>
+                      <Check size={14} className={`mt-0.5 flex-shrink-0 ${plan.id === 'ultra' ? 'text-amber-400' : 'text-creo-primary'}`} />
+                      <span className="text-creo-text-secondary text-sm">{feat}</span>
                     </div>
                   ))}
                 </div>
@@ -389,9 +389,9 @@ function UpgradePageInner() {
             { icon: Lock, text: 'Secure payments via Razorpay' },
             { icon: ShieldCheck, text: 'Cancel anytime' },
           ].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-2 glass rounded-full px-4 py-2 border border-white/8">
-              <Icon size={13} className="text-purple-400" />
-              <span className="text-white/60 text-xs font-medium">{text}</span>
+            <div key={text} className="flex items-center gap-2 creo-surface rounded-full px-4 py-2 border border-white/8">
+              <Icon size={13} className="text-creo-primary" />
+              <span className="text-creo-text-secondary text-xs font-medium">{text}</span>
             </div>
           ))}
         </div>
@@ -401,27 +401,27 @@ function UpgradePageInner() {
           can do NOW and walk them straight into the workspace to try it. */}
       {celebrate && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-[#0d0d1f] border border-purple-500/25 rounded-3xl p-7 sm:p-8 relative shadow-2xl shadow-purple-500/15 animate-pop-in max-h-[85vh] overflow-y-auto">
-            <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mb-4 ${celebrate === 'ultra' ? 'bg-gradient-to-br from-amber-500/25 to-pink-600/25 border-amber-500/30' : 'bg-gradient-to-br from-purple-600/30 to-pink-600/30 border-purple-500/30'}`}>
-              {celebrate === 'ultra' ? <Crown size={26} className="text-amber-400" /> : <Rocket size={26} className="text-purple-400" />}
+          <div className="w-full max-w-md creo-surface-elevated border border-creo-primary/25 rounded-3xl p-7 sm:p-8 relative shadow-2xl shadow-purple-500/15 animate-pop-in max-h-[85vh] overflow-y-auto">
+            <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mb-4 ${celebrate === 'ultra' ? 'bg-gradient-to-br from-amber-500/25 to-pink-600/25 border-amber-500/30' : 'bg-gradient-to-br from-purple-600/30 to-pink-600/30 border-creo-primary/30'}`}>
+              {celebrate === 'ultra' ? <Crown size={26} className="text-amber-400" /> : <Rocket size={26} className="text-creo-primary" />}
             </div>
-            <h2 className="text-2xl font-bold text-white mb-1">{PLAN_UNLOCKS[celebrate].title}</h2>
-            <p className="text-white/50 text-sm mb-5">{PLAN_UNLOCKS[celebrate].sub}</p>
+            <h2 className="text-2xl font-bold text-creo-text-primary mb-1">{PLAN_UNLOCKS[celebrate].title}</h2>
+            <p className="text-creo-text-secondary text-sm mb-5">{PLAN_UNLOCKS[celebrate].sub}</p>
 
             <div className="space-y-2.5 mb-6">
               {PLAN_UNLOCKS[celebrate].items.map((item) => (
                 <div key={item.name} className="flex items-start gap-2.5 rounded-xl border border-white/8 bg-white/[0.03] px-3.5 py-2.5">
-                  <Check size={14} className={`mt-0.5 flex-shrink-0 ${celebrate === 'ultra' ? 'text-amber-400' : 'text-purple-400'}`} />
+                  <Check size={14} className={`mt-0.5 flex-shrink-0 ${celebrate === 'ultra' ? 'text-amber-400' : 'text-creo-primary'}`} />
                   <div>
-                    <p className="text-sm text-white/85 font-medium leading-snug">{item.name}</p>
-                    <p className="text-[11px] text-white/35 mt-0.5">{item.where}</p>
+                    <p className="text-sm text-creo-text-secondary font-medium leading-snug">{item.name}</p>
+                    <p className="text-[11px] text-creo-text-muted mt-0.5">{item.where}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {celebrate === 'pro' && (
-              <p className="text-[11px] text-white/35 mb-4 flex items-center gap-1.5">
+              <p className="text-[11px] text-creo-text-muted mb-4 flex items-center gap-1.5">
                 <Crown size={11} className="text-amber-400" />
                 Going bigger? Ultra adds Creator Brain, Competitor Intelligence & unlimited generations — upgrade anytime from Settings.
               </p>
@@ -429,7 +429,7 @@ function UpgradePageInner() {
 
             <button
               onClick={() => router.push('/main-app-chat-interface')}
-              className={`w-full py-3.5 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all ${celebrate === 'ultra' ? 'bg-gradient-to-r from-amber-500 to-pink-500' : 'bg-gradient-vyro glow-button'}`}>
+              className={`w-full py-3.5 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all ${celebrate === 'ultra' ? 'bg-gradient-to-r from-amber-500 to-pink-500' : 'creo-btn-primary'}`}>
               <Flame size={15} />Open my workspace & try it now<ArrowRight size={15} />
             </button>
           </div>
