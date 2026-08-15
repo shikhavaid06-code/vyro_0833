@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot, Check, Gift } from 'lucide-react';
+import { Menu, Sparkles, Send, ChevronDown, Download, Share2, Plus, LogOut, Crown, X, Wand2, Zap, Flame, Star, Settings, Brain, Layers, Radar, Target, Bot, Check, Gift, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -13,6 +13,7 @@ import ScriptCard from './ScriptCard';
 import WinningVault from './WinningVault';
 import CreatorBrainModal from './CreatorBrainModal';
 import CompetitorIntelModal from './CompetitorIntelModal';
+import AnalyticsModal from './AnalyticsModal';
 
 type ChatStep = 'idle' | 'titles' | 'hooks' | 'script' | 'done';
 interface Message { id: string; role: 'user' | 'ai'; type: 'text' | 'titles' | 'hooks' | 'script' | 'clarify'; content?: string; data?: unknown; timestamp: string; idea?: string; forceType?: string; }
@@ -331,6 +332,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
   const [showVault, setShowVault] = useState(false);
   const [showBrain, setShowBrain] = useState(false);
   const [showIntel, setShowIntel] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   // ✅ Streak — served by the API on every generation; cached for display.
   const [streak, setStreak] = useState(0);
   const [loaderMode, setLoaderMode] = useState<LoaderMode | null>(null);
@@ -836,6 +838,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       {showVault && <WinningVault isOpen={showVault} onClose={() => setShowVault(false)} plan={currentPlan()} />}
       {showBrain && <CreatorBrainModal onClose={() => setShowBrain(false)} plan={currentPlan()} />}
       {showIntel && <CompetitorIntelModal onClose={() => setShowIntel(false)} plan={currentPlan()} />}
+      {showAnalytics && <AnalyticsModal onClose={() => setShowAnalytics(false)} plan={currentPlan()} />}
 
       {/* TOPBAR */}
       <div className="flex-shrink-0 h-14 flex items-center justify-between px-3 md:px-6 border-b border-creo-border bg-creo-bg/95 backdrop-blur-md">
@@ -873,6 +876,10 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           {/* ✅ Competitor Intelligence button */}
           <button onClick={() => setShowIntel(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all" title="Competitor Intelligence — clone any viral framework (Ultra)">
             <Radar size={12} className="text-sky-400/70" /><span className="hidden xl:inline">Intel</span>
+          </button>
+          {/* ✅ Analytics button — manual entry v1, Pro/Ultra gated */}
+          <button onClick={() => setShowAnalytics(true)} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all" title="Analytics — track your real content performance">
+            <BarChart3 size={12} className="text-creo-primary/70" /><span className="hidden xl:inline">Analytics</span>
           </button>
           {onOpenNova && (
             <button onClick={onOpenNova} className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg creo-surface text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-border-strong transition-all" title="Nova — your AI co-writer">
