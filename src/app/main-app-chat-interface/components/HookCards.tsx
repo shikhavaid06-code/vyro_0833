@@ -58,7 +58,7 @@ export default function HookCards({ hooks, onSelect, topic = '', platform = '', 
           <div key={`hook-${i}`} onClick={() => handleSelect(hook, i)}
             style={{ animationDelay: `${i * 120}ms`, animationFillMode: 'both' }}
             className={`group relative rounded-xl px-4 py-4 cursor-pointer border transition-all duration-200 animate-slide-up ${
-              selectedHook === i ? 'bg-pink-500/10 border-pink-500/30 shadow-lg shadow-pink-500/10' : 'glass border-white/8 hover:border-white/15 hover:bg-white/3'
+              selectedHook === i ? 'bg-pink-500/10 border-pink-500/30 shadow-lg shadow-pink-500/10' : 'creo-surface border-white/8 hover:border-white/15 hover:bg-white/3'
             }`}>
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3 flex-1">
@@ -66,20 +66,20 @@ export default function HookCards({ hooks, onSelect, topic = '', platform = '', 
                   {selectedHook === i && <Check size={11} className="text-white" />}
                 </div>
                 <div>
-                  <span className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 block ${selectedHook === i ? 'text-pink-400' : 'text-white/30'}`}>
+                  <span className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 block ${selectedHook === i ? 'text-pink-400' : 'text-creo-text-muted'}`}>
                     {hookTypes[i] || `Hook ${i + 1}`}
                   </span>
-                  <p className={`text-sm leading-relaxed ${selectedHook === i ? 'text-white' : 'text-white/70'}`}>&ldquo;{hook}&rdquo;</p>
+                  <p className={`text-sm leading-relaxed ${selectedHook === i ? 'text-white' : 'text-creo-text-secondary'}`}>&ldquo;{hook}&rdquo;</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all mt-0.5">
                 <button onClick={(e) => handleSave(hook, i, e)}
-                  className={`relative w-7 h-7 rounded-lg flex items-center justify-center transition-all ${savedIndex.includes(i) ? 'text-yellow-400' : 'text-white/25 hover:text-yellow-400 hover:bg-yellow-400/10'}`}>
+                  className={`relative w-7 h-7 rounded-lg flex items-center justify-center transition-all ${savedIndex.includes(i) ? 'text-yellow-400' : 'text-creo-text-muted hover:text-yellow-400 hover:bg-yellow-400/10'}`}>
                   {savedIndex.includes(i) && <span className="absolute inset-0 rounded-full bg-yellow-400/40 animate-burst pointer-events-none" />}
                   <Star size={13} className={savedIndex.includes(i) ? 'fill-yellow-400 animate-pop-in' : ''} />
                 </button>
                 <button onClick={(e) => handleCopy(hook, i, e)}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all">
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-creo-text-muted hover:text-creo-text-secondary hover:bg-white/5 transition-all">
                   {copiedIndex === i ? <Check size={13} className="text-green-400 animate-pop-in" /> : <Copy size={13} />}
                 </button>
               </div>
@@ -97,7 +97,7 @@ export default function HookCards({ hooks, onSelect, topic = '', platform = '', 
           }
         }}
         disabled={regenerating}
-        className="mt-2 flex items-center gap-1.5 text-xs text-white/35 hover:text-white/55 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-2 flex items-center gap-1.5 text-xs text-creo-text-muted hover:text-creo-text-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <RefreshCw size={12} className={regenerating ? 'animate-spin' : ''} />
         {regenerating ? 'Regenerating...' : 'Regenerate hooks'}
