@@ -35,27 +35,27 @@ const entries = [
 export default function ChangelogPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-[#080812] px-4 py-12">
+    <div className="min-h-screen bg-creo-bg px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-8 transition-colors">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-creo-text-muted hover:text-creo-text-primary text-sm mb-8 transition-colors">
           <ArrowLeft size={15} /> Back
         </button>
         <div className="flex items-center gap-2 mb-8">
           <AppLogo size={24} />
-          <span className="font-display text-lg font-semibold text-white">CRÉO</span>
+          <span className="font-display text-lg font-semibold text-creo-text-primary">CRÉO</span>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">Changelog</h1>
-        <p className="text-white/40 text-sm mb-10">What's shipped, in order. No fluff — just what actually changed.</p>
+        <h1 className="text-3xl font-bold text-creo-text-primary mb-2">Changelog</h1>
+        <p className="text-creo-text-muted text-sm mb-10">What's shipped, in order. No fluff — just what actually changed.</p>
 
         <div className="space-y-10">
           {entries.map((entry) => (
             <div key={entry.date}>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.15em] text-purple-400 mb-4">{entry.date}</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-[0.15em] text-creo-primary mb-4">{entry.date}</h2>
               <div className="space-y-3">
                 {entry.items.map((item) => (
                   <div key={item} className="flex items-start gap-3">
                     <CheckCircle2 size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-white/70 text-sm leading-relaxed">{item}</p>
+                    <p className="text-creo-text-secondary text-sm leading-relaxed">{item}</p>
                   </div>
                 ))}
               </div>
@@ -64,7 +64,7 @@ export default function ChangelogPage() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/8">
-          <p className="text-white/30 text-xs">Want to see what's coming next? Check the <a href="/roadmap" className="text-purple-400 hover:text-purple-300">roadmap</a>.</p>
+          <p className="text-creo-text-muted text-xs">Want to see what's coming next? Check the <a href="/roadmap" className="text-creo-primary hover:text-creo-primary">roadmap</a>.</p>
         </div>
       </div>
     </div>
