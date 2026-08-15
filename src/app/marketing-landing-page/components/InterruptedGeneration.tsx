@@ -101,7 +101,7 @@ export default function InterruptedGeneration() {
       {stage === 'gate' && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-          <div className="relative w-full max-w-md bg-[#0d0d1f] border border-purple-500/30 rounded-2xl p-6 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="relative w-full max-w-md bg-[#0d0d1f] border border-purple-500/30 rounded-2xl p-6 animate-modal-in">
             {/* Hooks preview — blurred */}
             <div className="mb-5 p-4 rounded-xl bg-white/3 border border-white/8 relative overflow-hidden">
               <div className="absolute inset-0 backdrop-blur-sm bg-[#0d0d1f]/60 flex items-center justify-center z-10 rounded-xl">
