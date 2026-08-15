@@ -73,7 +73,7 @@ export default function CreatorBrainModal({ onClose, plan }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
-      <div className="w-full max-w-lg bg-[#0d0d1f] border border-fuchsia-500/25 rounded-2xl flex flex-col max-h-[88vh] animate-modal-in">
+      <div className="w-full max-w-lg creo-surface-elevated border border-fuchsia-500/25 rounded-2xl flex flex-col max-h-[88vh] animate-modal-in">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -81,11 +81,11 @@ export default function CreatorBrainModal({ onClose, plan }: Props) {
               <Brain size={17} className="text-fuchsia-400" />
             </div>
             <div>
-              <h2 className="text-white font-bold text-base leading-tight">Creator Brain</h2>
-              <p className="text-white/35 text-[11px]">Teach CRÉO to write like you</p>
+              <h2 className="text-creo-text-primary font-bold text-base leading-tight">Creator Brain</h2>
+              <p className="text-creo-text-muted text-[11px]">Teach CRÉO to write like you</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white/60"><X size={16} /></button>
+          <button onClick={onClose} className="text-creo-text-muted hover:text-creo-text-secondary"><X size={16} /></button>
         </div>
 
         {/* Ultra status banner */}
@@ -105,18 +105,18 @@ export default function CreatorBrainModal({ onClose, plan }: Props) {
         {/* Fields */}
         <div className="px-6 py-5 space-y-4 overflow-y-auto">
           {loading ? (
-            <div className="py-10 text-center text-white/30 text-sm">Loading your profile...</div>
+            <div className="py-10 text-center text-creo-text-muted text-sm">Loading your profile...</div>
           ) : (
             FIELDS.map((f) => (
               <div key={f.key}>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-white/40 mb-1.5">{f.label}</label>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-creo-text-muted mb-1.5">{f.label}</label>
                 <textarea
                   value={memory[f.key]}
                   onChange={(e) => setMemory((m) => ({ ...m, [f.key]: e.target.value }))}
                   placeholder={f.placeholder}
                   rows={f.rows}
                   maxLength={500}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/20 resize-none focus:outline-none focus:border-fuchsia-500/40 focus:bg-fuchsia-500/5 transition-all"
+                  className="w-full creo-surface rounded-xl px-3.5 py-2.5 text-sm text-creo-text-primary placeholder:text-creo-text-muted resize-none focus:outline-none focus:border-fuchsia-500/40 transition-all"
                 />
               </div>
             ))
