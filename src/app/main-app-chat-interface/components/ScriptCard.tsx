@@ -169,14 +169,14 @@ export default function ScriptCard({ script, onRegenerate, regenerating = false,
           <Wand2 size={13} className="text-violet-400" />
           <span className="text-xs font-semibold text-violet-400 uppercase tracking-[0.1em]">Full Script Generated</span>
         </div>
-        <span className="text-[11px] text-white/30">{wordCount} words · ~{estimatedMinutes} min</span>
+        <span className="text-[11px] text-creo-text-muted">{wordCount} words · ~{estimatedMinutes} min</span>
       </div>
 
-      <div className="glass rounded-2xl border border-violet-500/20 overflow-hidden">
+      <div className="creo-surface rounded-2xl border border-violet-500/20 overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-violet-500/5">
           <div className="flex items-center gap-2">
             <button onClick={() => setEditMode(!editMode)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${editMode ? 'bg-violet-500/20 border border-violet-500/30 text-violet-300' : 'glass border border-white/8 text-white/40 hover:text-white/60'}`}>
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${editMode ? 'bg-violet-500/20 border border-violet-500/30 text-violet-300' : 'creo-surface border border-white/8 text-creo-text-muted hover:text-creo-text-secondary'}`}>
               <Edit3 size={12} />{editMode ? 'Editing' : 'Edit'}
             </button>
             <button
@@ -189,22 +189,22 @@ export default function ScriptCard({ script, onRegenerate, regenerating = false,
                 }
               }}
               disabled={regenerating}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border border-white/8 text-xs font-medium text-white/40 hover:text-white/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg creo-surface border border-white/8 text-xs font-medium text-creo-text-muted hover:text-creo-text-secondary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw size={12} className={regenerating ? 'animate-spin' : ''} />
               {regenerating ? 'Regenerating...' : 'Regenerate'}
             </button>
           </div>
           <div className="flex items-center gap-1.5">
-            <button onClick={handleCopy} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/5 transition-all" title="Copy to clipboard">
+            <button onClick={handleCopy} className="w-7 h-7 rounded-lg flex items-center justify-center text-creo-text-muted hover:text-creo-text-secondary hover:bg-white/5 transition-all" title="Copy to clipboard">
               {copied ? <Check size={13} className="text-green-400 animate-pop-in" /> : <Copy size={13} />}
             </button>
             {/* ✅ Export opens readable HTML in new tab */}
-            <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1 rounded-lg glass border border-violet-500/20 text-xs text-violet-400 hover:bg-violet-500/10 transition-all" title="Open & save as PDF">
+            <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1 rounded-lg creo-surface border border-violet-500/20 text-xs text-violet-400 hover:bg-violet-500/10 transition-all" title="Open & save as PDF">
               <Download size={12} />PDF
             </button>
             {/* ✅ Also download as .txt */}
-            <button onClick={handleDownloadTxt} className="flex items-center gap-1 px-2 py-1 rounded-lg glass border border-white/8 text-xs text-white/40 hover:text-white/60 transition-all" title="Download as text file">
+            <button onClick={handleDownloadTxt} className="flex items-center gap-1 px-2 py-1 rounded-lg creo-surface border border-white/8 text-xs text-creo-text-muted hover:text-creo-text-secondary transition-all" title="Download as text file">
               <Download size={12} />TXT
             </button>
           </div>
@@ -212,14 +212,14 @@ export default function ScriptCard({ script, onRegenerate, regenerating = false,
 
         {/* ✅ POWER TOOLS ROW — Pro production tools + Ultra intelligence tools */}
         <div className="flex flex-wrap items-center gap-1.5 px-4 py-2 border-b border-white/5 bg-white/[0.015]">
-          <span className="text-[9px] font-bold uppercase tracking-widest text-white/25 mr-1">Power tools</span>
+          <span className="text-[9px] font-bold uppercase tracking-widest text-creo-text-muted mr-1">Power tools</span>
           {TOOLS.map((tool) => {
             const c = TOOL_CLASSES[tool.color];
             const ToolIcon = tool.icon;
             const isRunning = runningTool === tool.key;
             return (
               <button key={tool.key} onClick={() => runTool(tool)} disabled={!!runningTool} title={tool.title}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass border text-xs font-medium transition-all disabled:opacity-50 ${c.btn}`}>
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg creo-surface border text-xs font-medium transition-all disabled:opacity-50 ${c.btn}`}>
                 <ToolIcon size={12} />{isRunning ? tool.runningLabel : tool.label}
                 <span className={`text-[8px] font-bold px-1 py-px rounded-full ${tool.tier === 'Ultra' ? 'bg-amber-500/10 text-amber-400' : 'bg-purple-500/10 text-purple-400'}`}>{tool.tier}</span>
               </button>
@@ -230,10 +230,10 @@ export default function ScriptCard({ script, onRegenerate, regenerating = false,
         <div className="p-4">
           {editMode ? (
             <textarea value={editedScript} onChange={(e) => setEditedScript(e.target.value)}
-              className="w-full bg-transparent text-sm text-white/80 leading-relaxed focus:outline-none resize-none min-h-[300px] font-mono" />
+              className="w-full bg-transparent text-sm text-creo-text-secondary leading-relaxed focus:outline-none resize-none min-h-[300px] font-mono" />
           ) : (
             <div>
-              <pre className={`text-sm text-white/75 leading-relaxed whitespace-pre-wrap font-sans ${!expanded ? 'max-h-48 overflow-hidden' : ''}`}>
+              <pre className={`text-sm text-creo-text-secondary leading-relaxed whitespace-pre-wrap font-sans ${!expanded ? 'max-h-48 overflow-hidden' : ''}`}>
                 {expanded ? editedScript : previewLines}
               </pre>
               {!expanded && <div className="relative mt-0"><div className="absolute -top-12 left-0 right-0 h-12 bg-gradient-to-t from-[#0f0f1e] to-transparent pointer-events-none" /></div>}
@@ -243,7 +243,7 @@ export default function ScriptCard({ script, onRegenerate, regenerating = false,
 
         {!editMode && (
           <button onClick={() => setExpanded(!expanded)}
-            className="w-full py-2.5 border-t border-white/5 text-xs text-white/40 hover:text-white/60 flex items-center justify-center gap-1.5 transition-all hover:bg-white/2">
+            className="w-full py-2.5 border-t border-white/5 text-xs text-creo-text-muted hover:text-creo-text-secondary flex items-center justify-center gap-1.5 transition-all hover:bg-white/2">
             {expanded ? <><ChevronUp size={13} />Collapse script</> : <><ChevronDown size={13} />Read full script ({wordCount} words)</>}
           </button>
         )}
@@ -256,7 +256,7 @@ export default function ScriptCard({ script, onRegenerate, regenerating = false,
         const c = TOOL_CLASSES[tool.color];
         const ToolIcon = tool.icon;
         return (
-          <div key={`panel-${tool.key}`} className={`mt-3 glass rounded-2xl border overflow-hidden animate-slide-up ${c.panel}`}>
+          <div key={`panel-${tool.key}`} className={`mt-3 creo-surface rounded-2xl border overflow-hidden animate-slide-up ${c.panel}`}>
             <div className={`flex items-center justify-between px-4 py-2.5 border-b border-white/5 ${c.header}`}>
               <div className="flex items-center gap-2">
                 <ToolIcon size={13} className={c.text} />
@@ -264,13 +264,13 @@ export default function ScriptCard({ script, onRegenerate, regenerating = false,
               </div>
               <div className="flex items-center gap-1.5">
                 <button onClick={() => { navigator.clipboard.writeText(result).catch(() => {}); toast.success('Copied!'); }}
-                  className="w-6 h-6 rounded-lg flex items-center justify-center text-white/30 hover:text-white/60 transition-all" title="Copy">
+                  className="w-6 h-6 rounded-lg flex items-center justify-center text-creo-text-muted hover:text-creo-text-secondary transition-all" title="Copy">
                   <Copy size={12} />
                 </button>
-                <button onClick={() => setResults((prev) => ({ ...prev, [tool.key]: undefined }))} className="text-white/30 hover:text-white/60"><X size={14} /></button>
+                <button onClick={() => setResults((prev) => ({ ...prev, [tool.key]: undefined }))} className="text-creo-text-muted hover:text-creo-text-secondary"><X size={14} /></button>
               </div>
             </div>
-            <pre className="p-4 text-sm text-white/75 leading-relaxed whitespace-pre-wrap font-sans">{result}</pre>
+            <pre className="p-4 text-sm text-creo-text-secondary leading-relaxed whitespace-pre-wrap font-sans">{result}</pre>
           </div>
         );
       })}
@@ -290,7 +290,7 @@ export default function ScriptCard({ script, onRegenerate, regenerating = false,
                 }
               }}
               disabled={!!busyCommand}
-              className="px-3 py-1.5 rounded-full glass border border-white/8 text-xs text-white/45 hover:text-white/65 hover:border-white/15 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-full creo-surface border border-white/8 text-xs text-creo-text-muted hover:text-creo-text-secondary hover:border-white/15 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isBusy ? `Applying "${cmd}"...` : cmd}
             </button>
