@@ -78,7 +78,7 @@ export default function WinningVault({ isOpen, onClose, plan }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
-      <div className="w-full max-w-2xl bg-[#0d0d1f] border border-purple-500/20 rounded-2xl flex flex-col max-h-[85vh] animate-modal-in">
+      <div className="w-full max-w-2xl creo-surface-elevated border border-purple-500/20 rounded-2xl flex flex-col max-h-[85vh] animate-modal-in">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -86,11 +86,11 @@ export default function WinningVault({ isOpen, onClose, plan }: Props) {
               <Star size={16} className="text-yellow-400 fill-yellow-400" />
             </div>
             <div>
-              <h2 className="text-white font-semibold text-base">Winning Vault</h2>
-              <p className="text-white/30 text-xs">{items.length}{isFree ? `/${FREE_LIMIT}` : ''} saved · {isFree ? 'Free plan' : plan}</p>
+              <h2 className="text-creo-text-primary font-semibold text-base">Winning Vault</h2>
+              <p className="text-creo-text-muted text-xs">{items.length}{isFree ? `/${FREE_LIMIT}` : ''} saved · {isFree ? 'Free plan' : plan}</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-7 h-7 rounded-lg glass border border-white/8 flex items-center justify-center text-white/30 hover:text-white transition-all">
+          <button onClick={onClose} className="w-7 h-7 rounded-lg creo-surface border-creo-border flex items-center justify-center text-creo-text-muted hover:text-creo-text-primary transition-all">
             <X size={14} />
           </button>
         </div>
@@ -104,10 +104,10 @@ export default function WinningVault({ isOpen, onClose, plan }: Props) {
 
         {/* Filter tabs */}
         <div className="flex gap-2 px-6 py-3 border-b border-white/5 flex-shrink-0">
-          <Filter size={13} className="text-white/30 mt-0.5" />
+          <Filter size={13} className="text-creo-text-muted mt-0.5" />
           {(['all', 'hook', 'title', 'script'] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all capitalize ${filter === f ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' : 'glass border border-white/8 text-white/40 hover:text-white/60'}`}>
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all capitalize ${filter === f ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300' : 'creo-surface border border-white/8 text-creo-text-muted hover:text-creo-text-secondary'}`}>
               {f === 'all' ? `All (${items.length})` : `${f}s (${items.filter(i => i.type === f).length})`}
             </button>
           ))}
@@ -120,32 +120,32 @@ export default function WinningVault({ isOpen, onClose, plan }: Props) {
               <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
                 <Star size={22} className="text-yellow-400/50" />
               </div>
-              <p className="text-white/40 text-sm text-center">Your vault is empty.<br />Save your best hooks, titles and scripts here.</p>
+              <p className="text-creo-text-muted text-sm text-center">Your vault is empty.<br />Save your best hooks, titles and scripts here.</p>
             </div>
           ) : (
             filtered.map((item) => (
-              <div key={item.id} className="glass rounded-xl border border-white/8 p-4 group hover:border-white/12 transition-all">
+              <div key={item.id} className="creo-surface rounded-xl border border-white/8 p-4 group hover:border-white/12 transition-all">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold capitalize ${typeColor(item.type)}`}>
                       {typeIcon(item.type)}{item.type}
                     </span>
-                    {item.platform && <span className="text-[10px] text-white/30">{item.platform}</span>}
-                    {item.topic && <span className="text-[10px] text-white/20 truncate max-w-[150px]">{item.topic}</span>}
+                    {item.platform && <span className="text-[10px] text-creo-text-muted">{item.platform}</span>}
+                    {item.topic && <span className="text-[10px] text-creo-text-muted truncate max-w-[150px]">{item.topic}</span>}
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button onClick={() => handleCopy(item.content, item.id)}
-                      className="w-6 h-6 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/5 transition-all">
+                      className="w-6 h-6 rounded-lg flex items-center justify-center text-creo-text-muted hover:text-creo-text-secondary hover:bg-white/5 transition-all">
                       {copied === item.id ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
                     </button>
                     <button onClick={() => handleDelete(item.id)}
-                      className="w-6 h-6 rounded-lg flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-400/10 transition-all">
+                      className="w-6 h-6 rounded-lg flex items-center justify-center text-creo-text-muted hover:text-red-400 hover:bg-red-400/10 transition-all">
                       <Trash2 size={11} />
                     </button>
                   </div>
                 </div>
-                <p className="text-white/70 text-sm leading-relaxed line-clamp-3">{item.content}</p>
-                <p className="text-white/20 text-[10px] mt-2">{new Date(item.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
+                <p className="text-creo-text-secondary text-sm leading-relaxed line-clamp-3">{item.content}</p>
+                <p className="text-creo-text-muted text-[10px] mt-2">{new Date(item.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
               </div>
             ))
           )}
@@ -154,7 +154,7 @@ export default function WinningVault({ isOpen, onClose, plan }: Props) {
         {/* Upgrade prompt for free users */}
         {isFree && (
           <div className="px-6 py-4 border-t border-white/5 flex-shrink-0">
-            <button onClick={() => router.push('/upgrade')} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all">
+            <button onClick={() => router.push('/upgrade')} className="w-full py-2.5 rounded-xl creo-btn-primary text-white text-xs font-semibold active:scale-[0.98] transition-all">
               Upgrade to Pro — Unlimited Vault Storage
             </button>
           </div>
