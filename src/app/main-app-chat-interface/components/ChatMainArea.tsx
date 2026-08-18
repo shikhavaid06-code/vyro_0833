@@ -118,7 +118,7 @@ function SuspenseLoader({ mode }: { mode: LoaderMode }) {
     return () => clearInterval(t);
   }, [lines.length]);
   return (
-    <div className="glass border border-purple-500/15 rounded-2xl rounded-bl-sm px-4 py-3.5 w-full max-w-sm animate-slide-up">
+    <div className="creo-surface border-creo-primary/15 rounded-2xl rounded-bl-sm px-4 py-3.5 w-full max-w-sm animate-slide-up">
       <div className="flex items-center gap-2.5 mb-3">
         <div className="relative w-5 h-5 flex-shrink-0">
           <div className="absolute inset-0 rounded-full border-2 border-purple-500/20" />
@@ -180,7 +180,7 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
 
           <div className="space-y-2">
             <div>
-              <button onClick={() => router.push('/upgrade?plan=pro')} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all glow-button">
+              <button onClick={() => router.push('/upgrade?plan=pro')} className="w-full py-3 rounded-xl creo-btn-primary text-white font-semibold text-sm active:scale-[0.98]">
                 🚀 Grow with Pro — {prices.symbol}{prices.pro}/mo
               </button>
               {/* ✅ Per-day anchor — reframes the monthly price at the exact
@@ -266,7 +266,7 @@ function WhatsNewModal({
               <button
                 key={l}
                 onClick={() => { setPicked(l); if (!isRegionalLanguage(l)) setMixed(false); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${picked === l ? 'bg-sky-500/20 border border-sky-500/40 text-sky-300' : 'glass border border-white/8 text-white/50 hover:text-white/80'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${picked === l ? 'bg-sky-500/20 border border-sky-500/40 text-sky-300' : 'creo-surface text-creo-text-secondary hover:text-creo-text-primary'}`}
               >
                 {picked === l && <Check size={11} className="inline mr-1 -mt-0.5" />}
                 {l}
@@ -282,7 +282,7 @@ function WhatsNewModal({
             <button
               onClick={() => setMixed((m) => !m)}
               title='Blend natural English words in, like "mere pass time nahi hai"'
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all mb-5 ${mixed ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300' : 'glass border border-white/8 text-white/45 hover:text-white/70'}`}
+              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all mb-5 ${mixed ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300' : 'creo-surface text-creo-text-muted hover:text-creo-text-secondary'}`}
             >
               <span className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${mixed ? 'bg-emerald-500 border-emerald-500' : 'border-white/20'}`}>
                 {mixed && <Check size={10} className="text-white" />}
@@ -941,7 +941,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                     toast.success(next ? `Language set to ${selectedLanguage} + English` : `Language set to pure ${selectedLanguage}`);
                   }}
                   title='Blend natural English words in, like "mere pass time nahi hai"'
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${mixWithEnglish ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300' : 'glass border border-white/8 text-white/40'}`}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium transition-all ${mixWithEnglish ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300' : 'creo-surface text-creo-text-muted'}`}
                 >
                   {mixWithEnglish && <Check size={11} />}
                   {selectedLanguage} + English mix
@@ -977,14 +977,14 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                 {promptSet.map((prompt, pi) => (
                   <button key={prompt.text} onClick={() => handleSendWithText(prompt.text)}
                     style={{ animationDelay: `${pi * 70}ms`, animationFillMode: 'both' }}
-                    className="flex items-center gap-3 p-3 rounded-xl glass border border-white/8 hover:border-purple-500/30 hover:bg-purple-500/5 hover:-translate-y-0.5 text-left transition-all group animate-slide-up">
+                    className="flex items-center gap-3 p-3 rounded-xl creo-surface hover:border-creo-primary/30 hover:bg-creo-primary/5 hover:-translate-y-0.5 text-left transition-all group animate-slide-up">
                     <span className="w-9 h-9 rounded-lg bg-white/5 border border-white/8 group-hover:border-purple-500/20 group-hover:bg-purple-500/10 flex items-center justify-center text-base flex-shrink-0 transition-all">{prompt.icon}</span>
                     <span className="text-xs text-white/55 group-hover:text-white/80 transition-colors leading-snug">{prompt.text}</span>
                   </button>
                 ))}
               </div>
               {/* ✅ Daily Mission — the reason to open CRÉO every day */}
-              <div className="glass rounded-2xl border border-orange-500/15 p-3.5 mb-5 text-left">
+              <div className="creo-surface rounded-2xl border-creo-warning/15 p-3.5 mb-5 text-left">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Target size={13} className="text-orange-400" />
@@ -1016,7 +1016,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
           {messages.map((msg) => (
             <div key={msg.id} className={`flex animate-slide-up ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.type === 'text' && (
-                <div className={`max-w-[85%] sm:max-w-lg px-4 py-2.5 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-purple-600/80 text-white rounded-br-sm' : 'glass border border-white/8 text-white/80 rounded-bl-sm'}`}>{msg.content}</div>
+                <div className={`max-w-[85%] sm:max-w-lg px-4 py-2.5 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-creo-primary/85 text-white rounded-br-sm' : 'creo-surface text-creo-text-secondary rounded-bl-sm'}`}>{msg.content}</div>
               )}
               {msg.type === 'titles' && (
                 <div className="w-full">
@@ -1033,7 +1033,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                 </div>
               )}
               {msg.type === 'clarify' && (
-                <div className="w-full max-w-md glass border border-purple-500/15 rounded-2xl rounded-bl-sm px-4 py-3.5">
+                <div className="w-full max-w-md creo-surface border-creo-primary/15 rounded-2xl rounded-bl-sm px-4 py-3.5">
                   <p className="text-white/75 text-sm mb-2.5 flex items-center gap-1.5"><Sparkles size={12} className="text-purple-400 flex-shrink-0" />{msg.content}</p>
                   <div className="flex flex-wrap gap-2">
                     {(msg.data as string[]).map((opt, oi) => (
@@ -1073,7 +1073,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         <div className="flex-shrink-0 px-3 md:px-6 pb-1">
           <div className="max-w-3xl mx-auto flex flex-wrap items-center gap-2">
             <button onClick={handleExpand}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-full glass border border-emerald-500/25 text-xs font-medium text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all animate-slide-up">
+              className="flex items-center gap-2 px-3.5 py-2 rounded-full creo-surface border-creo-success/25 text-xs font-medium text-creo-success/80 hover:text-creo-success hover:bg-creo-success/10 transition-all animate-slide-up">
               <Layers size={13} />Expand this idea — hooks, Shorts, thread & more<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25">PRO</span>
             </button>
             {/* ✅ Referral nudge — same moment as the upsell above: right after
@@ -1083,7 +1083,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
             {referral?.code && (
               <button onClick={handleCopyReferral}
                 title={referralLink}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-full glass border border-purple-500/25 text-xs font-medium text-purple-300/80 hover:text-purple-200 hover:bg-purple-500/10 transition-all animate-slide-up">
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full creo-surface border-creo-primary/25 text-xs font-medium text-creo-primary/80 hover:text-creo-primary hover:bg-creo-primary/10 transition-all animate-slide-up">
                 {refCopied ? <Check size={13} /> : <Gift size={13} />}
                 {refCopied ? 'Link copied!' : 'Know a creator who needs this? Invite them — get +1 free generation/day'}
               </button>
