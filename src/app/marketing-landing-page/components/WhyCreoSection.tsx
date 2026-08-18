@@ -55,74 +55,74 @@ export default function WhyCreoSection() {
   return (
     <section id="why-creo" className="relative py-32 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-pink-600/5 rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-creo-accent/4 rounded-full blur-[100px]" />
       </div>
 
       <div className="relative z-10 max-w-screen-2xl mx-auto px-6 lg:px-10">
         {/* ─── COMPARISON TABLE ─── */}
         <Reveal><div className="text-center mb-12">
-          <p className="text-xs font-semibold tracking-[0.2em] text-purple-400 uppercase mb-4">Why CRÉO</p>
+          <p className="text-xs font-semibold tracking-[0.2em] text-creo-primary uppercase mb-4">Why CRÉO</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-white">You could prompt a chatbot for an hour.</span><br />
+            <span className="text-creo-text-primary">You could prompt a chatbot for an hour.</span><br />
             <span className="text-gradient">Or type your topic once.</span>
           </h2>
         </div></Reveal>
 
-        <Reveal delay={100}><div className="max-w-4xl mx-auto glass rounded-2xl border border-white/8 overflow-hidden mb-24">
-          <div className="grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,88px)] items-center px-5 py-4 border-b border-white/8 bg-white/[0.02]">
-            <span className="text-xs font-semibold text-white/40 uppercase tracking-wide">Feature</span>
+        <Reveal delay={100}><div className="max-w-4xl mx-auto creo-surface rounded-2xl border-creo-border overflow-hidden mb-24">
+          <div className="grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,88px)] items-center px-5 py-4 border-b border-creo-border bg-white/[0.02]">
+            <span className="text-xs font-semibold text-creo-text-muted uppercase tracking-wide">Feature</span>
             <span className="text-sm font-bold text-gradient text-center">CRÉO</span>
             {RIVALS.map((r) => (
-              <span key={r} className="text-xs sm:text-sm font-semibold text-white/40 text-center">{r}</span>
+              <span key={r} className="text-xs sm:text-sm font-semibold text-creo-text-muted text-center">{r}</span>
             ))}
           </div>
           {comparison.map((row) => (
-            <div key={row.feature} className="grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,88px)] items-center px-5 py-4 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors">
+            <div key={row.feature} className="grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,88px)] items-center px-5 py-4 border-b border-creo-border last:border-b-0 hover:bg-white/[0.02] transition-colors">
               <div className="pr-2">
-                <p className="text-sm text-white/80 font-medium">{row.feature}</p>
-                <p className="text-xs text-white/30 mt-0.5 hidden sm:block">{row.note}</p>
+                <p className="text-sm text-creo-text-secondary font-medium">{row.feature}</p>
+                <p className="text-xs text-creo-text-muted mt-0.5 hidden sm:block">{row.note}</p>
               </div>
               <div className="flex justify-center">
                 {row.creo
-                  ? <div className="w-6 h-6 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center"><Check size={13} className="text-purple-400" /></div>
-                  : <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center"><X size={13} className="text-white/25" /></div>}
+                  ? <div className="w-6 h-6 rounded-full bg-creo-primary/15 border border-creo-primary/30 flex items-center justify-center"><Check size={13} className="text-creo-primary" /></div>
+                  : <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center"><X size={13} className="text-creo-text-muted" /></div>}
               </div>
               {RIVALS.map((r) => (
                 <div key={r} className="flex justify-center">
                   {row.rivals
-                    ? <div className="w-6 h-6 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"><Check size={13} className="text-white/50" /></div>
-                    : <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center"><X size={13} className="text-white/25" /></div>}
+                    ? <div className="w-6 h-6 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"><Check size={13} className="text-creo-text-secondary" /></div>
+                    : <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center"><X size={13} className="text-creo-text-muted" /></div>}
                 </div>
               ))}
             </div>
           ))}
-          <p className="px-5 py-3 text-[11px] text-white/25 bg-white/[0.02]">ChatGPT, Gemini and Claude are excellent general assistants — CRÉO is a specialist built for one job: content that keeps people watching.</p>
+          <p className="px-5 py-3 text-[11px] text-creo-text-muted bg-white/[0.02]">ChatGPT, Gemini and Claude are excellent general assistants — CRÉO is a specialist built for one job: content that keeps people watching.</p>
         </div></Reveal>
 
         {/* ─── WINNING VAULT CARD ─── */}
         <Reveal><div className="max-w-3xl mx-auto mb-24">
-          <div className="relative glass-strong rounded-2xl border border-yellow-500/20 p-8 overflow-hidden">
-            <div className="absolute top-0 right-0 w-[250px] h-[250px] bg-yellow-500/5 rounded-full blur-[80px] pointer-events-none" />
+          <div className="relative creo-surface-elevated rounded-2xl border border-creo-warning/20 p-8 overflow-hidden">
+            <div className="absolute top-0 right-0 w-[250px] h-[250px] bg-creo-warning/5 rounded-full blur-[80px] pointer-events-none" />
             <div className="relative z-10 flex flex-col sm:flex-row items-start gap-6">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-amber-600/20 border border-yellow-500/30 flex items-center justify-center flex-shrink-0">
-                <Vault size={26} className="text-yellow-400" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-creo-warning/15 to-creo-warning/10 border border-creo-warning/30 flex items-center justify-center flex-shrink-0">
+                <Vault size={26} className="text-creo-warning" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-white text-2xl font-bold">The Winning Vault</h3>
-                  <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                  <h3 className="text-creo-text-primary text-2xl font-bold">The Winning Vault</h3>
+                  <Star size={16} className="text-creo-warning fill-yellow-400" />
                 </div>
-                <p className="text-white/50 text-sm leading-relaxed mb-4">
+                <p className="text-creo-text-secondary text-sm leading-relaxed mb-4">
                   Your best hooks, titles, and scripts — saved forever, organized, one tap away.
                   When something works, you never lose it. When you need your next video,
                   your proven winners are right there to build on.
                 </p>
                 <div className="flex flex-wrap gap-2 mb-5">
                   {['Save winning hooks', 'Keep your best titles', 'Full script library', 'Yours forever'].map((t) => (
-                    <span key={t} className="text-xs text-yellow-400/70 bg-yellow-500/5 border border-yellow-500/15 rounded-full px-3 py-1">{t}</span>
+                    <span key={t} className="text-xs text-creo-warning/70 bg-creo-warning/5 border border-creo-warning/15 rounded-full px-3 py-1">{t}</span>
                   ))}
                 </div>
-                <Link href="/try" className="inline-flex items-center gap-2 text-sm font-semibold text-yellow-400 hover:text-yellow-300 transition-colors">
+                <Link href="/try" className="inline-flex items-center gap-2 text-sm font-semibold text-creo-warning hover:text-yellow-300 transition-colors">
                   Start building your vault <ArrowRight size={14} />
                 </Link>
               </div>
@@ -133,29 +133,29 @@ export default function WhyCreoSection() {
         {/* ─── FAQ ─── */}
         <Reveal><div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-2">Questions, answered</h2>
-            <p className="text-white/40 text-sm">Everything a smart creator asks before trusting a new tool.</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-creo-text-primary mb-2">Questions, answered</h2>
+            <p className="text-creo-text-muted text-sm">Everything a smart creator asks before trusting a new tool.</p>
           </div>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={faq.q} className="glass rounded-xl border border-white/8 overflow-hidden">
+              <div key={faq.q} className="creo-surface rounded-xl border-creo-border overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
                 >
-                  <span className="text-sm font-medium text-white/80 pr-4">{faq.q}</span>
-                  <ChevronDown size={16} className={`text-white/30 flex-shrink-0 transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="text-sm font-medium text-creo-text-secondary pr-4">{faq.q}</span>
+                  <ChevronDown size={16} className={`text-creo-text-muted flex-shrink-0 transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 {openFaq === i && (
                   <div className="px-5 pb-4">
-                    <p className="text-sm text-white/50 leading-relaxed">{faq.a}</p>
+                    <p className="text-sm text-creo-text-secondary leading-relaxed">{faq.a}</p>
                   </div>
                 )}
               </div>
             ))}
           </div>
-          <p className="text-center text-white/30 text-xs mt-8">
-            <Sparkles size={11} className="inline mr-1 text-purple-400" />
+          <p className="text-center text-creo-text-muted text-xs mt-8">
+            <Sparkles size={11} className="inline mr-1 text-creo-primary" />
             Still unsure? Try it free — 3 generations a day, no card, no catch.
           </p>
         </div></Reveal>
