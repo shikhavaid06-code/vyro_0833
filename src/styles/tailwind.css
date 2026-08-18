@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
 
 @layer base {
   :root {
@@ -171,23 +172,17 @@
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: theme('colors.creo.primary');
   }
 
   /* =========================================================
-     ✅ NEW REDESIGN TOKENS (Aug 2026) — near-black/charcoal,
-     purple/magenta as accent only. Additive alongside the
-     original .glass/.glow-* utilities above; new screens use
-     these, existing screens are untouched until migrated on
-     purpose, one page at a time.
+     ✅ FINAL BRAND RETHEME (checkpoint 2) — architectural studio
+     identity: near-black/graphite surfaces, ONE restrained terracotta
+     accent used sparingly (~2%), no gradients, no purple glow. Same
+     class names as the previous redesign pass — every page consuming
+     them updates automatically, no per-component edits needed.
      ========================================================= */
 
-  /* Resting card — solid surface + a single hairline border. No blur,
-     no glow at rest. This is the "premium through spacing, not glow"
-     instruction from the brief. */
   .creo-surface {
     background: theme('colors.creo.surface');
     border: 1px solid theme('colors.creo.border');
@@ -198,26 +193,23 @@
     border: 1px solid theme('colors.creo.border-strong');
   }
 
-  /* Primary CTA — a flat gradient fill with a restrained shadow, not a
-     pulsing neon glow. Replaces .glow-button for new screens. */
+  /* Primary CTA — flat terracotta fill, restrained shadow. No gradient,
+     no colored glow on hover — just a subtle brightness lift. */
   .creo-btn-primary {
-    background: linear-gradient(135deg, theme('colors.creo.primary') 0%, theme('colors.creo.accent') 100%);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06) inset;
-    transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    background: theme('colors.creo.primary');
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    transition: transform 0.12s ease, filter 0.15s ease;
   }
   .creo-btn-primary:hover {
     filter: brightness(1.08);
-    box-shadow: 0 2px 8px rgba(139,92,246,0.35), 0 0 0 1px rgba(255,255,255,0.08) inset;
   }
   .creo-btn-primary:active {
     transform: scale(0.97);
   }
 
-  /* Accent glow reserved for ONE focal element per screen (e.g. the
-     active nav item, or a single highlighted metric) — not applied
-     broadly the way .glow-purple was. */
+  /* Accent ring reserved for ONE focal element per screen. */
   .creo-accent-ring {
-    box-shadow: 0 0 0 1px theme('colors.creo.primary'), 0 0 16px rgba(139,92,246,0.25);
+    box-shadow: 0 0 0 1px theme('colors.creo.primary');
   }
 
   /* Typography scale matching the redesign spec (48/32/22px headings,
