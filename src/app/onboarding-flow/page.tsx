@@ -74,42 +74,42 @@ export default function OnboardingFlowPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080812] flex items-center justify-center px-4 py-12">
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-creo-bg flex items-center justify-center px-4 py-12">
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-creo-primary/6 rounded-full blur-[120px] pointer-events-none" />
       <div className="relative z-10 w-full max-w-lg">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <Sparkles size={18} className="text-purple-400" />
-          <span className="font-display text-lg font-semibold text-white">CRÉO</span>
+          <Sparkles size={18} className="text-creo-primary" />
+          <span className="font-display text-lg font-semibold text-creo-text-primary">CRÉO</span>
         </div>
 
         <div className="flex gap-2 mb-8">
-          <div className="flex-1 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
-          <div className={`flex-1 h-1 rounded-full transition-all duration-500 ${step === 'skill' ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-white/10'}`} />
+          <div className="flex-1 h-1 rounded-full bg-creo-primary" />
+          <div className={`flex-1 h-1 rounded-full transition-all duration-500 ${step === 'skill' ? 'bg-creo-primary' : 'bg-white/10'}`} />
         </div>
 
         {step === 'hear' && (
           <div>
             <div className="mb-8 text-center">
-              <p className="text-purple-400 text-sm font-medium mb-2">Step 1 of 2</p>
+              <p className="text-creo-primary text-sm font-medium mb-2">Step 1 of 2</p>
               <h1 className="text-3xl font-bold text-white mb-2">How did you find CRÉO?</h1>
-              <p className="text-white/40 text-sm">Help us understand where our creators come from.</p>
+              <p className="text-creo-text-muted text-sm">Help us understand where our creators come from.</p>
               {hearError && <p className="text-red-400 text-sm mt-2">Please pick one option to continue.</p>}
             </div>
             <div className="grid grid-cols-3 gap-2 mb-8">
               {HEAR_OPTIONS.map((opt) => (
                 <button key={opt.id} onClick={() => { setSelectedHear(opt.id); setHearError(false); }}
-                  className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-center transition-all duration-200 ${selectedHear === opt.id ? 'border-purple-500/60 bg-purple-500/10' : 'border-white/8 bg-white/3 hover:border-white/15'}`}>
+                  className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-center transition-all duration-200 ${selectedHear === opt.id ? 'border-creo-primary/60 bg-creo-primary/10' : 'border-creo-border bg-white/[0.02] hover:border-creo-border-strong'}`}>
                   {selectedHear === opt.id && (
-                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
+                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-creo-primary flex items-center justify-center">
                       <Check size={9} className="text-white" />
                     </div>
                   )}
                   <span className="text-lg">{opt.emoji}</span>
-                  <span className={`text-[11px] font-medium ${selectedHear === opt.id ? 'text-purple-300' : 'text-white/60'}`}>{opt.label}</span>
+                  <span className={`text-[11px] font-medium ${selectedHear === opt.id ? 'text-creo-primary' : 'text-creo-text-secondary'}`}>{opt.label}</span>
                 </button>
               ))}
             </div>
-            <button onClick={handleHearNext} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+            <button onClick={handleHearNext} className="w-full py-3.5 rounded-xl creo-btn-primary text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all">
               Continue <ArrowRight size={16} />
             </button>
           </div>
@@ -118,31 +118,31 @@ export default function OnboardingFlowPage() {
         {step === 'skill' && (
           <div>
             <div className="mb-8 text-center">
-              <p className="text-purple-400 text-sm font-medium mb-2">Step 2 of 2</p>
+              <p className="text-creo-primary text-sm font-medium mb-2">Step 2 of 2</p>
               <h1 className="text-3xl font-bold text-white mb-2">What's your creator level?</h1>
-              <p className="text-white/40 text-sm">We'll personalise CRÉO's suggestions for you.</p>
+              <p className="text-creo-text-muted text-sm">We'll personalise CRÉO's suggestions for you.</p>
               {skillError && <p className="text-red-400 text-sm mt-2">Please select your level to continue.</p>}
             </div>
             <div className="flex flex-col gap-3 mb-8">
               {SKILL_OPTIONS.map((opt) => (
                 <button key={opt.id} onClick={() => { setSelectedSkill(opt.id); setSkillError(false); }}
-                  className={`flex items-center gap-4 p-4 rounded-xl border text-left transition-all duration-200 bg-gradient-to-r ${selectedSkill === opt.id ? `${opt.color} ${opt.border}` : 'border-white/8 bg-transparent hover:border-white/15'}`}>
+                  className={`flex items-center gap-4 p-4 rounded-xl border text-left transition-all duration-200 bg-gradient-to-r ${selectedSkill === opt.id ? `${opt.color} ${opt.border}` : 'border-creo-border bg-transparent hover:border-creo-border-strong'}`}>
                   <span className="text-3xl">{opt.emoji}</span>
                   <div className="flex-1">
-                    <p className={`text-sm font-semibold ${selectedSkill === opt.id ? 'text-white' : 'text-white/80'}`}>{opt.label}</p>
-                    <p className="text-xs text-white/40 mt-0.5">{opt.sub}</p>
+                    <p className={`text-sm font-semibold ${selectedSkill === opt.id ? 'text-creo-text-primary' : 'text-creo-text-secondary'}`}>{opt.label}</p>
+                    <p className="text-xs text-creo-text-muted mt-0.5">{opt.sub}</p>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selectedSkill === opt.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'}`}>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selectedSkill === opt.id ? 'border-creo-primary bg-creo-primary' : 'border-creo-border-strong'}`}>
                     {selectedSkill === opt.id && <Check size={11} className="text-white" />}
                   </div>
                 </button>
               ))}
             </div>
             <button onClick={handleFinish} disabled={isLoading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-60">
+              className="w-full py-3.5 rounded-xl creo-btn-primary text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60">
               {isLoading ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving...</> : <><Sparkles size={15} />Let's Create <ArrowRight size={15} /></>}
             </button>
-            <button onClick={() => setStep('hear')} className="w-full mt-3 text-center text-xs text-white/25 hover:text-white/40 transition-colors">← Back</button>
+            <button onClick={() => setStep('hear')} className="w-full mt-3 text-center text-xs text-creo-text-muted hover:text-creo-text-secondary transition-colors">← Back</button>
           </div>
         )}
       </div>
