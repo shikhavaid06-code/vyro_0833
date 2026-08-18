@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'sans-serif'],
-        display: ['Playfair Display', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+        display: ['Satoshi', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
@@ -19,24 +19,26 @@ module.exports = {
           bg: '#080812',
           card: '#0a0a18',
         },
-        // ✅ New redesign token set (Aug 2026 UI direction) — near-black/
-        // charcoal foundation, purple/magenta as accent only, not the whole
-        // surface. Kept separate from `vyro.*` so existing pages using the
-        // old tokens keep working untouched while new screens opt in.
+        // ✅ FINAL BRAND RETHEME (checkpoint 2) — "high-end architectural
+        // creative studio" identity, replacing the violet/magenta system.
+        // Hex values are a best-effort read of the reference swatch image
+        // (can't pixel-sample exactly) — flagged in the report, easy to
+        // nudge once real design tokens/Figma values are available.
         creo: {
-          bg: '#08080b',          // page background — near-black, not pure black
-          surface: '#111114',     // resting card/panel surface
-          elevated: '#1a1a1f',    // hovered/active surface, modals, popovers
-          border: 'rgba(255,255,255,0.08)',
-          'border-strong': 'rgba(255,255,255,0.14)',
-          primary: '#8b5cf6',     // purple — primary actions, active nav state
-          accent: '#ec4899',      // magenta — sparing use only (badges, highlights)
-          success: '#12d9a7',
-          warning: '#ffa726',
-          danger: '#ef4444',
-          'text-primary': '#f5f5f7',
-          'text-secondary': 'rgba(245,245,247,0.6)',
-          'text-muted': 'rgba(245,245,247,0.38)',
+          bg: '#0b0c0e',           // near-black matte foundation
+          surface: '#111214',      // resting card/panel surface
+          elevated: '#181a1d',     // hovered/active surface, modals
+          surface3: '#1e2124',     // third depth level (nested cards)
+          border: '#2a2d31',
+          'border-strong': 'rgba(255,255,255,0.16)',
+          primary: '#e17e4a',      // terracotta/coral — the ONE accent, ~2% usage
+          accent: '#e17e4a',       // kept as an alias so existing accent-usage call sites don't need touching
+          success: '#3fa66b',
+          warning: '#d9a441',
+          danger: '#c65b4a',
+          'text-primary': '#efeeec',
+          'text-secondary': 'rgba(239,238,236,0.62)',
+          'text-muted': '#9a9a96',
         },
       },
       backgroundImage: {
