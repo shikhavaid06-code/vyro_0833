@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowRight, Zap, TrendingUp, Play, Star, Flame } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, TrendingUp, Play, Star, Flame, Home as HomeIcon, Brain, Lightbulb, BarChart3, Plus } from 'lucide-react';
+import AppLogo from '@/components/ui/AppLogo';
 import DemoModal from './DemoModal';
 import CountUp from '@/components/ui/CountUp';
 
@@ -200,33 +201,58 @@ export default function HeroSection() {
           </Link>
         </div>
 
-        {/* Product flow visualization */}
-        <div className="max-w-3xl mx-auto creo-surface rounded-2xl p-6 text-left mb-20">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-red-500/60" />
-              <span className="w-3 h-3 rounded-full bg-creo-warning/60" />
-              <span className="w-3 h-3 rounded-full bg-creo-success/60" />
-            </div>
-            <span className="creo-caption text-creo-text-muted font-mono">creo.ai — content generator</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { step: '01', label: 'Your Idea', content: '"Fitness tips for busy students"' },
-              { step: '02', label: '6 Viral Titles', content: '"The 5-Minute Student Workout Nobody Talks About"' },
-              { step: '03', label: '3 Hook Options', content: '"I wasted 2 years studying wrong — here\'s what changed"' },
-              { step: '04', label: 'Full Script', content: '[INTRO 0:00] Hook + problem... [MAIN] 5 tips...' },
-            ].map((item) => (
-              <div key={item.step} className="rounded-xl border border-creo-border bg-white/[0.02] p-3">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="creo-caption text-creo-text-muted font-bold">{item.step}</span>
-                  <span className="creo-caption text-creo-text-secondary uppercase tracking-wide">{item.label}</span>
-                </div>
-                <p className="creo-body text-creo-text-secondary leading-relaxed line-clamp-3">{item.content}</p>
+        {/* ✅ Illustrative dashboard preview — mirrors the real /home layout for
+            visual impact, but every number here is a static mockup value,
+            not fetched live data. Explicitly labeled so it's never mistaken
+            for a real user's stats. */}
+        <div className="max-w-4xl mx-auto creo-surface-elevated rounded-2xl p-3 sm:p-4 text-left mb-3 overflow-hidden">
+          <div className="grid grid-cols-[auto_1fr] gap-3">
+            <div className="hidden sm:flex flex-col gap-0.5 w-32 flex-shrink-0 border-r border-creo-border pr-3">
+              <div className="flex items-center gap-1.5 px-1 mb-2">
+                <AppLogo size={16} /><span className="creo-caption font-semibold text-creo-text-primary">CRÉO</span>
               </div>
-            ))}
+              {[
+                { label: 'Home', icon: HomeIcon, active: true }, { label: 'Create', icon: Zap }, { label: 'Brain', icon: Brain },
+                { label: 'Ideas', icon: Lightbulb }, { label: 'Vault', icon: Star }, { label: 'Analytics', icon: BarChart3 },
+              ].map((n) => (
+                <div key={n.label} className={`flex items-center gap-1.5 px-1.5 py-1 rounded-lg creo-caption ${n.active ? 'bg-creo-primary/15 text-creo-primary' : 'text-creo-text-muted'}`}>
+                  <n.icon size={10} />{n.label}
+                </div>
+              ))}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center justify-between mb-3">
+                <p className="creo-body font-semibold text-creo-text-primary">Good evening, Creator 👋</p>
+                <span className="creo-btn-primary rounded-full px-2.5 py-1 creo-caption text-white flex items-center gap-1"><Plus size={9} />New</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2.5">
+                {[
+                  { label: 'Views', value: '24.5K', delta: '+15.3%' },
+                  { label: 'Watch Time', value: '125h', delta: '+18.2%' },
+                  { label: 'Engagement', value: '5.2%', delta: '+10.7%' },
+                  { label: 'Avg. Duration', value: '2:45', delta: '+12.4%' },
+                ].map((s) => (
+                  <div key={s.label} className="creo-surface rounded-xl p-2">
+                    <p className="creo-caption text-creo-text-muted">{s.label}</p>
+                    <p className="text-sm font-bold text-creo-text-primary">{s.value}</p>
+                    <p className="creo-caption text-creo-success">{s.delta}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="creo-surface rounded-xl p-2.5">
+                  <div className="flex items-center justify-between mb-1"><p className="creo-caption font-semibold text-creo-text-secondary">AI Insight</p><span className="creo-caption bg-creo-warning/15 text-creo-warning px-1.5 rounded-full">PRO</span></div>
+                  <p className="creo-caption text-creo-text-muted leading-snug">Your storytelling hooks get 38% more engagement than average.</p>
+                </div>
+                <div className="creo-surface rounded-xl p-2.5">
+                  <p className="creo-caption font-semibold text-creo-text-secondary mb-1">Top Performing Content</p>
+                  <p className="creo-caption text-creo-text-muted truncate">5 Mistakes I Made · 12.5K views</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+        <p className="creo-caption text-creo-text-muted text-center mb-20">Illustrative preview — not real user data</p>
 
         {/* ✅ How It Works with animated active state */}
         <div className="max-w-4xl mx-auto mb-20">
