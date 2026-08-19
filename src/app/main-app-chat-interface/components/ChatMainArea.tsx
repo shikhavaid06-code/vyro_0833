@@ -121,9 +121,9 @@ function SuspenseLoader({ mode }: { mode: LoaderMode }) {
     <div className="creo-surface border-creo-primary/15 rounded-2xl rounded-bl-sm px-4 py-3.5 w-full max-w-sm animate-slide-up">
       <div className="flex items-center gap-2.5 mb-3">
         <div className="relative w-5 h-5 flex-shrink-0">
-          <div className="absolute inset-0 rounded-full border-2 border-purple-500/20" />
+          <div className="absolute inset-0 rounded-full border-2 border-creo-primary/20" />
           <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-500 animate-spin" />
-          <Sparkles size={9} className="absolute inset-0 m-auto text-purple-400 animate-pulse" />
+          <Sparkles size={9} className="absolute inset-0 m-auto text-creo-primary animate-pulse" />
         </div>
         <span key={lineIndex} className="text-xs text-white/60 animate-fade-in">{lines[lineIndex]}</span>
       </div>
@@ -144,9 +144,9 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
   const prices = getLocalePricing();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
-      <div className="w-full max-w-sm rounded-2xl relative animate-modal-in overflow-hidden border border-purple-500/30 bg-[#0d0d1f]">
+      <div className="w-full max-w-sm rounded-2xl relative animate-modal-in overflow-hidden border border-creo-primary/30 bg-creo-elevated">
         {/* Ambient glow */}
-        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[280px] h-[160px] bg-purple-600/25 rounded-full blur-[70px] pointer-events-none" />
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[280px] h-[160px] bg-creo-primary/15 rounded-full blur-[70px] pointer-events-none" />
         <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white/60 z-10"><X size={16} /></button>
 
         <div className="relative p-6">
@@ -173,7 +173,7 @@ function PaywallModal({ onClose, streak = 0 }: { onClose: () => void; streak?: n
               <div key={text as string} className="flex items-center gap-2.5 rounded-lg bg-white/[0.03] border border-white/6 px-3 py-2">
                 <span className="text-sm">{emoji}</span>
                 <span className="text-xs text-white/70 flex-1">{text}</span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier === 'Ultra' ? 'bg-amber-500/10 text-amber-400' : 'bg-purple-500/10 text-purple-400'}`}>{tier}</span>
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier === 'Ultra' ? 'bg-amber-500/10 text-amber-400' : 'bg-creo-primary/10 text-creo-primary'}`}>{tier}</span>
               </div>
             ))}
           </div>
@@ -239,7 +239,7 @@ function WhatsNewModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-backdrop-in">
-      <div className="w-full max-w-sm rounded-2xl relative animate-modal-in overflow-hidden border border-sky-500/30 bg-[#0d0d1f] max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl relative animate-modal-in overflow-hidden border border-sky-500/30 bg-creo-elevated max-h-[90vh] overflow-y-auto">
         <button onClick={() => onDismiss()} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 bg-black/30 rounded-full p-1"><X size={16} /></button>
 
         {/* ✅ Poster — the same branded announcement graphic used in the
@@ -957,20 +957,20 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
         {messages.length === 0 && (
           <div className="relative flex flex-col items-center justify-center min-h-full px-4 py-10 text-center">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px]" />
+              <div className="w-[400px] h-[400px] bg-creo-primary/4 rounded-full blur-[100px]" />
             </div>
             <div className="relative z-10 w-full max-w-2xl">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 flex items-center justify-center mx-auto mb-4">
-                <Wand2 size={28} className="text-purple-400" />
+              <div className="w-14 h-14 rounded-2xl bg-creo-primary/12 border border-creo-primary/20 flex items-center justify-center mx-auto mb-4">
+                <Wand2 size={28} className="text-creo-primary" />
               </div>
               <h2 className="text-2xl md:text-3xl font-bold mb-2">
                 <span className="text-white">{userName ? greetingFn(userName) : 'What are we creating today? ✨'}</span>
               </h2>
               <p className="text-white/40 text-sm mb-3">Type your idea or pick a quick start below</p>
               {!isProUser() && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mb-5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                  <p className="text-purple-400/80 text-xs">{genLeft} free generation{genLeft !== 1 ? 's' : ''} remaining</p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-creo-primary/10 border border-creo-primary/20 mb-5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-creo-primary" />
+                  <p className="text-creo-primary/80 text-xs">{genLeft} free generation{genLeft !== 1 ? 's' : ''} remaining</p>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-2 mb-4 w-full">
@@ -978,7 +978,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
                   <button key={prompt.text} onClick={() => handleSendWithText(prompt.text)}
                     style={{ animationDelay: `${pi * 70}ms`, animationFillMode: 'both' }}
                     className="flex items-center gap-3 p-3 rounded-xl creo-surface hover:border-creo-primary/30 hover:bg-creo-primary/5 hover:-translate-y-0.5 text-left transition-all group animate-slide-up">
-                    <span className="w-9 h-9 rounded-lg bg-white/5 border border-white/8 group-hover:border-purple-500/20 group-hover:bg-purple-500/10 flex items-center justify-center text-base flex-shrink-0 transition-all">{prompt.icon}</span>
+                    <span className="w-9 h-9 rounded-lg bg-white/5 border border-white/8 group-hover:border-creo-primary/20 group-hover:bg-creo-primary/10 flex items-center justify-center text-base flex-shrink-0 transition-all">{prompt.icon}</span>
                     <span className="text-xs text-white/55 group-hover:text-white/80 transition-colors leading-snug">{prompt.text}</span>
                   </button>
                 ))}
@@ -998,7 +998,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               </div>
 
               <div className="flex items-center justify-center gap-1">
-                {[{ icon: Sparkles, label: 'Idea', color: 'text-purple-400' }, { icon: Zap, label: 'Titles', color: 'text-pink-400' }, { icon: Flame, label: 'Hook', color: 'text-orange-400' }, { icon: Star, label: 'Script', color: 'text-yellow-400' }].map((s, i) => (
+                {[{ icon: Sparkles, label: 'Idea', color: 'text-creo-primary' }, { icon: Zap, label: 'Titles', color: 'text-creo-accent' }, { icon: Flame, label: 'Hook', color: 'text-orange-400' }, { icon: Star, label: 'Script', color: 'text-yellow-400' }].map((s, i) => (
                   <React.Fragment key={s.label}>
                     <div className="flex flex-col items-center gap-1">
                       <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center"><s.icon size={14} className={s.color} /></div>
@@ -1020,7 +1020,7 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               )}
               {msg.type === 'titles' && (
                 <div className="w-full">
-                  <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Zap size={12} className="text-purple-400" />{msg.content}</p>
+                  <p className="text-white/60 text-sm mb-2 flex items-center gap-1.5"><Zap size={12} className="text-creo-primary" />{msg.content}</p>
                   <TitleCards titles={msg.data as string[]} onSelect={handleTitleSelect} topic={selectedTitle} platform={selectedPlatforms[0]} plan={currentPlan()}
                     onRegenerate={() => handleRegenerate(msg.id)} regenerating={regeneratingId === msg.id} />
                 </div>
@@ -1034,12 +1034,12 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
               )}
               {msg.type === 'clarify' && (
                 <div className="w-full max-w-md creo-surface border-creo-primary/15 rounded-2xl rounded-bl-sm px-4 py-3.5">
-                  <p className="text-white/75 text-sm mb-2.5 flex items-center gap-1.5"><Sparkles size={12} className="text-purple-400 flex-shrink-0" />{msg.content}</p>
+                  <p className="text-white/75 text-sm mb-2.5 flex items-center gap-1.5"><Sparkles size={12} className="text-creo-primary flex-shrink-0" />{msg.content}</p>
                   <div className="flex flex-wrap gap-2">
                     {(msg.data as string[]).map((opt, oi) => (
                       <button key={`${msg.id}-opt-${oi}`} onClick={() => handleSendWithText(opt)}
                         style={{ animationDelay: `${oi * 80}ms`, animationFillMode: 'both' }}
-                        className="px-3.5 py-2 rounded-full bg-white/[0.03] border border-purple-500/20 text-xs font-medium text-white/70 hover:text-white hover:border-purple-500/40 hover:bg-purple-500/10 transition-all animate-slide-up">
+                        className="px-3.5 py-2 rounded-full bg-white/[0.03] border border-creo-primary/20 text-xs font-medium text-creo-text-secondary hover:text-creo-text-primary hover:border-creo-primary/40 hover:bg-creo-primary/10 transition-all animate-slide-up">
                         {opt}
                       </button>
                     ))}
@@ -1093,9 +1093,9 @@ export default function ChatMainArea({ sidebarOpen, onToggleSidebar, activeChatI
       )}
 
       {/* INPUT */}
-      <div className="flex-shrink-0 px-3 md:px-6 py-3 border-t border-white/5 bg-[#080812]/90 backdrop-blur-xl">
+      <div className="flex-shrink-0 px-3 md:px-6 py-3 border-t border-creo-border bg-creo-bg/90 backdrop-blur-xl">
         <div className="flex items-end gap-2 max-w-3xl mx-auto">
-          <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:border-purple-500/40 focus-within:bg-purple-500/5 transition-all">
+          <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:border-creo-primary/40 focus-within:bg-creo-primary/5 transition-all">
             <textarea ref={inputRef} value={inputValue} onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendWithText(); } }}
               placeholder={getPlaceholder()} rows={1}
