@@ -1,9 +1,9 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
 
 @layer base {
   :root {
@@ -14,9 +14,9 @@
     --border: 240 6% 14%;
     --muted: 240 5% 18%;
     --muted-foreground: 240 4% 55%;
-    --primary: 270 90% 65%;
+    --primary: 17 72% 59%;
     --primary-foreground: 0 0% 100%;
-    --accent: 330 85% 60%;
+    --accent: 17 72% 59%;
     --accent-foreground: 0 0% 100%;
     --radius: 0.75rem;
   }
@@ -25,13 +25,10 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    /* ✅ Dark, brand-tinted scrollbars everywhere (Firefox) — replaces the
-       default light/gray OS scrollbar that clashed with the dark UI. */
     scrollbar-width: thin;
-    scrollbar-color: rgba(168, 85, 247, 0.35) transparent;
+    scrollbar-color: rgba(225, 126, 74, 0.35) transparent;
   }
 
-  /* ✅ Same fix for Chrome/Edge/Safari (WebKit) */
   *::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -40,11 +37,11 @@
     background: transparent;
   }
   *::-webkit-scrollbar-thumb {
-    background: rgba(168, 85, 247, 0.32);
+    background: rgba(225, 126, 74, 0.32);
     border-radius: 999px;
   }
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(168, 85, 247, 0.6);
+    background: rgba(225, 126, 74, 0.55);
   }
 
   html {
@@ -52,330 +49,11 @@
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Satoshi', 'Inter', sans-serif;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
-
-  /* ✅ Ambient brand glow on every page — same atmosphere as the ad creative */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 900px 600px at 15% -10%, rgba(124, 58, 237, 0.13), transparent 60%),
-      radial-gradient(ellipse 700px 550px at 95% 110%, rgba(236, 72, 153, 0.09), transparent 60%);
-  }
-
-  /* ✅ Every gradient CTA gets the "shiny button" treatment automatically:
-     a soft neon glow at rest, and a sweep of light across it on hover. */
-  button[class*="bg-gradient"],
-  a[class*="bg-gradient"] {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-    box-shadow: 0 0 22px rgba(168, 85, 247, 0.35), 0 4px 16px rgba(0, 0, 0, 0.3);
-  }
-
-  button[class*="bg-gradient"]::after,
-  a[class*="bg-gradient"]::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -160%;
-    width: 55%;
-    height: 100%;
-    background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-    transform: skewX(-20deg);
-    transition: left 0.65s ease;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  button[class*="bg-gradient"]:hover::after,
-  a[class*="bg-gradient"]:hover::after {
-    left: 160%;
-  }
-
-  button[class*="bg-gradient"]:hover,
-  a[class*="bg-gradient"]:hover {
-    box-shadow: 0 0 36px rgba(168, 85, 247, 0.55), 0 6px 24px rgba(236, 72, 153, 0.3);
-  }
-
-  .font-display {
-    font-family: 'Playfair Display', serif;
-  }
-}
-
-@layer utilities {
-  /* ✅ Bakes the ambient purple/pink glow directly onto the workspace's own
-     background instead of relying on body::before — the workspace renders
-     its own opaque full-screen container, which was completely hiding the
-     global ambient glow behind it. This guarantees the glow is visible here
-     regardless of any inner element's stacking/z-index. */
-  .bg-workspace-glow {
-    background-color: #080812;
-    background-image:
-      radial-gradient(ellipse 900px 650px at 12% -8%, rgba(147, 51, 234, 0.24), transparent 60%),
-      radial-gradient(ellipse 750px 600px at 92% 105%, rgba(236, 72, 153, 0.18), transparent 60%);
-    background-attachment: fixed;
-  }
-
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
-  }
-
-  .glass {
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .glass-strong {
-    background: rgba(255, 255, 255, 0.07);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-  }
-
-  .glow-purple {
-    box-shadow: 0 0 30px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.1);
-  }
-
-  .glow-pink {
-    box-shadow: 0 0 30px rgba(236, 72, 153, 0.3), 0 0 60px rgba(236, 72, 153, 0.1);
-  }
-
-  .glow-button {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), 0 4px 15px rgba(168, 85, 247, 0.2);
-    transition: transform 0.15s ease, box-shadow 0.3s ease;
-  }
-
-  /* ✅ Animation sprint — primary CTAs breathe on hover, compress on press */
-  .glow-button:hover {
-    animation: glowPulse 1.8s ease-in-out infinite;
-  }
-
-  .glow-button:active {
-    transform: scale(0.96);
-  }
-
-  @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), 0 4px 15px rgba(168, 85, 247, 0.2); }
-    50% { box-shadow: 0 0 34px rgba(168, 85, 247, 0.65), 0 6px 26px rgba(236, 72, 153, 0.35); }
-  }
-
-  .text-gradient {
-    color: theme('colors.creo.primary');
-  }
-
-  /* =========================================================
-     ✅ FINAL BRAND RETHEME (checkpoint 2) — architectural studio
-     identity: near-black/graphite surfaces, ONE restrained terracotta
-     accent used sparingly (~2%), no gradients, no purple glow. Same
-     class names as the previous redesign pass — every page consuming
-     them updates automatically, no per-component edits needed.
-     ========================================================= */
-
-  .creo-surface {
-    background: theme('colors.creo.surface');
-    border: 1px solid theme('colors.creo.border');
-  }
-
-  .creo-surface-elevated {
-    background: theme('colors.creo.elevated');
-    border: 1px solid theme('colors.creo.border-strong');
-  }
-
-  /* Primary CTA — flat terracotta fill, restrained shadow. No gradient,
-     no colored glow on hover — just a subtle brightness lift. */
-  .creo-btn-primary {
-    background: theme('colors.creo.primary');
-    box-shadow: 0 1px 2px rgba(0,0,0,0.4);
-    transition: transform 0.12s ease, filter 0.15s ease;
-  }
-  .creo-btn-primary:hover {
-    filter: brightness(1.08);
-  }
-  .creo-btn-primary:active {
-    transform: scale(0.97);
-  }
-
-  /* Accent ring reserved for ONE focal element per screen. */
-  .creo-accent-ring {
-    box-shadow: 0 0 0 1px theme('colors.creo.primary');
-  }
-
-  /* Typography scale matching the redesign spec (48/32/22px headings,
-     16/14/12px body). Use alongside font-sans (already Plus Jakarta Sans). */
-  .creo-h1 { font-size: 3rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; }
-  .creo-h2 { font-size: 2rem; font-weight: 700; letter-spacing: -0.005em; line-height: 1.15; }
-  .creo-h3 { font-size: 1.375rem; font-weight: 600; line-height: 1.3; }
-  .creo-body-lg { font-size: 1rem; font-weight: 400; line-height: 1.5; }
-  .creo-body { font-size: 0.875rem; font-weight: 400; line-height: 1.5; }
-  .creo-caption { font-size: 0.75rem; font-weight: 500; line-height: 1.4; letter-spacing: 0.005em; }
-
-  .text-gradient-gold {
-    background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .bg-gradient-vyro {
-    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-  }
-
-  .border-gradient {
-    border: 1px solid transparent;
-    background: linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
-                linear-gradient(135deg, #a855f7, #ec4899) border-box;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .chat-bubble-user {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.15));
-    border: 1px solid rgba(168, 85, 247, 0.3);
-  }
-
-  .chat-bubble-ai {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-pulse-glow {
-    animation: pulseGlow 2s ease-in-out infinite;
-  }
-
-  .animate-shimmer {
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-12px); }
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(168, 85, 247, 0.2); }
-    50% { box-shadow: 0 0 35px rgba(168, 85, 247, 0.7), 0 0 70px rgba(168, 85, 247, 0.3); }
-  }
-
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  @keyframes typing {
-    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
-    30% { opacity: 1; transform: translateY(-4px); }
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.5s ease forwards;
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.4s ease forwards;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.3s ease forwards;
-  }
-
-  /* ✅ FIX (Aug 2026 animation pass) — these six were referenced across
-     AuthScreen, AnonymousEntryScreen, settings, upgrade, and modals, but
-     never actually defined — the classes existed in JSX with no matching
-     keyframes, so nothing happened. Kept quiet, no bounce, matching the
-     "fluid + quiet + intelligent" redesign direction. */
-  .animate-backdrop-in { animation: backdropIn 0.2s ease-out forwards; }
-  @keyframes backdropIn { from { opacity: 0; } to { opacity: 1; } }
-
-  .animate-modal-in { animation: modalIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  @keyframes modalIn {
-    from { opacity: 0; transform: translateY(8px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  .animate-slide-down { animation: slideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; transform-origin: top; }
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-6px) scaleY(0.98); }
-    to { opacity: 1; transform: translateY(0) scaleY(1); }
-  }
-
-  .animate-pop-in { animation: popIn 0.22s cubic-bezier(0.34, 1.2, 0.64, 1) forwards; }
-  @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
-
-  .animate-burst { animation: burst 0.5s ease-out forwards; }
-  @keyframes burst {
-    0% { opacity: 0; transform: scale(0.7); }
-    60% { opacity: 1; transform: scale(1.05); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-
-  .animate-loader-sweep { animation: loaderSweep 1.3s ease-in-out infinite; }
-  @keyframes loaderSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
-
-  .typing-dot {
-    animation: typing 1.4s ease-in-out infinite;
-  }
-
-  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-}
-
-/* ✅ Animation sprint — accessibility: users who prefer reduced motion get a
-   calm, instant UI. All animations & transitions collapse to imperceptible. */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* ✅ FIX (Aug 2026 accessibility pass) — no focus-visible styling existed
-   anywhere in the app. Keyboard users had no way to see which element was
-   focused on most custom buttons/inputs. Keyboard-only (:focus-visible,
-   not plain :focus), so mouse clicks stay visually clean. */
-:focus-visible {
-  outline: 2px solid theme('colors.creo.primary');
-  outline-offset: 2px;
-  border-radius: 4px;
 }
