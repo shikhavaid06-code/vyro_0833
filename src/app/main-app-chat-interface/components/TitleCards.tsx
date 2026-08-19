@@ -48,18 +48,18 @@ export default function TitleCards({ titles, onSelect, topic = '', platform = ''
   return (
     <div className="w-full max-w-2xl">
       <div className="flex items-center gap-2 mb-3">
-        <Zap size={13} className="text-purple-400" />
-        <span className="text-xs font-semibold text-purple-400 uppercase tracking-[0.1em]">Generated Titles — Click to select</span>
+        <Zap size={13} className="text-creo-primary" />
+        <span className="text-xs font-semibold text-creo-primary uppercase tracking-[0.1em]">Generated Titles — Click to select</span>
       </div>
       <div className="space-y-2">
         {titles.map((title, i) => (
           <div key={`title-${i}`} onClick={() => handleSelect(title, i)}
             style={{ animationDelay: `${i * 90}ms`, animationFillMode: 'both' }}
             className={`group flex items-center justify-between gap-3 rounded-xl px-4 py-3 cursor-pointer border transition-all duration-200 animate-slide-up ${
-              selectedTitle === i ? 'bg-purple-500/15 border-purple-500/40 shadow-lg shadow-purple-500/10' : 'creo-surface border-white/8 hover:border-white/15 hover:bg-white/3'
+              selectedTitle === i ? 'bg-creo-primary/15 border-creo-primary/40 shadow-lg shadow-purple-500/10' : 'creo-surface border-white/8 hover:border-white/15 hover:bg-white/3'
             }`}>
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${selectedTitle === i ? 'border-purple-400 bg-purple-400' : 'border-white/20 group-hover:border-purple-400/50'}`}>
+              <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${selectedTitle === i ? 'border-creo-primary bg-creo-primary' : 'border-creo-border-strong group-hover:border-creo-primary/50'}`}>
                 {selectedTitle === i && <Check size={11} className="text-white" />}
               </div>
               <p className={`text-sm leading-snug ${selectedTitle === i ? 'text-white font-medium' : 'text-creo-text-secondary'}`}>{title}</p>
