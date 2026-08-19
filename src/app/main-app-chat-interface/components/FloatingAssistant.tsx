@@ -102,10 +102,10 @@ export default function FloatingAssistant({ onClose }: { onClose: () => void }) 
   };
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 w-80 sm:w-96 rounded-2xl glass-strong border border-purple-500/20 shadow-2xl shadow-purple-500/10 flex flex-col transition-all duration-300 animate-scale-in ${isMinimized ? 'h-14' : 'h-[480px]'}`}>
+    <div className={`fixed bottom-6 right-6 z-50 w-80 sm:w-96 rounded-2xl creo-surface-elevated border border-creo-primary/20 shadow-2xl shadow-purple-500/10 flex flex-col transition-all duration-300 animate-scale-in ${isMinimized ? 'h-14' : 'h-[480px]'}`}>
       <div className="flex items-center justify-between px-4 h-14 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gradient-vyro flex items-center justify-center animate-pulse-glow">
+          <div className="w-8 h-8 rounded-full creo-btn-primary flex items-center justify-center animate-pulse-glow">
             <Sparkles size={14} className="text-white" />
           </div>
           <div>
@@ -138,7 +138,7 @@ export default function FloatingAssistant({ onClose }: { onClose: () => void }) 
             {messages.map((msg) => (
               <div key={msg.id} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                 {msg.role === 'ai' && (
-                  <div className="w-6 h-6 rounded-full bg-gradient-vyro flex-shrink-0 flex items-center justify-center mt-0.5">
+                  <div className="w-6 h-6 rounded-full creo-btn-primary flex-shrink-0 flex items-center justify-center mt-0.5">
                     <Sparkles size={11} className="text-white" />
                   </div>
                 )}
@@ -152,13 +152,13 @@ export default function FloatingAssistant({ onClose }: { onClose: () => void }) 
 
             {isTyping && (
               <div className="flex gap-2">
-                <div className="w-6 h-6 rounded-full bg-gradient-vyro flex-shrink-0 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full creo-btn-primary flex-shrink-0 flex items-center justify-center">
                   <Sparkles size={11} className="text-white" />
                 </div>
                 <div className="chat-bubble-ai rounded-xl rounded-tl-sm px-3 py-2 flex items-center gap-1">
-                  <span className="typing-dot w-1.5 h-1.5 rounded-full bg-purple-400" />
-                  <span className="typing-dot w-1.5 h-1.5 rounded-full bg-purple-400" />
-                  <span className="typing-dot w-1.5 h-1.5 rounded-full bg-purple-400" />
+                  <span className="typing-dot w-1.5 h-1.5 rounded-full bg-creo-primary" />
+                  <span className="typing-dot w-1.5 h-1.5 rounded-full bg-creo-primary" />
+                  <span className="typing-dot w-1.5 h-1.5 rounded-full bg-creo-primary" />
                 </div>
               </div>
             )}
@@ -170,7 +170,7 @@ export default function FloatingAssistant({ onClose }: { onClose: () => void }) 
               <button
                 key={`qc-${qc.label}`}
                 onClick={() => handleSend(qc.cmd)}
-                className="px-2.5 py-1 rounded-full glass border border-white/8 text-[11px] text-white/40 hover:text-white/65 hover:border-purple-500/30 transition-all duration-200"
+                className="px-2.5 py-1 rounded-full creo-surface border border-white/8 text-[11px] text-white/40 hover:text-white/65 hover:border-creo-primary/30 transition-all duration-200"
               >
                 {qc.label}
               </button>
@@ -178,7 +178,7 @@ export default function FloatingAssistant({ onClose }: { onClose: () => void }) 
           </div>
 
           <div className="px-4 pb-4 flex-shrink-0">
-            <div className="flex gap-2 glass rounded-xl border border-white/8 focus-within:border-purple-500/40 transition-all duration-200">
+            <div className="flex gap-2 creo-surface rounded-xl border border-white/8 focus-within:border-creo-primary/40 transition-all duration-200">
               <input
                 type="text"
                 value={input}
@@ -190,7 +190,7 @@ export default function FloatingAssistant({ onClose }: { onClose: () => void }) 
               <button
                 onClick={() => handleSend()}
                 disabled={!input.trim() || isTyping}
-                className="w-8 h-8 m-1 rounded-lg bg-gradient-vyro flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-30 disabled:scale-100 flex-shrink-0"
+                className="w-8 h-8 m-1 rounded-lg creo-btn-primary flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-30 disabled:scale-100 flex-shrink-0"
               >
                 <Send size={13} />
               </button>
