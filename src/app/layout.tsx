@@ -54,8 +54,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             },
           }}
         />
-        {/* Compatibility layer while legacy purple utility classes are removed component-by-component.
-            This is visual only: it does not change data, auth, API, or database behavior. */}
+        {/*
+          CRÉO visual compatibility layer.
+          Legacy purple utilities remain in a few large components; this keeps
+          the whole product on the architectural terracotta/graphite system
+          without rewriting the 68KB ChatMainArea just for color tokens.
+          Visual only: no data, auth, API, payment, or database behavior changes.
+        */}
         <style dangerouslySetInnerHTML={{ __html: `
           :root { --creo-primary: #E17E4A; }
           body { background: #0B0C0E !important; }
@@ -64,6 +69,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               radial-gradient(ellipse 700px 450px at 10% -10%, rgba(225,126,74,.055), transparent 62%),
               radial-gradient(ellipse 600px 500px at 95% 110%, rgba(225,126,74,.035), transparent 62%) !important;
           }
+
+          /* Legacy utility aliases → CRÉO terracotta */
           [class*="bg-purple-"], [class*="bg-violet-"], [class*="bg-fuchsia-"], [class*="bg-pink-"] {
             background-color: #E17E4A !important;
           }
@@ -79,8 +86,25 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             --tw-gradient-to: #E17E4A !important;
           }
           [class*="bg-gradient-"] { background-image: none !important; }
-          [class*="shadow-purple-"], [class*="shadow-pink-"] { box-shadow: 0 1px 2px rgba(0,0,0,.4) !important; }
+          [class*="shadow-purple-"], [class*="shadow-pink-"], [class*="shadow-fuchsia-"] {
+            box-shadow: 0 1px 2px rgba(0,0,0,.4) !important;
+          }
           .glow-purple, .glow-pink, .glow-button { box-shadow: 0 1px 2px rgba(0,0,0,.4) !important; }
+
+          /* Literal legacy colors inside the large core workspace */
+          body [style*="#0d0d1f"], body [style*="#0D0D1F"] {
+            background-color: #0B0C0E !important;
+          }
+          body [style*="217,70,239"], body [style*="217, 70, 239"] {
+            border-color: rgba(225,126,74,.35) !important;
+          }
+          body svg path[stroke*="217,70,239"], body svg path[stroke*="217, 70, 239"] {
+            stroke: rgba(225,126,74,.45) !important;
+          }
+          body svg circle[fill*="217,70,239"], body svg circle[fill*="217, 70, 239"] {
+            fill: rgba(225,126,74,.7) !important;
+          }
+
           * { scrollbar-color: rgba(225,126,74,.35) transparent; }
           *::-webkit-scrollbar-thumb { background: rgba(225,126,74,.32); }
           *::-webkit-scrollbar-thumb:hover { background: rgba(225,126,74,.55); }
