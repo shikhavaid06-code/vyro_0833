@@ -31,8 +31,9 @@ module.exports = {
           surface3: '#1e2124',     // third depth level (nested cards)
           border: '#2a2d31',
           'border-strong': 'rgba(255,255,255,0.16)',
-          primary: '#e17e4a',      // terracotta/coral — the ONE accent, ~2% usage
-          accent: '#e17e4a',       // kept as an alias so existing accent-usage call sites don't need touching
+          primary: '#ad6f52',      // muted clay terracotta — architectural material, not saturated SaaS-orange (4.82:1 on bg — passes AA)
+          'primary-btn': '#6e4230', // deep burnt-clay for FILLED buttons — muted, architectural, passes WCAG comfortably (8.45:1)
+          accent: '#ad6f52',       // kept as an alias so existing accent-usage call sites don't need touching
           success: '#3fa66b',
           warning: '#d9a441',
           danger: '#c65b4a',
