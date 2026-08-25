@@ -13,12 +13,7 @@ module.exports = {
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
-        vyro: {
-          purple: '#a855f7',
-          pink: '#ec4899',
-          bg: '#080812',
-          card: '#0a0a18',
-        },
+        
         // ✅ FINAL BRAND RETHEME (checkpoint 2) — "high-end architectural
         // creative studio" identity, replacing the violet/magenta system.
         // Hex values are a best-effort read of the reference swatch image
@@ -43,8 +38,7 @@ module.exports = {
         },
       },
       backgroundImage: {
-        'gradient-vyro': 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-        'gradient-vyro-subtle': 'linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(236,72,153,0.15) 100%)',
+       
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
@@ -54,7 +48,6 @@ module.exports = {
         'pop-in': 'popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both',
         'burst': 'burst 0.5s ease-out forwards',
         'loader-sweep': 'loaderSweep 1.2s ease-in-out infinite',
-        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
         'shimmer': 'shimmer 2s infinite',
         'slide-up': 'slideUp 0.5s ease forwards',
         'fade-in': 'fadeIn 0.4s ease forwards',
@@ -89,10 +82,7 @@ module.exports = {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-12px)' },
         },
-        pulseGlow: {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(168, 85, 247, 0.2)' },
-          '50%': { boxShadow: '0 0 35px rgba(168, 85, 247, 0.7), 0 0 70px rgba(168, 85, 247, 0.3)' },
-        },
+        
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
@@ -111,8 +101,7 @@ module.exports = {
         },
       },
       boxShadow: {
-        'glow-purple': '0 0 30px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.1)',
-        'glow-pink': '0 0 30px rgba(236, 72, 153, 0.3), 0 0 60px rgba(236, 72, 153, 0.1)',
+       
       },
     },
   },
