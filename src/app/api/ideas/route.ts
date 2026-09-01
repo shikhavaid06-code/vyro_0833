@@ -57,8 +57,4 @@ export async function DELETE(req: NextRequest) {
 
     const { error } = await supabase.from('ideas').delete().eq('id', id).eq('user_id', user.id);
     if (error) throw error;
-    return NextResponse.json({ success: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'Failed to delete idea' }, { status: 500 });
-  }
-}
+    return NextResponse.json({
